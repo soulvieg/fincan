@@ -1,7 +1,7 @@
 # fincan
 
 ## Directory Structure
-
+```
 /fincan
 │── /backend               # Node.js backend
 │   ├── /controllers       # Handles API requests (business logic)
@@ -39,3 +39,4 @@
 │
 │── .gitignore             # Excludes unnecessary files
 │── README.md              # Root project documentation
+```
