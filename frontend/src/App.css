@@ -4,5 +4,6 @@ body {
 .brand-logo {
     font-family: the-seasons, sans-serif;
     font-style: normal;
+    font-size: 26px;
     font-weight: 300;
 }

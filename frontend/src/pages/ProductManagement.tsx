@@ -1,6 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { Container, Row, Col, Table, Form, Button, Card } from 'react-bootstrap';
+import React, { useState } from 'react';
+import { Container, Card, Button, Table } from 'react-bootstrap';
 import ProductInventoryItem from '../components/ProductInventoryItem';
+import { FaBoxOpen } from "react-icons/fa";
+import { TbTruckDelivery } from "react-icons/tb";
+import { VscCommentDiscussion } from "react-icons/vsc";
+
 
 interface Product {
     id: number;
@@ -17,18 +21,19 @@ interface Product {
     image?: string;
 }
 
+// Mock data for the page
 const mockProducts: Product[] = [
     {
         id: 1,
         name: "Coffee",
         model: "Guatemala",
         serialNumber: "SN7834562",
-        description: "Latest smartwatch with health tracking and notifications",
+        description: "Premium coffee beans with rich aroma",
         quantity: 45,
         price: 199.99,
         warranty: "1 year",
         distributor: "Coffee Inc.",
-        category: "Coffee",
+        category: "Premium Beans",
         cost: 150.00
     },
     {
@@ -36,161 +41,250 @@ const mockProducts: Product[] = [
         name: "Coffee",
         model: "Arabica",
         serialNumber: "SN9856321",
-        description: "Noise cancelling wireless headphones",
-        quantity: 30,
-        price: 149.99,
-        warranty: "2 years",
+        description: "Premium coffee beans with rich aroma",
+        quantity: 5,
+        price: 24.99,
+        warranty: "6 months",
         distributor: "Coffee Inc.",
-        category: "Coffee",
-        cost: 125.00
+        category: "Regular Beans",
+        cost: 12.50
+    },
+    {
+        id: 3,
+        name: "Coffee Maker",
+        model: "Pro Brewer",
+        serialNumber: "SN3456789",
+        description: "Professional coffee brewing machine",
+        quantity: 0,
+        price: 349.99,
+        warranty: "2 years",
+        distributor: "Coffee Equipment Co.",
+        category: "Equipment",
+        cost: 200.00
+    },
+    {
+        id: 4,
+        name: "Coffee",
+        model: "Bolivia",
+        serialNumber: "SN9856324",
+        description: "Premium coffee beans with rich aroma",
+        quantity: 5,
+        price: 24.99,
+        warranty: "6 months",
+        distributor: "Coffee Inc.",
+        category: "Regular Beans",
+        cost: 12.50
     }
 ];
 
-const mockCategories: string[] = ["Coffee Beans", "Coffee Machines", "Tea Bags", "Accessories"];
+// Mock data for deliveries and comments
+const mockDeliveries = [
+    {
+        id: 1001,
+        customer: "John Doe",
+        products: "Coffee - Guatemala (2)",
+        status: "Processing",
+        address: "123 Main St, Anytown"
+    },
+    {
+        id: 1002,
+        customer: "Jane Smith",
+        products: "Coffee - Arabica (1)",
+        status: "In-Transit",
+        address: "456 Oak Ave, Somewhere"
+    }
+];
+
+const mockComments = [
+    {
+        id: 1,
+        product: "Coffee - Guatemala",
+        user: "Jane Smith",
+        comment: "Great taste and quality!",
+        rating: 4.5,
+        status: "Pending"
+    },
+    {
+        id: 2,
+        product: "Coffee - Arabica",
+        user: "Mike Johnson",
+        comment: "Excellent aroma, would buy again.",
+        rating: 5,
+        status: "Pending"
+    }
+];
 
 const ProductManagement: React.FC = () => {
-    // State for products data
-    const [products, setProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState<boolean>(true);
-    const [searchTerm, setSearchTerm] = useState<string>('');
-    const [categoryFilter, setCategoryFilter] = useState<string>('All');
-    const [stockFilter, setStockFilter] = useState<string>('All');
+    const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
+    const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
+    const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
 
-    useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            setProducts(mockProducts);
-            setLoading(false);
-        }, 500);
-    }, []);
+    const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [showEditModal, setShowEditModal] = useState<boolean>(false);
 
+    // Function to handle scrolling to sections
+    const scrollToSection = (element: HTMLDivElement | null) => {
+        if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+        }
+    };
+
+    // Handler for editing a product
     const handleEditProduct = (product: Product) => {
-        // Handle edit functionality
-        console.log('Editing product:', product);
-        // Here you would typically open a modal or navigate to an edit page
+        setSelectedProduct(product);
+        setShowEditModal(true);
+        console.log('Edit product:', product);
     };
 
+    // Handler for deleting a product
     const handleDeleteProduct = (productId: number) => {
-        // Handle delete functionality
-        console.log('Deleting product ID:', productId);
-        setProducts(products.filter(product => product.id !== productId));
+        setProducts(products.filter(p => p.id !== productId));
+        console.log('Delete product with ID:', productId);
     };
-
-    const handleAddProduct = () => {
-        // Handle add product functionality
-        console.log('Adding new product');
-        // Here you would typically open a modal or navigate to an add product page
-    };
-
-    // Filter products based on search, category, and stock status
-    const filteredProducts = products.filter(product => {
-        const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            product.model.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesCategory = categoryFilter === 'All' || product.category === categoryFilter;
-
-        const matchesStock = stockFilter === 'All' ||
-            (stockFilter === 'In Stock' && product.quantity > 0) ||
-            (stockFilter === 'Out of Stock' && product.quantity === 0);
-
-        return matchesSearch && matchesCategory && matchesStock;
-    });
 
     return (
-        <Container fluid className="py-4" style={{ backgroundColor: '#f8f9fa' }}>
-            <Row className="mb-4">
-                <Col>
-                    <h1>Product Management</h1>
-                </Col>
-                <Col xs="auto" className="d-flex align-items-center">
-                    <Button variant="primary" onClick={handleAddProduct}>
-                        Add New Product
-                    </Button>
-                </Col>
-            </Row>
-
-            {loading ? (
-                <div className="text-center p-5">
-                    <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+        <Container>
+            <Card className="mb-4 border-0" style={{ backgroundColor: '#e8dace' }}>
+                <Card.Body>
+                    <Card.Text style={{ fontSize: '30px', textAlign: 'center',marginTop:'40px', marginBottom: '60px' }}>
+                        What would you like to do?
+                    </Card.Text>
+                    {/* Navigation Buttons */}
+                    <div className="d-flex gap-4 mt-3 justify-content-center" style={{ marginBottom: '240px' }}>
+                        <Button
+                            variant="primary"
+                            onClick={() => scrollToSection(stocksElement)}
+                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                                <FaBoxOpen style={{ fontSize: '100px' }} />
+                            </div>
+                            Manage Stocks
+                        </Button>
+                        <Button
+                            variant="outline-primary"
+                            onClick={() => scrollToSection(deliveriesElement)}
+                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                                <TbTruckDelivery style={{ fontSize: '100px' }} />
+                            </div>
+                            View Deliveries
+                        </Button>
+                        <Button
+                            variant="primary"
+                            onClick={() => scrollToSection(commentsElement)}
+                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                        >
+                            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
+                                <VscCommentDiscussion style={{ fontSize: '100px' }} />
+                            </div>
+                            Manage Comments
+                        </Button>
                     </div>
-                    <p className="mt-2">Loading inventory data...</p>
-                </div>
-            ) : (
-                <>
-                    <Card className="mb-4">
-                        <Card.Body>
-                            <Row>
-                                <Col md={4}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Control
-                                            type="text"
-                                            placeholder="Search products..."
-                                            value={searchTerm}
-                                            onChange={(e) => setSearchTerm(e.target.value)}
-                                        />
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Select
-                                            value={categoryFilter}
-                                            onChange={(e) => setCategoryFilter(e.target.value)}
-                                        >
-                                            <option value="All">All Categories</option>
-                                            {mockCategories.map(category => (
-                                                <option key={category} value={category}>{category}</option>
-                                            ))}
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                                <Col md={3}>
-                                    <Form.Group className="mb-3">
-                                        <Form.Select
-                                            value={stockFilter}
-                                            onChange={(e) => setStockFilter(e.target.value)}
-                                        >
-                                            <option value="All">All Stock Status</option>
-                                            <option value="In Stock">In Stock</option>
-                                            <option value="Out of Stock">Out of Stock</option>
-                                        </Form.Select>
-                                    </Form.Group>
-                                </Col>
-                            </Row>
-                        </Card.Body>
-                    </Card>
+                </Card.Body>
+            </Card>
 
-                    <Table responsive striped hover>
-                        <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Model</th>
-                            <th>Category</th>
-                            <th>Stock</th>
-                            <th>Price</th>
-                            <th></th>
-                        </tr>
-                        </thead>
-                        <tbody>
-                        {filteredProducts.map(product => (
-                            <ProductInventoryItem
-                                key={product.id}
-                                product={product}
-                                onEdit={handleEditProduct}
-                                onDelete={handleDeleteProduct}
-                            />
-                        ))}
-                        </tbody>
-                    </Table>
+            {/* Stocks Section */}
+            <div ref={setStocksElement} className="mb-5">
+                <Card>
+                    <Card.Header as="h5">Product Inventory</Card.Header>
+                    <Card.Body>
+                        <Table striped bordered hover>
+                            <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Model</th>
+                                <th>Category</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {products.map(product => (
+                                <ProductInventoryItem
+                                    key={product.id}
+                                    product={product}
+                                    onEdit={handleEditProduct}
+                                    onDelete={handleDeleteProduct}
+                                />
+                            ))}
+                            </tbody>
+                        </Table>
+                        <Button variant="success">Add New Product</Button>
+                    </Card.Body>
+                </Card>
+            </div>
 
-                    {filteredProducts.length === 0 && (
-                        <div className="text-center p-5">
-                            <p>No products match your search criteria.</p>
-                        </div>
-                    )}
-                </>
-            )}
+            {/* Deliveries Section */}
+            <div ref={setDeliveriesElement} className="mb-5">
+                <Card>
+                    <Card.Header as="h5">Deliveries Management</Card.Header>
+                    <Card.Body>
+                        <Table striped bordered hover>
+                            <thead>
+                            <tr>
+                                <th>Order ID</th>
+                                <th>Customer</th>
+                                <th>Products</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {mockDeliveries.map(delivery => (
+                                <tr key={delivery.id}>
+                                    <td>{delivery.id}</td>
+                                    <td>{delivery.customer}</td>
+                                    <td>{delivery.products}</td>
+                                    <td>{delivery.status}</td>
+                                    <td>
+                                        <Button variant="primary" size="sm">Update Status</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+                    </Card.Body>
+                </Card>
+            </div>
+
+            {/* Comments Section */}
+            <div ref={setCommentsElement} className="mb-5">
+                <Card>
+                    <Card.Header as="h5">Comments Approval</Card.Header>
+                    <Card.Body>
+                        <Table striped bordered hover>
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>User</th>
+                                <th>Comment</th>
+                                <th>Rating</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {mockComments.map(comment => (
+                                <tr key={comment.id}>
+                                    <td>{comment.product}</td>
+                                    <td>{comment.user}</td>
+                                    <td>{comment.comment}</td>
+                                    <td>{comment.rating}/5</td>
+                                    <td>
+                                        <Button variant="success" size="sm" className="me-2">Approve</Button>
+                                        <Button variant="danger" size="sm">Reject</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+                    </Card.Body>
+                </Card>
+            </div>
         </Container>
     );
 };

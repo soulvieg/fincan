@@ -1,5 +1,6 @@
 import React from 'react';
 import { Badge, Button } from 'react-bootstrap';
+import { Pencil, Trash } from 'react-bootstrap-icons';
 
 interface Product {
     id: number;
@@ -45,9 +46,9 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
             <td>{product.category}</td>
             <td>
                 {product.quantity === 0 ? (
-                    <Badge bg="danger">Out of Stock</Badge>
+                    <Badge bg="danger">Out of Stock!</Badge>
                 ) : product.quantity < 10 ? (
-                    <Badge bg="warning" text="dark">{product.quantity} - Low Stock</Badge>
+                    <Badge bg="warning" text="dark">Low Stock({product.quantity})</Badge>
                 ) : (
                     product.quantity
                 )}
@@ -55,19 +56,21 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
             <td>${product.price.toFixed(2)}</td>
             <td>
                 <Button
-                    variant="outline-primary"
+                    variant="warning"
                     size="sm"
                     className="me-2"
                     onClick={handleEdit}
+                    aria-label="Edit product"
                 >
-                    Edit
+                    <Pencil size={18}/>
                 </Button>
                 <Button
-                    variant="outline-danger"
+                    variant="danger"
                     size="sm"
                     onClick={handleDelete}
+                    aria-label="Delete product"
                 >
-                    Delete
+                    <Trash size={18}/>
                 </Button>
             </td>
         </tr>
