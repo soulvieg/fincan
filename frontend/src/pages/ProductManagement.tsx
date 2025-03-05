@@ -313,19 +313,6 @@ const ProductManagement: React.FC = () => {
                     </Card.Body>
                 </Card>
             </div>
-
-            {/* Here you would add Modals for edit/add product/category */}
-            {/* Example:
-            <EditProductModal
-                show={showEditModal}
-                product={selectedProduct}
-                onHide={() => setShowEditModal(false)}
-                onSave={updatedProduct => {
-                    // Logic to update product
-                    setShowEditModal(false);
-                }}
-            />
-            */}
         </Container>
     );
 };

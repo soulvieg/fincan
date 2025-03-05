@@ -1,6 +1,7 @@
 import React from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
 import ProductInventoryItem from './ProductInventoryItem';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
     id: number;
@@ -32,15 +33,35 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                                                                          onAddProduct,
                                                                          onAddCategory
                                                                      }) => {
+    const navigate = useNavigate();
+
+    const handleAddProductClick = () => {
+        // You can keep this if you still want to call the original function
+        // onAddProduct();
+
+        // Navigate to the AddingProduct page
+        navigate('/adding-product');
+    };
+
     return (
         <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
             <div className="d-flex align-items-end mb-1 mt-2 justify-content-between">
                 <Card.Header as="h4" style={{borderBottom: 'none', backgroundColor: 'transparent'}}>Product Inventory</Card.Header>
                 <div>
-                    <Button variant="outline-success" style={{ fontSize: '15px', padding: '5px 10px' }} size='sm' className="me-2 add-button" onClick={onAddProduct}>
+                    <Button
+                        variant="outline-success"
+                        style={{ fontSize: '15px', padding: '5px 10px' }}
+                        size='sm'
+                        className="me-2 add-button"
+                        onClick={handleAddProductClick}>
                         Add New Product
                     </Button>
-                    <Button variant="outline-dark" style={{ fontSize: '15px', padding: '5px 10px' }} size="sm" className="me-3 add-button" onClick={onAddCategory}>
+                    <Button
+                        variant="outline-dark"
+                        style={{ fontSize: '15px', padding: '5px 10px' }}
+                        size="sm"
+                        className="me-3 add-button"
+                        onClick={onAddCategory}>
                         Add New Category
                     </Button>
                 </div>
