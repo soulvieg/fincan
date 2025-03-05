@@ -1,6 +1,8 @@
 import React from 'react';
-import { Badge, Button } from 'react-bootstrap';
-import { Pencil, Trash } from 'react-bootstrap-icons';
+import { Button } from 'react-bootstrap';
+import { IoTrashOutline } from "react-icons/io5";
+import { MdOutlineModeEdit } from "react-icons/md";
+
 
 interface Product {
     id: number;
@@ -10,7 +12,7 @@ interface Product {
     description: string;
     quantity: number;
     price: number;
-    warranty: string;
+    warrantyStatus: string;
     distributor: string;
     category: string;
     cost: number;
@@ -23,73 +25,34 @@ interface ProductInventoryItemProps {
     onDelete: (productId: number) => void;
 }
 
-const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
-                                                                       product,
-                                                                       onEdit,
-                                                                       onDelete
-                                                                   }) => {
-    const handleEdit = () => {
-        onEdit(product);
-    };
-
-    const handleDelete = () => {
-        if (window.confirm(`Are you sure you want to delete ${product.name} (${product.model})?`)) {
-            onDelete(product.id);
-        }
-    };
-
-    // Inline styles for immediate effect
-    const rowStyle = {
-        backgroundColor: product.id % 2 === 0 ? '#fff0e2' : '#ffffff'
-    };
-
-    const actionContainerStyle = {
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center'
-    };
-
-    const buttonStyle = {
-        margin: '0 3px'
+const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({ product, onEdit, onDelete }) => {
+    const getQuantityStyle = (quantity: number) => {
+        return quantity <= 5 ? { color: 'red', fontWeight: 'bold' } : {};
     };
 
     return (
-        <tr style={rowStyle}>
-            <td>{product.id}</td>
-            <td>{product.name}</td>
-            <td>{product.model}</td>
-            <td>{product.category}</td>
-            <td>
-                {product.quantity === 0 ? (
-                    <Badge bg="danger">Out of Stock!</Badge>
-                ) : product.quantity < 10 ? (
-                    <Badge bg="warning" text="dark">Low Stock({product.quantity})</Badge>
-                ) : (
-                    product.quantity
-                )}
+        <tr className="rounded-row" style={{ backgroundColor: '#f9f9f9' }}>
+            <td className="text-center align-middle">{product.id}</td>
+            <td className="text-center align-middle">{product.name}</td>
+            <td className="text-center align-middle">{product.model}</td>
+            <td className="text-center align-middle">{product.description}</td>
+            <td className="text-center align-middle">{product.category}</td>
+            <td className="text-center align-middle">{product.serialNumber}</td>
+            <td className="text-center align-middle">{product.warrantyStatus}</td>
+            <td className="text-center align-middle">{product.distributor}</td>
+            <td className="text-center align-middle">${product.price.toFixed(2)}</td>
+            <td className="text-center align-middle" style={getQuantityStyle(product.quantity)}>
+                {product.quantity === 0 ? 'Out of stock' : product.quantity}
             </td>
-            <td>${product.price.toFixed(2)}</td>
-            <td>
-                <div style={actionContainerStyle}>
-                    <Button
-                        variant="warning"
-                        size="sm"
-                        style={buttonStyle}
-                        onClick={handleEdit}
-                        aria-label="Edit product"
-                    >
-                        <Pencil size={18}/>
-                    </Button>
-                    <Button
-                        variant="danger"
-                        size="sm"
-                        style={buttonStyle}
-                        onClick={handleDelete}
-                        aria-label="Delete product"
-                    >
-                        <Trash size={18}/>
-                    </Button>
-                </div>
+            <td className="text-center align-middle">
+                <Button variant="outline-warning" size="sm" onClick={() => onEdit(product)}>
+                    <MdOutlineModeEdit size={24}/>
+                </Button>
+            </td>
+            <td className="text-center align-middle">
+                <Button variant="outline-danger" size="sm" onClick={() => onDelete(product.id)}>
+                    <IoTrashOutline size={24}/>
+                </Button>
             </td>
         </tr>
     );

@@ -11,6 +11,58 @@ body {
     border: 1px solid #000;
     border-radius: 18px;
 }
+.rounded-rows {
+    border-radius: 18px;
+}
 .departments-custom-outline {
     border-width: 2px;
+}
+.add-button {
+    border: 1.2px solid #000;
+    border-radius: 38px;
+}
+
+
+/* Custom styles for the inventory table */
+.custom-table tr.rounded-row td:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.custom-table tr.rounded-row td:last-child {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.custom-table tr.rounded-row td {
+    border: 1.2px solid #000;
+    border-right: 0;
+}
+
+.custom-table tr.rounded-row td:last-child {
+    border-right: 1px solid #000;
+}
+
+.custom-table tr.rounded-row {
+    margin-bottom: 10px;
+}
+
+.custom-table tr.header-row th:first-child {
+    border-top-left-radius: 14px;
+    border-bottom-left-radius: 14px;
+}
+
+.custom-table tr.header-row th:last-child {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.custom-table tr.header-row th {
+    border: 1.5px solid #000;
+    border-right: 0;
+    background-color: #f0f0f0;
+}
+
+.custom-table tr.header-row th:last-child {
+    border-right: 1.5px solid #000;
 }

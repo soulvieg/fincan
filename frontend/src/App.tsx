@@ -1,10 +1,10 @@
 import React from 'react';
-import { Routes, Route, Link, Navigate, useLocation } from 'react-router-dom';
+import { Routes, Route, Link, Navigate} from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProductManagement from './pages/ProductManagement';
 import SalesManagement from './pages/SalesManagement';
-import NavBar from './components/NavBar'; // Adjust the path as needed
+import NavBar from './components/NavBar';
 import { SiBuymeacoffee } from "react-icons/si";
 
 const MainStore: React.FC = () => (

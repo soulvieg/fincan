@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { Container, Card, Button, Table } from 'react-bootstrap';
-import ProductInventoryItem from '../components/ProductInventoryItem';
+import ProductInventoryTable from '../components/ProductInventoryTable';
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
-
 
 interface Product {
     id: number;
@@ -14,7 +13,7 @@ interface Product {
     description: string;
     quantity: number;
     price: number;
-    warranty: string;
+    warrantyStatus: string;
     distributor: string;
     category: string;
     cost: number;
@@ -31,7 +30,7 @@ const mockProducts: Product[] = [
         description: "Premium coffee beans with rich aroma",
         quantity: 45,
         price: 199.99,
-        warranty: "1 year",
+        warrantyStatus: "1 year",
         distributor: "Coffee Inc.",
         category: "Premium Beans",
         cost: 150.00
@@ -44,7 +43,7 @@ const mockProducts: Product[] = [
         description: "Premium coffee beans with rich aroma",
         quantity: 5,
         price: 24.99,
-        warranty: "6 months",
+        warrantyStatus: "6 months",
         distributor: "Coffee Inc.",
         category: "Regular Beans",
         cost: 12.50
@@ -57,7 +56,7 @@ const mockProducts: Product[] = [
         description: "Professional coffee brewing machine",
         quantity: 0,
         price: 349.99,
-        warranty: "2 years",
+        warrantyStatus: "2 years",
         distributor: "Coffee Equipment Co.",
         category: "Equipment",
         cost: 200.00
@@ -70,7 +69,7 @@ const mockProducts: Product[] = [
         description: "Premium coffee beans with rich aroma",
         quantity: 5,
         price: 24.99,
-        warranty: "6 months",
+        warrantyStatus: "6 months",
         distributor: "Coffee Inc.",
         category: "Regular Beans",
         cost: 12.50
@@ -122,6 +121,8 @@ const ProductManagement: React.FC = () => {
     const [products, setProducts] = useState<Product[]>(mockProducts);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
+    const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
+    const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
 
     // Function to handle scrolling to sections
     const scrollToSection = (element: HTMLDivElement | null) => {
@@ -143,11 +144,40 @@ const ProductManagement: React.FC = () => {
         console.log('Delete product with ID:', productId);
     };
 
+    // Handler for adding a new product
+    const handleAddProduct = () => {
+        setShowAddProductModal(true);
+        console.log('Opening add product modal');
+    };
+
+    // Handler for adding a new category
+    const handleAddCategory = () => {
+        setShowAddCategoryModal(true);
+        console.log('Opening add category modal');
+    };
+
+    // Handlers for updating delivery status
+    const handleUpdateDeliveryStatus = (deliveryId: number) => {
+        console.log('Update status for delivery ID:', deliveryId);
+        // Implement status update logic here
+    };
+
+    // Handlers for comment approval/rejection
+    const handleApproveComment = (commentId: number) => {
+        console.log('Approve comment ID:', commentId);
+        // Implement comment approval logic here
+    };
+
+    const handleRejectComment = (commentId: number) => {
+        console.log('Reject comment ID:', commentId);
+        // Implement comment rejection logic here
+    };
+
     return (
         <Container>
             <Card className="mb-4 border-0" style={{ backgroundColor: '#e8dace' }}>
                 <Card.Body>
-                    <Card.Text style={{ fontSize: '30px', textAlign: 'center',marginTop:'40px', marginBottom: '60px' }}>
+                    <Card.Text style={{ fontSize: '30px', textAlign: 'center', marginTop: '40px', marginBottom: '60px' }}>
                         What would you like to do?
                     </Card.Text>
                     {/* Navigation Buttons */}
@@ -186,38 +216,14 @@ const ProductManagement: React.FC = () => {
                 </Card.Body>
             </Card>
 
-            {/* Stocks Section */}
             <div ref={setStocksElement} className="mb-5">
-                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
-                    <Card.Header as="h4">Product Inventory</Card.Header>
-                    <Card.Body>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>Model</th>
-                                <th>Category</th>
-                                <th>Quantity</th>
-                                <th>Price</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {products.map(product => (
-                                <ProductInventoryItem
-                                    key={product.id}
-                                    product={product}
-                                    onEdit={handleEditProduct}
-                                    onDelete={handleDeleteProduct}
-                                />
-                            ))}
-                            </tbody>
-                        </Table>
-                        <Button variant="outline-success" className="me-3">Add Product</Button>
-                        <Button variant="outline-primary">Add New Category</Button>
-                    </Card.Body>
-                </Card>
+                <ProductInventoryTable
+                    products={products}
+                    onEdit={handleEditProduct}
+                    onDelete={handleDeleteProduct}
+                    onAddProduct={handleAddProduct}
+                    onAddCategory={handleAddCategory}
+                />
             </div>
 
             {/* Deliveries Section */}
@@ -232,6 +238,7 @@ const ProductManagement: React.FC = () => {
                                 <th>Customer</th>
                                 <th>Products</th>
                                 <th>Status</th>
+                                <th>Address</th>
                                 <th>Actions</th>
                             </tr>
                             </thead>
@@ -242,8 +249,15 @@ const ProductManagement: React.FC = () => {
                                     <td>{delivery.customer}</td>
                                     <td>{delivery.products}</td>
                                     <td>{delivery.status}</td>
+                                    <td>{delivery.address}</td>
                                     <td>
-                                        <Button variant="primary" size="sm">Update Status</Button>
+                                        <Button
+                                            variant="primary"
+                                            size="sm"
+                                            onClick={() => handleUpdateDeliveryStatus(delivery.id)}
+                                        >
+                                            Update Status
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -276,8 +290,21 @@ const ProductManagement: React.FC = () => {
                                     <td>{comment.comment}</td>
                                     <td>{comment.rating}/5</td>
                                     <td>
-                                        <Button variant="success" size="sm" className="me-2">Approve</Button>
-                                        <Button variant="danger" size="sm">Reject</Button>
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            className="me-2"
+                                            onClick={() => handleApproveComment(comment.id)}
+                                        >
+                                            Approve
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => handleRejectComment(comment.id)}
+                                        >
+                                            Reject
+                                        </Button>
                                     </td>
                                 </tr>
                             ))}
@@ -286,6 +313,19 @@ const ProductManagement: React.FC = () => {
                     </Card.Body>
                 </Card>
             </div>
+
+            {/* Here you would add Modals for edit/add product/category */}
+            {/* Example:
+            <EditProductModal
+                show={showEditModal}
+                product={selectedProduct}
+                onHide={() => setShowEditModal(false)}
+                onSave={updatedProduct => {
+                    // Logic to update product
+                    setShowEditModal(false);
+                }}
+            />
+            */}
         </Container>
     );
 };
