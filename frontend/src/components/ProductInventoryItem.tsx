@@ -38,8 +38,23 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
         }
     };
 
+    // Inline styles for immediate effect
+    const rowStyle = {
+        backgroundColor: product.id % 2 === 0 ? '#fff0e2' : '#ffffff'
+    };
+
+    const actionContainerStyle = {
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center'
+    };
+
+    const buttonStyle = {
+        margin: '0 3px'
+    };
+
     return (
-        <tr>
+        <tr style={rowStyle}>
             <td>{product.id}</td>
             <td>{product.name}</td>
             <td>{product.model}</td>
@@ -55,23 +70,26 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
             </td>
             <td>${product.price.toFixed(2)}</td>
             <td>
-                <Button
-                    variant="warning"
-                    size="sm"
-                    className="me-2"
-                    onClick={handleEdit}
-                    aria-label="Edit product"
-                >
-                    <Pencil size={18}/>
-                </Button>
-                <Button
-                    variant="danger"
-                    size="sm"
-                    onClick={handleDelete}
-                    aria-label="Delete product"
-                >
-                    <Trash size={18}/>
-                </Button>
+                <div style={actionContainerStyle}>
+                    <Button
+                        variant="warning"
+                        size="sm"
+                        style={buttonStyle}
+                        onClick={handleEdit}
+                        aria-label="Edit product"
+                    >
+                        <Pencil size={18}/>
+                    </Button>
+                    <Button
+                        variant="danger"
+                        size="sm"
+                        style={buttonStyle}
+                        onClick={handleDelete}
+                        aria-label="Delete product"
+                    >
+                        <Trash size={18}/>
+                    </Button>
+                </div>
             </td>
         </tr>
     );

@@ -151,11 +151,11 @@ const ProductManagement: React.FC = () => {
                         What would you like to do?
                     </Card.Text>
                     {/* Navigation Buttons */}
-                    <div className="d-flex gap-4 mt-3 justify-content-center" style={{ marginBottom: '240px' }}>
+                    <div className="d-flex gap-3 mt-3 justify-content-center" style={{ marginBottom: '240px' }}>
                         <Button
                             variant="primary"
                             onClick={() => scrollToSection(stocksElement)}
-                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                            style={{ width: '250px', height: '280px', backgroundColor: '#fff0e2', color: 'black', borderColor: 'black', borderRadius: '38px', fontSize: '24px', fontWeight: 'semibold', }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
                                 <FaBoxOpen style={{ fontSize: '100px' }} />
@@ -165,17 +165,17 @@ const ProductManagement: React.FC = () => {
                         <Button
                             variant="outline-primary"
                             onClick={() => scrollToSection(deliveriesElement)}
-                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                            style={{ width: '250px', height: '280px', backgroundColor: '#fff0e2', color: 'black', borderColor: 'black', borderRadius: '38px', fontSize: '24px', fontWeight: 'semibold', }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
                                 <TbTruckDelivery style={{ fontSize: '100px' }} />
                             </div>
-                            View Deliveries
+                            Manage Deliveries
                         </Button>
                         <Button
                             variant="primary"
                             onClick={() => scrollToSection(commentsElement)}
-                            style={{ width: '250px', height: '300px', backgroundColor: '#f1e3d6', color: 'black', borderColor: 'black', fontSize: '24px', fontWeight: 'semibold', }}
+                            style={{ width: '250px', height: '280px', backgroundColor: '#fff0e2', color: 'black', borderColor: 'black', borderRadius: '38px', fontSize: '24px', fontWeight: 'semibold', }}
                         >
                             <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '10px' }}>
                                 <VscCommentDiscussion style={{ fontSize: '100px' }} />
@@ -188,8 +188,8 @@ const ProductManagement: React.FC = () => {
 
             {/* Stocks Section */}
             <div ref={setStocksElement} className="mb-5">
-                <Card>
-                    <Card.Header as="h5">Product Inventory</Card.Header>
+                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
+                    <Card.Header as="h4">Product Inventory</Card.Header>
                     <Card.Body>
                         <Table striped bordered hover>
                             <thead>
@@ -214,15 +214,16 @@ const ProductManagement: React.FC = () => {
                             ))}
                             </tbody>
                         </Table>
-                        <Button variant="success">Add New Product</Button>
+                        <Button variant="outline-success" className="me-3">Add Product</Button>
+                        <Button variant="outline-primary">Add New Category</Button>
                     </Card.Body>
                 </Card>
             </div>
 
             {/* Deliveries Section */}
             <div ref={setDeliveriesElement} className="mb-5">
-                <Card>
-                    <Card.Header as="h5">Deliveries Management</Card.Header>
+                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
+                    <Card.Header as="h4">Deliveries</Card.Header>
                     <Card.Body>
                         <Table striped bordered hover>
                             <thead>
@@ -254,8 +255,8 @@ const ProductManagement: React.FC = () => {
 
             {/* Comments Section */}
             <div ref={setCommentsElement} className="mb-5">
-                <Card>
-                    <Card.Header as="h5">Comments Approval</Card.Header>
+                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
+                    <Card.Header as="h4">Comments</Card.Header>
                     <Card.Body>
                         <Table striped bordered hover>
                             <thead>

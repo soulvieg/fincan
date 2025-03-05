@@ -4,6 +4,13 @@ body {
 .brand-logo {
     font-family: the-seasons, sans-serif;
     font-style: normal;
-    font-size: 26px;
+    font-size: 30px;
     font-weight: 300;
+}
+.rounded-border {
+    border: 1px solid #000;
+    border-radius: 18px;
+}
+.departments-custom-outline {
+    border-width: 2px;
 }
