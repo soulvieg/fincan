@@ -19,6 +19,10 @@ module.exports = {
                 use: {
                     loader: 'babel-loader'
                 }
+            },
+            {
+                test: /\.css$/,
+                use: ['style-loader', 'css-loader']
             }
         ]
     },
@@ -30,6 +34,9 @@ module.exports = {
     devServer: {
         historyApiFallback: true,
         port: 3000,
-        hot: true
+        hot: true,
+        static: {
+            directory: path.join(__dirname, 'public')
+        }
     }
 };
