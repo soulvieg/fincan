@@ -4,6 +4,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProductManagement from './pages/ProductManagement';
 import SalesManagement from './pages/SalesManagement';
+import Login from './pages/Login';
+import Signup from './pages/Signup';
 import NavBar from './components/NavBar';
 import { SiBuymeacoffee } from "react-icons/si";
 
@@ -13,6 +15,9 @@ const MainStore: React.FC = () => (
         <p className="lead">Welcome to our online shop</p>
         <p>This is the main store page (to be implemented)</p>
         <Link to="/admin" className="btn btn-outline-dark">Go to Admin Panel</Link>
+        <Link to="/login" className="btn btn-outline-dark ms-3">Login</Link>
+        <Link to="/signup" className="btn btn-outline-dark ms-3">Sign Up</Link>
+
     </div>
 );
 
@@ -43,7 +48,8 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminHome />} />
                         <Route path="/admin/sales" element={<SalesManagement />} />
                         <Route path="/admin/inventory" element={<ProductManagement />} />
-
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<Signup />} />   
                         <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
                         <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
                     </Routes>
