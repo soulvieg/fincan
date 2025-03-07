@@ -1,0 +1,62 @@
+.best-seller {
+  width: 80%;
+  margin: 30px auto;
+  padding: 15px;
+  background: rgba(228, 212, 180, 0.8);
+  border-radius: 10px;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center; /* Align text & images in the same row */
+}
+
+/* Best Seller Text */
+.bs-desc {
+  font-size: 20px;
+  font-weight: bold;
+  color: #6b3503;
+  white-space: nowrap; /* Prevents text from wrapping */
+  margin-right: 15px; /* Space between text and images */
+}
+
+/* Image Container */
+.bs-items {
+  display: flex;
+  flex-wrap: wrap; /* Allows items to wrap if needed */
+  gap: 10px; /* Space between images */
+  flex-grow: 1; /* Allows it to take available space */
+}
+
+/* Individual Image & Text */
+.bs-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Best Seller Images */
+.bs-item img {
+  width: 150px;
+  height: 150px;
+  border-radius: 8px;
+  transition: transform 0.3s ease-in-out;
+  width: auto;
+  object-fit: cover;
+}
+.bs-item img:last-child {
+  margin-right: 0;
+}
+
+/* Description Under Image */
+.bs-text {
+  font-size: 14px;
+  color: #222;
+  margin-top: 5px;
+  text-align: center;
+}
+
+.bs-caption {
+  margin-top: 5px;
+  font-size: 14px;
+  text-align: center;
+  width: 100%;
+}

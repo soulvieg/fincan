@@ -1,0 +1,98 @@
+.carousel {
+  position: relative;
+  width: 100%; /* Ensure it stretches across the full page width */
+  height: 400px; /* Adjust based on image aspect ratio */
+  margin-top: 150px; /* Moves carousel down to avoid overlap with title */
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Container for the sliding images */
+.carousel-container {
+  display: flex;
+  width: 100%; /* Ensure the container takes full width */
+  transition: transform 0.5s ease-in-out;
+}
+
+/* Each individual slide */
+.slide {
+  width: 100%; /* Each slide should take up full width of the carousel */
+  flex-shrink: 0;
+  display: flex; /* To align the image and text side by side */
+  align-items: center;
+  justify-content: flex-start; /* Align content to the left */
+  background-color: rgba(228, 212, 180, 0.8);
+  padding: 20px; /* Add some spacing */
+  position: relative;
+  text-align: center;
+}
+
+/* Ensure images fit properly */
+.slide img {
+  width: 50%; /* Keep the image within 80% of the width */
+  height: 55%;
+  object-fit: contain; /* Ensure the image is fully contained without cropping */
+}
+
+/* Description paragraph on the right of the image */
+/* Description paragraph on the right of the image */
+.description {
+  width: 20%; /* The text area occupies 20% of the space */
+  padding: 20px;
+  color: #6b3503;
+  font-size: 18px;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  word-wrap: break-word; /* Ensures words wrap properly */
+  overflow-wrap: break-word; /* Alternative wrapping method */
+  white-space: normal; /* Allows text to wrap instead of staying on one line */
+}
+
+/* Style the 'Click here' link */
+.description a {
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 10px;
+  background-color: #d2b48c;
+  border-radius: 5px;
+  text-align: center;
+  margin-top: 15px;
+  align-self: flex-start; /* Align button to the left */
+}
+
+.description a:hover {
+  background-color: #6b3503; /* Darker shade when hovered */
+}
+
+/* Left and Right Navigation Buttons */
+.prev,
+.next {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  border: none;
+  padding: 10px;
+  cursor: pointer;
+  font-size: 24px;
+  transition: background-color 0.3s ease;
+}
+
+.prev {
+  left: 10px;
+}
+
+.next {
+  right: 10px;
+}
+
+.prev:hover,
+.next:hover {
+  background-color: rgba(0, 0, 0, 0.8);
+}

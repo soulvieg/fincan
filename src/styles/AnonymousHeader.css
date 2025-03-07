@@ -1,0 +1,109 @@
+/* General body and background styles */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-size: cover;
+  margin: 0;
+}
+
+/* Header styles */
+.main-header {
+  width: 100%;
+  text-align: center;
+  padding: 5px 0;
+  background: rgba(
+    228,
+    212,
+    180,
+    0.8
+  ); /* Prevent images from showing behind it */
+  position: fixed;
+  opacity: 0.8;
+  top: 0;
+  left: 0;
+  z-index: 10; /* Ensures it's above the carousel */
+}
+
+/* Title styling */
+.title {
+  font-size: 70px;
+  font-weight: bold;
+  display: flex;
+  align-items: center; /* Aligns elements vertically */
+  gap: 5px; /* Reduces space between emoji and text */
+  margin: 0;
+  font-family: "The Seasons", serif;
+  color: #6b3503;
+}
+
+.title .emoji {
+  font-size: 3.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.title span {
+  display: inline-block;
+}
+
+.login-button {
+  display: inline-block;
+  background-color: #ba8540;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-align: center;
+  margin-left: 15px;
+  margin-top: 50px;
+  transition: background-color 0.3s;
+  font-family: "The Seasons", serif;
+}
+
+.login-button:hover {
+  background-color: #6b3503;
+}
+
+/* Shopping cart icon */
+nav a {
+  position: fixed;
+  top: 20px;
+  right: 50px;
+  font-size: 1.8rem;
+  text-decoration: none;
+  color: black;
+  z-index: 20; /* Ensures it's above images */
+}
+
+/* Search Bar styles */
+.search-container {
+  display: flex;
+  justify-content: center;
+}
+
+.search-input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border-radius: 25px;
+  border: 2px solid #ccc;
+}
+
+.search-button {
+  background-color: #ba8540;
+  color: black;
+  border: none;
+  padding: 10px 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.search-button:hover {
+  background-color: #6b3503;
+}
