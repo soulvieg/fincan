@@ -222,7 +222,7 @@ const ProductManagement: React.FC = () => {
                     onEdit={handleEditProduct}
                     onDelete={handleDeleteProduct}
                     onAddProduct={handleAddProduct}
-                    onAddCategory={handleAddCategory}
+                    onAddCategory={handleAddCategory} categories={[]}
                 />
             </div>
 

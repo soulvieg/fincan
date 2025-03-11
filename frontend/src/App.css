@@ -14,6 +14,7 @@ body {
 .rounded-rows {
     border-radius: 18px;
 }
+
 .departments-custom-outline {
     border-width: 2px;
 }
@@ -65,4 +66,9 @@ body {
 
 .custom-table tr.header-row th:last-child {
     border-right: 1.5px solid #000;
+}
+
+.action-buttons {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
 }

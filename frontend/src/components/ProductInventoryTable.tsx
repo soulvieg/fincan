@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
 import ProductInventoryItem from './ProductInventoryItem';
+import NewProductRow from './NewProductRow';
 import { useNavigate } from 'react-router-dom';
 
 interface Product {
@@ -22,8 +23,9 @@ interface ProductInventoryTableProps {
     products: Product[];
     onEdit: (product: Product) => void;
     onDelete: (productId: number) => void;
-    onAddProduct: () => void;
+    onAddProduct: (product: Omit<Product, 'id'>) => void;
     onAddCategory: () => void;
+    categories: string[];
 }
 
 const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
@@ -31,16 +33,23 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                                                                          onEdit,
                                                                          onDelete,
                                                                          onAddProduct,
-                                                                         onAddCategory
+                                                                         onAddCategory,
+                                                                         categories
                                                                      }) => {
     const navigate = useNavigate();
+    const [showNewProductRow, setShowNewProductRow] = useState(false);
 
     const handleAddProductClick = () => {
-        // You can keep this if you still want to call the original function
-        // onAddProduct();
+        setShowNewProductRow(true);
+    };
 
-        // Navigate to the AddingProduct page
-        navigate('/adding-product');
+    const handleSaveProduct = (newProduct: Omit<Product, 'id'>) => {
+        onAddProduct(newProduct);
+        setShowNewProductRow(false);
+    };
+
+    const handleCancelAddProduct = () => {
+        setShowNewProductRow(false);
     };
 
     return (
@@ -53,7 +62,8 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                         style={{ fontSize: '15px', padding: '5px 10px' }}
                         size='sm'
                         className="me-2 add-button"
-                        onClick={handleAddProductClick}>
+                        onClick={handleAddProductClick}
+                        disabled={showNewProductRow}>
                         Add New Product
                     </Button>
                     <Button
@@ -91,6 +101,13 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                             onDelete={onDelete}
                         />
                     ))}
+                    {showNewProductRow && (
+                        <NewProductRow
+                            onSave={handleSaveProduct}
+                            onCancel={handleCancelAddProduct}
+                            categories={categories}
+                        />
+                    )}
                     </tbody>
                 </Table>
             </Card.Body>
