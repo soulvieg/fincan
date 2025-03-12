@@ -4,8 +4,10 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import ProductManagement from './pages/ProductManagement';
 import SalesManagement from './pages/SalesManagement';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
+import LoginUser from "./pages/LoginUser";
+import SignupUser from "./pages/SignupUser";
+import LoginAdmin from "./pages/LoginAdmin";
+import SignupAdmin from "./pages/SignupAdmin";
 import NavBar from './components/NavBar';
 import { SiBuymeacoffee } from "react-icons/si";
 
@@ -15,8 +17,8 @@ const MainStore: React.FC = () => (
         <p className="lead">Welcome to our online shop</p>
         <p>This is the main store page (to be implemented)</p>
         <Link to="/admin" className="btn btn-outline-dark">Go to Admin Panel</Link>
-        <Link to="/login" className="btn btn-outline-dark ms-3">Login</Link>
-        <Link to="/signup" className="btn btn-outline-dark ms-3">Sign Up</Link>
+        <Link to="/login-user" className="btn btn-outline-dark ms-3"> User Login</Link>
+        <Link to="/signup-user" className="btn btn-outline-dark ms-3">User Sign Up</Link>
 
     </div>
 );
@@ -31,6 +33,9 @@ const AdminHome: React.FC = () => (
                 Management</Link>
             <Link to="/admin/inventory" className="btn btn-outline-dark btn-lg departments-custom-outline">Product
                 Management</Link>
+            <Link to="/login-admin" className="btn btn-outline-dark ms-3">Admin Login</Link>
+            <Link to="/signup-admin" className="btn btn-outline-dark ms-3">Admin Sign Up</Link>
+            
         </div>
     </div>
 );
@@ -48,8 +53,15 @@ const App: React.FC = () => {
                         <Route path="/admin" element={<AdminHome />} />
                         <Route path="/admin/sales" element={<SalesManagement />} />
                         <Route path="/admin/inventory" element={<ProductManagement />} />
-                        <Route path="/login" element={<Login />} />
-                        <Route path="/signup" element={<Signup />} />   
+
+                        {/* User Authentication Routes */}
+                        <Route path="/login-user" element={<LoginUser />} />
+                        <Route path="/signup-user" element={<SignupUser />} />
+                        
+                        {/* Admin Authentication Routes */}
+                        <Route path="/login-admin" element={<LoginAdmin />} />
+                        <Route path="/signup-admin" element={<SignupAdmin />} />
+
                         <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
                         <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
                     </Routes>

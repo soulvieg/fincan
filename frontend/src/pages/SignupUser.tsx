@@ -3,22 +3,25 @@ import { Container, Box, TextField, Button, Typography, Link, InputAdornment, Ic
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
 
-const Signup = () => {
+const SignupUser = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  const handleSignup = () => {
-    console.log("Signing up with", name, email, password);
+
+  const handleUserSignup = () => {
+    console.log("Logging in with", email, password);
   };
+  
+  
 
   return (
     <Box
       sx={{
         height: "100vh",
-        width: "100vw", // Ensures the full page width
+        width: "100vw",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
@@ -32,35 +35,12 @@ const Signup = () => {
       }}
     >
       <Container maxWidth="xs">
-        <Box
-          sx={{
-            p: 4,
-            boxShadow: 3,
-            borderRadius: 2,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            textAlign: "center",
-          }}
-        >
+        <Box sx={{ p: 4, boxShadow: 3, borderRadius: 2, backgroundColor: "rgba(255, 255, 255, 0.9)", textAlign: "center" }}>
           <Typography variant="h4" gutterBottom sx={{ fontFamily: "'Rubik', sans-serif" }}>
             ☕ Create Account
           </Typography>
-          <TextField
-            fullWidth
-            label="Full Name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            variant="outlined"
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            variant="outlined"
-            margin="normal"
-          />
+          <TextField fullWidth label="Full Name" value={name} onChange={(e) => setName(e.target.value)} variant="outlined" margin="normal" />
+          <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} variant="outlined" margin="normal" />
           <TextField
             fullWidth
             label="Password"
@@ -79,17 +59,12 @@ const Signup = () => {
               ),
             }}
           />
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{ fontFamily: "'Rubik', sans-serif", mt: 2, bgcolor: "#6d4c41" }}
-            onClick={handleSignup}
-          >
+          <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: "#6d4c41" }} onClick={handleUserSignup}>
             Sign Up
           </Button>
           <Typography mt={2}>
             Already have an account?{" "}
-            <Link onClick={() => navigate("/login")} sx={{ fontFamily: "'Rubik', sans-serif", cursor: "pointer" }}>
+            <Link onClick={() => navigate("/login-user")} sx={{ cursor: "pointer" }}>
               Login
             </Link>
           </Typography>
@@ -99,4 +74,4 @@ const Signup = () => {
   );
 };
 
-export default Signup;
+export default SignupUser;
