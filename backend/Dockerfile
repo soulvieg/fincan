@@ -15,7 +15,7 @@ RUN npm install
 COPY . .
 
 # If your app listens on port 3001 (for example), expose it
-EXPOSE 3001
+EXPOSE 5000
 
 # Optionally set NODE_ENV to production
 ENV NODE_ENV=production
