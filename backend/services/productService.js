@@ -55,12 +55,6 @@ async function deleteProduct(productId) {
   }
 }
 
-module.exports = {
-  addProduct,
-  updateProductQuantity,
-  deleteProduct,
-};
-
 async function incrementStock(productId) {
   const product = await Product.findByPk(productId);
   if (!product) {
@@ -84,3 +78,10 @@ async function decrementStock(productId) {
     throw new Error("Cannot decrement below zero");
   }
 }
+
+
+module.exports = {
+  addProduct,
+  updateProductQuantity,
+  deleteProduct,
+};

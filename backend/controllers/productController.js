@@ -58,8 +58,40 @@ async function deleteProductController(req, res) {
 }
 
 
+// controllers/productController.js
+
+const { incrementStock, decrementStock } = require("../services/productService");
+
+async function incrementStockController(req, res) {
+  try {
+    const { productId } = req.params;
+    const updatedProduct = await incrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity incremented successfully",
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+async function decrementStockController(req, res) {
+  try {
+    const { productId } = req.params;
+    const updatedProduct = await decrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity decremented successfully",
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
   deleteProductController,
+  incrementStockController,
+  decrementStockController
 };
