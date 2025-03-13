@@ -14,8 +14,7 @@ RUN npm install
 # Copy the rest of your backend code
 COPY . .
 
-# If your app listens on port 3001 (for example), expose it
-EXPOSE 5000
+EXPOSE 5001
 
 # Optionally set NODE_ENV to production
 ENV NODE_ENV=production
