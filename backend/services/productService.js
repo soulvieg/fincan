@@ -60,3 +60,27 @@ module.exports = {
   updateProductQuantity,
   deleteProduct,
 };
+
+async function incrementStock(productId) {
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+  product.quantityInStock += 1;
+  await product.save();
+  return product;
+}
+
+async function decrementStock(productId) {
+  const product = await Product.findByPk(productId);
+  if (!product) {
+    throw new Error("Product not found");
+  }
+  if (product.quantityInStock > 0) {
+    product.quantityInStock -= 1;
+    await product.save();
+    return product;
+  } else {
+    throw new Error("Cannot decrement below zero");
+  }
+}
