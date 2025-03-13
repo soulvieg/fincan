@@ -1,0 +1,76 @@
+.shopping-cart {
+  max-width: 400px;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  background: #fff;
+  text-align: center;
+}
+
+.shopping-cart ul {
+  list-style: none;
+  padding: 0;
+}
+
+.shopping-cart li {
+  margin: 10px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cart-item-img {
+  width: 50px;
+  height: 50px;
+  margin-right: 10px;
+  border-radius: 5px;
+}
+
+.shopping-cart button {
+  padding: 5px 10px;
+  background: #6b3503;
+  color: white;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.shopping-cart h3 {
+  margin-top: 15px;
+}
+
+/* New Header styles */
+.second-header {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* Align title and emoji to the left */
+  width: 100vw; /* Ensure it spans the full viewport width */
+  padding: 10px 20px;
+  background: rgba(228, 212, 180, 0.8);
+  border-bottom: 2px solid #6b3503;
+  z-index: 10;
+  position: relative;
+  left: 0;
+  top: 0;
+}
+
+/* New Title styling */
+.title2 {
+  font-size: 90px;
+  font-weight: lighter;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-family: "The Seasons";
+  color: #6b3503;
+}
+
+/* New Emoji styling */
+.title2 .emoji2 {
+  font-style: normal;
+  font-size: 3rem;
+  display: flex;
+  align-items: center;
+}

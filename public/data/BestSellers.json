@@ -1,0 +1,14 @@
+[
+  {
+    "id": 1,
+    "name": "Turkish Coffee Cup",
+    "image": "img/best-seller1.jpg",
+    "price": 5
+  },
+  {
+    "id": 2,
+    "name": "Tea Cup & Kettle",
+    "image": "img/best-seller2.webp",
+    "price": 20
+  }
+]

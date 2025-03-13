@@ -2,11 +2,11 @@ import CustomerHeader from "../components/CustomerHeader";
 import Carousel from "../components/Carousel";
 import Bestseller from "../components/BestSeller";
 
-const UserPage = () => (
+const CustomerPage = () => (
   <>
     <CustomerHeader />
     <Carousel />
     <Bestseller />
   </>
 );
-export default UserPage;
+export default CustomerPage;

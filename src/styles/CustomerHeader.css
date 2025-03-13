@@ -1,116 +1,68 @@
-/* General body and background styles */
-body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  background-size: cover;
-  margin: 0;
-}
-
-/* Header styles */
-.main-header {
-  width: 100%;
-  text-align: center;
-  padding: 5px 0;
-  background: rgba(
-    228,
-    212,
-    180,
-    0.8
-  ); /* Prevent images from showing behind it */
-  position: fixed;
-  opacity: 0.8;
-  top: 0;
-  left: 0;
-  z-index: 10; /* Ensures it's above the carousel */
-}
-
-/* Title styling */
-.title {
-  font-size: 70px;
-  font-weight: bold;
-  display: flex;
-  align-items: center; /* Aligns elements vertically */
-  gap: 5px; /* Reduces space between emoji and text */
-  margin: 0;
-  font-family: "The Seasons", serif;
-  color: #6b3503;
-}
+@import "./Header.css";
 
 .title .emoji {
   font-size: 7rem;
-  display: flex;
-  align-items: center;
 }
 
-.title span {
-  display: inline-block;
+.ShoppingCart {
+  position: absolute; /* Allows independent positioning */
+  top: 85px; /* Adjust this value to move it vertically */
+  right: 200px; /* Adjust this value to move it horizontally */
+  font-size: 3rem; /* Adjust size if needed */
+  z-index: 20; /* Ensure it is above other elements */
+  transition: transform 0.3s ease; /* Add transition for smooth movement if you want */
 }
-
-/* Shopping cart icon */
-nav a {
-  position: fixed;
-  top: 20px;
-  right: 50px;
-  font-size: 1.8rem;
-  text-decoration: none;
-  color: black;
-  z-index: 20; /* Ensures it's above images */
-}
-nav {
-  display: flex;
-  align-items: center; /* Aligns all nav items vertically */
-  justify-content: space-between; /* Ensures space between items */
-  gap: 15px; /* Adds spacing between elements */
-}
-
 .profile-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 60px; /* Adjust width */
-  height: 60px;
-  background-color: #d2b48c;
-  border-radius: 50%;
-  position: absolute;
-  right: 19.3%;
-  top: 70px;
+  position: absolute; /* Allows independent positioning */
+  top: 65px; /* Adjust vertically */
+  right: 300px; /* Adjust horizontally */
+  font-size: 3rem;
+  z-index: 20;
 }
 
 .profile {
-  font-size: 3rem; /* Keep emoji size */
-  text-decoration: none; /* Removes underline from the link */
-  color: black; /* Makes sure the emoji is visible */
-  right: 19%;
-  top: 7.6%;
-}
-/* Search Bar styles */
-.search-container {
-  display: flex;
-  justify-content: center;
-}
-
-.search-input {
-  padding: 10px;
-  font-size: 16px;
-  width: 400px;
-  border-radius: 25px;
-  border: 2px solid #ccc;
-}
-
-.search-button {
-  background-color: #ba8540;
-  color: black;
+  background: none;
   border: none;
-  padding: 10px 10px;
-  font-size: 16px;
-  border-radius: 25px;
+  font-size: 3rem; /* Make it match ShoppingCart size */
   cursor: pointer;
-  margin-left: 10px;
-  font-weight: bold;
 }
 
-.search-button:hover {
-  background-color: #6b3503;
+.profile-dropdown {
+  position: absolute;
+  top: 50px; /* Adjusts dropdown position below emoji */
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 15px; /* Adds space inside the box */
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  width: 220px; /* Ensure enough space for name and email */
+  text-align: left; /* Align text properly */
+  white-space: normal; /* Allows text to wrap inside */
+  word-wrap: break-word; /* Breaks long text */
+  z-index: 20;
+}
+
+.profile-dropdown p {
+  margin: 5px 0;
+  font-size: 14px; /* Adjust font size for better fit */
+  color: black; /* Ensure text is visible */
+  overflow-wrap: break-word; /* Ensures long words don't overflow */
+}
+
+.profile-dropdown button {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 14px;
+  background: #ba8540;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.profile-dropdown button:hover {
+  background: #6b3503;
 }

@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import "../styles/AnonymousHeader.css";
 
 const MainHeader: React.FC = () => {
@@ -7,14 +8,16 @@ const MainHeader: React.FC = () => {
       <h1 className="title">
         <span className="emoji">☕</span>Fincan
       </h1>
-      <nav>
-        <a class="ShoppingCart" href="ShoppingCart.html">
-          🛒
-        </a>
-        <a href="login.html" className="login-button">
-          Please log in
-        </a>
-      </nav>
+      <div className="header-right">
+        <nav>
+          <Link className="ShoppingCart" to="/shopping-cart">
+            🛒
+          </Link>
+          <a href="login.html" className="login-button">
+            Please log in
+          </a>
+        </nav>
+      </div>
 
       <div className="search-container">
         <input type="text" placeholder="Search..." className="search-input" />
