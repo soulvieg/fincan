@@ -2,6 +2,21 @@
 const { updateProductQuantity } = require("../services/productService");
 
 /**
+ * Add a new product
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ */
+async function addProductController(req, res) {
+  try {
+    const productData = req.body;
+    const newProduct = await productService.addProduct(productData);
+    res.status(201).json(newProduct);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+}
+
+/**
  * Controller to handle quantity updates for a product
  * @route PUT /api/products/:productId/quantity
  */
@@ -27,6 +42,56 @@ async function updateQuantityInStockController(req, res) {
   }
 }
 
+/**
+ * Delete a product by ID
+ * @param {object} req - Express request object
+ * @param {object} res - Express response object
+ */
+async function deleteProductController(req, res) {
+  try {
+    const productId = req.params.productId;
+    await productService.deleteProduct(productId);
+    res.status(200).json({ message: "Product deleted successfully" });
+  } catch (error) {
+    res.status(404).json({ error: error.message });
+  }
+}
+
+
+// controllers/productController.js
+
+const { incrementStock, decrementStock } = require("../services/productService");
+
+async function incrementStockController(req, res) {
+  try {
+    const { productId } = req.params;
+    const updatedProduct = await incrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity incremented successfully",
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+async function decrementStockController(req, res) {
+  try {
+    const { productId } = req.params;
+    const updatedProduct = await decrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity decremented successfully",
+      product: updatedProduct
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
 module.exports = {
+  addProductController,
   updateQuantityInStockController,
+  deleteProductController,
+  incrementStockController,
+  decrementStockController
 };

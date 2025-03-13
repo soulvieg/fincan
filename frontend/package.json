@@ -5,7 +5,7 @@
   "main": "index.ts",
   "scripts": {
     "start": "webpack serve --mode development",
-    "build": "webpack --mode production",
+    "build": "webpack --mode production --output-path build",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -40,4 +40,5 @@
     "webpack-cli": "^6.0.1",
     "webpack-dev-server": "^5.2.0"
   }
+
 }

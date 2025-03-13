@@ -14,6 +14,9 @@ COPY . ./
 # Build the app
 RUN npm run build
 
+# Debug: List contents of /app to verify build folder exists
+RUN ls -la /app
+
 # Production stage
 FROM nginx:alpine
 
