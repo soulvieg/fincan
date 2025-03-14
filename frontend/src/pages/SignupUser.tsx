@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Container, Box, TextField, Button, Typography, Link, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const SignupUser = () => {
   const [name, setName] = useState("");
@@ -11,11 +12,22 @@ const SignupUser = () => {
   const navigate = useNavigate();
 
 
-  const handleUserSignup = () => {
-    console.log("Logging in with", email, password);
+  const handleUserSignup = async () => {
+    try {
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/signup`, {
+        name,
+        email,
+        password
+      });
+      console.log("Signup successful:", response.data);
+      // Navigate to login page or another page after successful signup
+      navigate("/login-user");
+    } catch (error) {
+      console.error("Signup error:", error);
+    }
   };
-  
-  
+
+
 
   return (
     <Box

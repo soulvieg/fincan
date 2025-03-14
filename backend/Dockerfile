@@ -1,23 +1,26 @@
 # Use an official Node.js image
 FROM node:18-alpine
 
-# Create and set the working directory
+# Set working directory
 WORKDIR /usr/src/app
 
-# Copy package.json and package-lock.json first
-# to leverage Docker layer caching
-COPY package*.json ./
+# Install bash in Alpine Linux
+RUN apk add --no-cache bash
 
-# Install dependencies
+# Copy package files and install dependencies
+COPY package*.json ./
 RUN npm install
 
 # Copy the rest of your backend code
 COPY . .
 
-EXPOSE 5001
+# Copy the wait-for-it.sh script and make it executable
+COPY wait-for-it.sh /usr/src/app/wait-for-it.sh
+RUN chmod +x /usr/src/app/wait-for-it.sh
 
-# Optionally set NODE_ENV to production
+# Expose port and set environment
+EXPOSE 5001
 ENV NODE_ENV=production
 
-# Run your backend (for example, if you start your server with `node server.js`)
-CMD ["node", "server.js"]
+# Use wait-for-it to pause startup until MySQL is ready on db:3306, then start the server
+CMD ["./wait-for-it.sh", "db:3306", "--", "node", "server.js"]
