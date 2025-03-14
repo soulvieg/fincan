@@ -215,7 +215,6 @@ const ProductManagement: React.FC = () => {
                     </div>
                 </Card.Body>
             </Card>
-
             <div ref={setStocksElement} className="mb-5">
                 <ProductInventoryTable
                     products={products}
@@ -224,94 +223,6 @@ const ProductManagement: React.FC = () => {
                     onAddProduct={handleAddProduct}
                     onAddCategory={handleAddCategory} categories={[]}
                 />
-            </div>
-
-            {/* Deliveries Section */}
-            <div ref={setDeliveriesElement} className="mb-5">
-                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
-                    <Card.Header as="h4">Deliveries</Card.Header>
-                    <Card.Body>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Products</th>
-                                <th>Status</th>
-                                <th>Address</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {mockDeliveries.map(delivery => (
-                                <tr key={delivery.id}>
-                                    <td>{delivery.id}</td>
-                                    <td>{delivery.customer}</td>
-                                    <td>{delivery.products}</td>
-                                    <td>{delivery.status}</td>
-                                    <td>{delivery.address}</td>
-                                    <td>
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            onClick={() => handleUpdateDeliveryStatus(delivery.id)}
-                                        >
-                                            Update Status
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
-                    </Card.Body>
-                </Card>
-            </div>
-
-            {/* Comments Section */}
-            <div ref={setCommentsElement} className="mb-5">
-                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
-                    <Card.Header as="h4">Comments</Card.Header>
-                    <Card.Body>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>User</th>
-                                <th>Comment</th>
-                                <th>Rating</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {mockComments.map(comment => (
-                                <tr key={comment.id}>
-                                    <td>{comment.product}</td>
-                                    <td>{comment.user}</td>
-                                    <td>{comment.comment}</td>
-                                    <td>{comment.rating}/5</td>
-                                    <td>
-                                        <Button
-                                            variant="success"
-                                            size="sm"
-                                            className="me-2"
-                                            onClick={() => handleApproveComment(comment.id)}
-                                        >
-                                            Approve
-                                        </Button>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={() => handleRejectComment(comment.id)}
-                                        >
-                                            Reject
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
-                    </Card.Body>
-                </Card>
             </div>
         </Container>
     );

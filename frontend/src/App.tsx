@@ -6,12 +6,12 @@ import ProductManagement from './pages/ProductManagement';
 import SalesManagement from './pages/SalesManagement';
 import NavBar from './components/NavBar';
 import { SiBuymeacoffee } from "react-icons/si";
+import ProfileSettings from "./pages/ProfileSettings";
+import ShoppingCart from "./pages/ShoppingCart";
+import { UserProvider } from './contexts/UserContext';
 
 const MainStore: React.FC = () => (
     <div className="text-center mt-5">
-        <h1>Fincan Store</h1>
-        <p className="lead">Welcome to our online shop</p>
-        <p>This is the main store page (to be implemented)</p>
         <Link to="/admin" className="btn btn-outline-dark rounded-border">Go to Admin Panel</Link>
     </div>
 );
@@ -22,34 +22,35 @@ const AdminHome: React.FC = () => (
         <h3 className="mb-2">Welcome!</h3>
         <h4 className="mb-5">Please navigate to your department</h4>
         <div className="d-flex justify-content-center">
-            <Link to="/admin/sales" className="btn btn-outline-dark btn-lg me-3 departments-custom-outline rounded-border">Sales
-                Management</Link>
-            <Link to="/admin/inventory" className="btn btn-outline-dark btn-lg departments-custom-outline rounded-border">Product
-                Management</Link>
+            <Link to="/admin/sales" className="btn btn-outline-dark btn-lg me-3 departments-custom-outline rounded-border">Sales Management</Link>
+            <Link to="/admin/inventory" className="btn btn-outline-dark btn-lg departments-custom-outline rounded-border">Product Management</Link>
         </div>
     </div>
 );
 
 const App: React.FC = () => {
     return (
-        <div className="d-flex flex-column vh-100">
-            <NavBar />
+        <UserProvider>
+            <div className="d-flex flex-column vh-100">
+                <NavBar />
+                <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
+                    <div className="w-100 mt-5">
+                        <Routes>
+                            <Route path="/" element={<MainStore />} />
+                            <Route path="/admin" element={<AdminHome />} />
+                            <Route path="/admin/sales" element={<SalesManagement />} />
+                            <Route path="/admin/inventory" element={<ProductManagement />} />
+                            <Route path="/profile-settings" element={<ProfileSettings />} />
+                            <Route path="/shoppingcart" element={<ShoppingCart/>} />
 
-            <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
-                <div className="w-100 mt-5">
-                    <Routes>
-                        <Route path="/" element={<MainStore />} />
-
-                        <Route path="/admin" element={<AdminHome />} />
-                        <Route path="/admin/sales" element={<SalesManagement />} />
-                        <Route path="/admin/inventory" element={<ProductManagement />} />
-
-                        <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
-                        <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
-                    </Routes>
+                            <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
+                            <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
+                            <Route path="/adding-product" element={<Navigate to="/admin/adding-product" replace />} />
+                        </Routes>
+                    </div>
                 </div>
             </div>
-        </div>
+        </UserProvider>
     );
 };
 

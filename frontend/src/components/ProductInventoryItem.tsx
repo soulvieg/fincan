@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button, Form, InputGroup } from 'react-bootstrap';
 import { IoTrashOutline } from "react-icons/io5";
 import { MdOutlineModeEdit } from "react-icons/md";
+import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
 
 interface Product {
     id: number;
@@ -22,9 +23,17 @@ interface ProductInventoryItemProps {
     product: Product;
     onEdit: (product: Product) => void;
     onDelete: (productId: number) => void;
+    onIncrement?: (productId: number) => void;
+    onDecrement?: (productId: number) => void;
 }
 
-const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({ product, onEdit, onDelete }) => {
+const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
+                                                                       product,
+                                                                       onEdit,
+                                                                       onDelete,
+                                                                       onIncrement,
+                                                                       onDecrement
+                                                                   }) => {
     const [isHovering, setIsHovering] = useState(false);
     const [isEditingQuantity, setIsEditingQuantity] = useState(false);
     const [tempQuantity, setTempQuantity] = useState(product.quantity);
@@ -41,6 +50,26 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({ product, on
     const handleCancelEdit = () => {
         setTempQuantity(product.quantity);
         setIsEditingQuantity(false);
+    };
+
+    const handleIncrement = () => {
+        if (onIncrement) {
+            onIncrement(product.id);
+            setTempQuantity(tempQuantity + 1);
+        } else {
+            setTempQuantity(tempQuantity + 1);
+        }
+    };
+
+    const handleDecrement = () => {
+        if (tempQuantity > 0) {
+            if (onDecrement) {
+                onDecrement(product.id);
+                setTempQuantity(tempQuantity - 1);
+            } else {
+                setTempQuantity(tempQuantity - 1);
+            }
+        }
     };
 
     return (
@@ -62,15 +91,38 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({ product, on
             <td className="text-center align-middle" style={getQuantityStyle(product.quantity)}>
                 {isEditingQuantity ? (
                     <div className="d-flex align-items-center">
-                        <Form.Control
-                            type="number"
-                            min="0"
-                            autoFocus={true}
-                            value={tempQuantity}
-                            onChange={(e) => setTempQuantity(Math.max(0, parseInt(e.target.value) || 0))}
-                            size="sm"
-                            style={{ width: '65px', textAlign: 'center', fontSize: '14px' }}
-                        />
+                        <InputGroup style={{ width: '65px' }}>
+                            <Form.Control
+                                type="number"
+                                min="0"
+                                autoFocus={true}
+                                value={tempQuantity}
+                                onChange={(e) => setTempQuantity(Math.max(0, parseInt(e.target.value) || 0))}
+                                size="sm"
+                                style={{ textAlign: 'center', fontSize: '14px' }}
+                            />
+                            <InputGroup.Text className="p-0 d-flex flex-column" style={{ height: '31px' }}>
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="p-0 m-0"
+                                    onClick={handleIncrement}
+                                    style={{ height: '15px', lineHeight: '0' }}
+                                >
+                                    <IoIosArrowUp size={12} />
+                                </Button>
+                                <Button
+                                    variant="link"
+                                    size="sm"
+                                    className="p-0 m-0"
+                                    onClick={handleDecrement}
+                                    disabled={tempQuantity <= 0}
+                                    style={{ height: '15px', lineHeight: '0' }}
+                                >
+                                    <IoIosArrowDown size={12} />
+                                </Button>
+                            </InputGroup.Text>
+                        </InputGroup>
                         <div className="ms-2 d-flex flex-column">
                             <Button variant="success" size="sm" onClick={handleSaveQuantity} style={{ width: '65px', marginBottom: '5px' }}>
                                 Save
