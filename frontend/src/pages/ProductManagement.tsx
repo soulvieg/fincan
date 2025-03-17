@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Card, Button, Table } from 'react-bootstrap';
 import ProductInventoryTable from '../components/ProductInventoryTable';
+import DeliveryTable from '../components/DeliveryTable';
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
@@ -18,6 +19,23 @@ interface Product {
     category: string;
     cost: number;
     image?: string;
+}
+
+interface Delivery {
+    id: number;
+    customer: string;
+    products: string;
+    status: string;
+    address: string;
+}
+
+interface Comment {
+    id: number;
+    product: string;
+    user: string;
+    comment: string;
+    rating: number;
+    status: string;
 }
 
 // Mock data for the page
@@ -77,7 +95,7 @@ const mockProducts: Product[] = [
 ];
 
 // Mock data for deliveries and comments
-const mockDeliveries = [
+const mockDeliveries: Delivery[] = [
     {
         id: 1001,
         customer: "John Doe",
@@ -94,7 +112,7 @@ const mockDeliveries = [
     }
 ];
 
-const mockComments = [
+const mockComments: Comment[] = [
     {
         id: 1,
         product: "Coffee - Guatemala",
@@ -119,6 +137,8 @@ const ProductManagement: React.FC = () => {
     const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
 
     const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
+    const [comments, setComments] = useState<Comment[]>(mockComments);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
@@ -215,15 +235,73 @@ const ProductManagement: React.FC = () => {
                     </div>
                 </Card.Body>
             </Card>
+
             <div ref={setStocksElement} className="mb-5">
                 <ProductInventoryTable
                     products={products}
+                    categories={[]}
                     onEdit={handleEditProduct}
                     onDelete={handleDeleteProduct}
                     onAddProduct={handleAddProduct}
-                    onAddCategory={handleAddCategory} categories={[]}
+                    onAddCategory={handleAddCategory}
                 />
             </div>
+
+            {/* Deliveries Section */}
+            <div ref={setDeliveriesElement} className="mb-5">
+                <DeliveryTable
+                    deliveries={deliveries}
+                    onUpdateStatus={handleUpdateDeliveryStatus}
+                />
+            </div>
+
+            {/* Comments Section */}
+            <div ref={setCommentsElement} className="mb-5">
+                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
+                    <Card.Header as="h4">Comments</Card.Header>
+                    <Card.Body>
+                        <Table striped bordered hover>
+                            <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>User</th>
+                                <th>Comment</th>
+                                <th>Rating</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {comments.map(comment => (
+                                <tr key={comment.id}>
+                                    <td>{comment.product}</td>
+                                    <td>{comment.user}</td>
+                                    <td>{comment.comment}</td>
+                                    <td>{comment.rating}/5</td>
+                                    <td>
+                                        <Button
+                                            variant="success"
+                                            size="sm"
+                                            className="me-2"
+                                            onClick={() => handleApproveComment(comment.id)}
+                                        >
+                                            Approve
+                                        </Button>
+                                        <Button
+                                            variant="danger"
+                                            size="sm"
+                                            onClick={() => handleRejectComment(comment.id)}
+                                        >
+                                            Reject
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                            </tbody>
+                        </Table>
+                    </Card.Body>
+                </Card>
+            </div>
+
         </Container>
     );
 };

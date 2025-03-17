@@ -79,9 +79,10 @@ async function decrementStock(productId) {
   }
 }
 
-
 module.exports = {
   addProduct,
   updateProductQuantity,
   deleteProduct,
+  incrementStock,
+  decrementStock,
 };
