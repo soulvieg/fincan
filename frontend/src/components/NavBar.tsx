@@ -35,6 +35,7 @@ const NavBar: React.FC = () => {
                         <ProfileDropdown
                             menuItems={[
                                 { label: 'Profile', href: '/profile-settings' },
+                                { label: 'Orders', href: '/order-history' },
                                 { label: 'Settings', href: '/settings' },
                                 { label: 'Sign Out', href: '/', onClick: () => console.log('Sign Out clicked') }
                             ]}
