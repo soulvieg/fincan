@@ -14,6 +14,7 @@ body {
 .rounded-rows {
     border-radius: 18px;
 }
+
 .departments-custom-outline {
     border-width: 2px;
 }
@@ -65,4 +66,314 @@ body {
 
 .custom-table tr.header-row th:last-child {
     border-right: 1.5px solid #000;
+}
+
+.action-buttons {
+    border-top-right-radius: 14px;
+    border-bottom-right-radius: 14px;
+}
+
+.profile-dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.profile-dropdown-toggle {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.profile-dropdown-toggle:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+.profile-avatar,
+.profile-avatar-placeholder {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    margin-right: 8px;
+    object-fit: cover;
+}
+
+.profile-avatar-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #6c757d;
+    color: white;
+    font-weight: bold;
+}
+
+.profile-username {
+    margin-right: 8px;
+    font-weight: 500;
+}
+
+.dropdown-arrow {
+    transition: transform 0.2s;
+}
+
+.dropdown-arrow.open {
+    transform: rotate(180deg);
+}
+
+.profile-dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+    min-width: 200px;
+    margin-top: 8px;
+    padding: 8px 0;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.dropdown-header {
+    padding: 8px 16px;
+    color: #6c757d;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background-color: #e9ecef;
+    margin: 8px 0;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    clear: both;
+    font-weight: 400;
+    color: #212529;
+    text-align: inherit;
+    white-space: nowrap;
+    background-color: transparent;
+    border: 0;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.dropdown-item:hover {
+    background-color: #f8f9fa;
+}
+
+.dropdown-item-icon {
+    margin-right: 8px;
+    display: flex;
+    align-items: center;
+}
+
+/* Profile Settings Styles */
+.second-header {
+    background-color: #75492b;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.title2 {
+    font-size: 1.8rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.emoji2 {
+    margin-right: 0.5rem;
+    font-size: 1.5rem;
+}
+
+.profile-settings {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+}
+
+.profile-settings h2 {
+    color: #75492b;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-size: 1.8rem;
+}
+
+.profile-settings label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: #333;
+    font-size: 1rem;
+}
+
+.profile-settings input,
+.profile-settings textarea {
+    width: 100%;
+    padding: 0.8rem;
+    margin-bottom: 1.2rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 1rem;
+    transition: border-color 0.3s;
+}
+
+.profile-settings .read-only {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+}
+
+.profile-settings textarea {
+    min-height: 100px;
+    resize: vertical;
+}
+
+.profile-settings input:focus,
+.profile-settings textarea:focus {
+    border-color: #75492b;
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(117, 73, 43, 0.2);
+}
+
+.profile-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1rem;
+}
+
+.profile-settings button {
+    padding: 0.8rem 1.5rem;
+    border: none;
+    border-radius: 4px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-button, .save-button {
+    background-color: #75492b;
+    color: white;
+    flex: 1;
+}
+
+.edit-button:hover, .save-button:hover {
+    background-color: #5f3b22;
+}
+
+.logout-button {
+    background-color: #f44336;
+    color: white;
+    flex: 1;
+}
+
+.logout-button:hover {
+    background-color: #d32f2f;
+}
+
+@media (max-width: 768px) {
+    .profile-settings {
+        padding: 1.5rem;
+        margin: 1rem;
+    }
+
+    .profile-buttons {
+        flex-direction: column;
+    }
+}
+
+/* Profile Settings Styles */
+.profile-settings {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: #fff;
+    border-radius: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.profile-settings h2 {
+    color: #6d4c41;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.profile-settings label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #555;
+}
+
+.profile-settings input,
+.profile-settings textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ddd;
+    border-radius: 14px;
+    font-size: 14px;
+}
+
+.profile-settings .read-only {
+    background-color: #f9f9f9;
+    cursor: not-allowed;
+}
+
+.profile-settings .profile-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 20px;
+}
+
+.profile-settings button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.profile-settings .btn-primary {
+    background-color: #6d4c41;
+    border-color: #6d4c41;
+}
+
+.profile-settings .btn-primary:hover {
+    background-color: #5d4037;
+    border-color: #5d4037;
+}
+
+.profile-settings .btn-success {
+    background-color: #4caf50;
+    border-color: #4caf50;
+}
+
+.profile-settings .btn-success:hover {
+    background-color: #43a047;
+    border-color: #43a047;
+}
+
+.profile-settings .btn-danger {
+    background-color: #f44336;
+    border-color: #f44336;
+}
+
+.profile-settings .btn-danger:hover {
+    background-color: #e53935;
+    border-color: #e53935;
 }

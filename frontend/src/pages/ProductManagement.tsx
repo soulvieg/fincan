@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Container, Card, Button, Table } from 'react-bootstrap';
 import ProductInventoryTable from '../components/ProductInventoryTable';
+import DeliveryTable from '../components/DeliveryTable';
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
@@ -18,6 +19,23 @@ interface Product {
     category: string;
     cost: number;
     image?: string;
+}
+
+interface Delivery {
+    id: number;
+    customer: string;
+    products: string;
+    status: string;
+    address: string;
+}
+
+interface Comment {
+    id: number;
+    product: string;
+    user: string;
+    comment: string;
+    rating: number;
+    status: string;
 }
 
 // Mock data for the page
@@ -77,7 +95,7 @@ const mockProducts: Product[] = [
 ];
 
 // Mock data for deliveries and comments
-const mockDeliveries = [
+const mockDeliveries: Delivery[] = [
     {
         id: 1001,
         customer: "John Doe",
@@ -94,7 +112,7 @@ const mockDeliveries = [
     }
 ];
 
-const mockComments = [
+const mockComments: Comment[] = [
     {
         id: 1,
         product: "Coffee - Guatemala",
@@ -119,6 +137,8 @@ const ProductManagement: React.FC = () => {
     const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
 
     const [products, setProducts] = useState<Product[]>(mockProducts);
+    const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
+    const [comments, setComments] = useState<Comment[]>(mockComments);
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [showEditModal, setShowEditModal] = useState<boolean>(false);
     const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
@@ -219,6 +239,7 @@ const ProductManagement: React.FC = () => {
             <div ref={setStocksElement} className="mb-5">
                 <ProductInventoryTable
                     products={products}
+                    categories={[]}
                     onEdit={handleEditProduct}
                     onDelete={handleDeleteProduct}
                     onAddProduct={handleAddProduct}
@@ -228,43 +249,10 @@ const ProductManagement: React.FC = () => {
 
             {/* Deliveries Section */}
             <div ref={setDeliveriesElement} className="mb-5">
-                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
-                    <Card.Header as="h4">Deliveries</Card.Header>
-                    <Card.Body>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>Order ID</th>
-                                <th>Customer</th>
-                                <th>Products</th>
-                                <th>Status</th>
-                                <th>Address</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {mockDeliveries.map(delivery => (
-                                <tr key={delivery.id}>
-                                    <td>{delivery.id}</td>
-                                    <td>{delivery.customer}</td>
-                                    <td>{delivery.products}</td>
-                                    <td>{delivery.status}</td>
-                                    <td>{delivery.address}</td>
-                                    <td>
-                                        <Button
-                                            variant="primary"
-                                            size="sm"
-                                            onClick={() => handleUpdateDeliveryStatus(delivery.id)}
-                                        >
-                                            Update Status
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
-                    </Card.Body>
-                </Card>
+                <DeliveryTable
+                    deliveries={deliveries}
+                    onUpdateStatus={handleUpdateDeliveryStatus}
+                />
             </div>
 
             {/* Comments Section */}
@@ -283,7 +271,7 @@ const ProductManagement: React.FC = () => {
                             </tr>
                             </thead>
                             <tbody>
-                            {mockComments.map(comment => (
+                            {comments.map(comment => (
                                 <tr key={comment.id}>
                                     <td>{comment.product}</td>
                                     <td>{comment.user}</td>
@@ -314,18 +302,6 @@ const ProductManagement: React.FC = () => {
                 </Card>
             </div>
 
-            {/* Here you would add Modals for edit/add product/category */}
-            {/* Example:
-            <EditProductModal
-                show={showEditModal}
-                product={selectedProduct}
-                onHide={() => setShowEditModal(false)}
-                onSave={updatedProduct => {
-                    // Logic to update product
-                    setShowEditModal(false);
-                }}
-            />
-            */}
         </Container>
     );
 };

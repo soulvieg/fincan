@@ -1,6 +1,8 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
 import ProductInventoryItem from './ProductInventoryItem';
+import NewProductRow from './NewProductRow';
+import { useNavigate } from 'react-router-dom';
 
 interface Product {
     id: number;
@@ -21,8 +23,9 @@ interface ProductInventoryTableProps {
     products: Product[];
     onEdit: (product: Product) => void;
     onDelete: (productId: number) => void;
-    onAddProduct: () => void;
+    onAddProduct: (product: Omit<Product, 'id'>) => void;
     onAddCategory: () => void;
+    categories: string[];
 }
 
 const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
@@ -30,17 +33,45 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                                                                          onEdit,
                                                                          onDelete,
                                                                          onAddProduct,
-                                                                         onAddCategory
+                                                                         onAddCategory,
+                                                                         categories
                                                                      }) => {
+    const navigate = useNavigate();
+    const [showNewProductRow, setShowNewProductRow] = useState(false);
+
+    const handleAddProductClick = () => {
+        setShowNewProductRow(true);
+    };
+
+    const handleSaveProduct = (newProduct: Omit<Product, 'id'>) => {
+        onAddProduct(newProduct);
+        setShowNewProductRow(false);
+    };
+
+    const handleCancelAddProduct = () => {
+        setShowNewProductRow(false);
+    };
+
     return (
         <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
             <div className="d-flex align-items-end mb-1 mt-2 justify-content-between">
                 <Card.Header as="h4" style={{borderBottom: 'none', backgroundColor: 'transparent'}}>Product Inventory</Card.Header>
                 <div>
-                    <Button variant="outline-success" style={{ fontSize: '15px', padding: '5px 10px' }} size='sm' className="me-2 add-button" onClick={onAddProduct}>
+                    <Button
+                        variant="outline-success"
+                        style={{ fontSize: '15px', padding: '5px 10px' }}
+                        size='sm'
+                        className="me-2 add-button"
+                        onClick={handleAddProductClick}
+                        disabled={showNewProductRow}>
                         Add New Product
                     </Button>
-                    <Button variant="outline-dark" style={{ fontSize: '15px', padding: '5px 10px' }} size="sm" className="me-3 add-button" onClick={onAddCategory}>
+                    <Button
+                        variant="outline-dark"
+                        style={{ fontSize: '15px', padding: '5px 10px' }}
+                        size="sm"
+                        className="me-3 add-button"
+                        onClick={onAddCategory}>
                         Add New Category
                     </Button>
                 </div>
@@ -70,6 +101,13 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                             onDelete={onDelete}
                         />
                     ))}
+                    {showNewProductRow && (
+                        <NewProductRow
+                            onSave={handleSaveProduct}
+                            onCancel={handleCancelAddProduct}
+                            categories={categories}
+                        />
+                    )}
                     </tbody>
                 </Table>
             </Card.Body>
