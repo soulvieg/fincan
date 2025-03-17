@@ -8,6 +8,7 @@ import NavBar from './components/NavBar';
 import { SiBuymeacoffee } from "react-icons/si";
 import ProfileSettings from "./pages/ProfileSettings";
 import ShoppingCart from "./pages/ShoppingCart";
+import OrderHistory from "./pages/OrderHistory";
 import { UserProvider } from './contexts/UserContext';
 
 const MainStore: React.FC = () => (
@@ -40,8 +41,12 @@ const App: React.FC = () => {
                             <Route path="/admin" element={<AdminHome />} />
                             <Route path="/admin/sales" element={<SalesManagement />} />
                             <Route path="/admin/inventory" element={<ProductManagement />} />
+
                             <Route path="/profile-settings" element={<ProfileSettings />} />
+
                             <Route path="/shoppingcart" element={<ShoppingCart/>} />
+
+                            <Route path="/order-history" element={<OrderHistory/>} />
 
                             <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
                             <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />

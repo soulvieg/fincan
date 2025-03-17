@@ -80,7 +80,7 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                 <Table bordered hover className="custom-table" style={{ borderCollapse: 'separate', borderSpacing: '0 8px' }}>
                     <thead>
                     <tr className="rounded-row header-row">
-                        <th className="text-center align-middle">ID</th>
+                        <th className="text-center align-middle">Product ID</th>
                         <th className="text-center align-middle">Name</th>
                         <th className="text-center align-middle">Model</th>
                         <th className="text-center align-middle">Description</th>

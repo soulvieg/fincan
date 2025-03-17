@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Container, Card, Button, Table } from 'react-bootstrap';
 import ProductInventoryTable from '../components/ProductInventoryTable';
 import DeliveryTable from '../components/DeliveryTable';
+import CommentTable from '../components/CommentTable';
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
@@ -23,14 +24,20 @@ interface Product {
 
 interface Delivery {
     id: number;
+    customerId: number;
+    productId: number;
     customer: string;
+    quantity: number;
     products: string;
+    totalPrice: number;
     status: string;
     address: string;
 }
 
 interface Comment {
     id: number;
+    productId: number;
+    customerId: number;
     product: string;
     user: string;
     comment: string;
@@ -94,19 +101,27 @@ const mockProducts: Product[] = [
     }
 ];
 
-// Mock data for deliveries and comments
+// Updated mock data for deliveries with all required fields
 const mockDeliveries: Delivery[] = [
     {
         id: 1001,
+        customerId: 101,
+        productId: 1,
         customer: "John Doe",
-        products: "Coffee - Guatemala (2)",
+        products: "Coffee - Guatemala",
+        quantity: 2,
+        totalPrice: 399.98,
         status: "Processing",
         address: "123 Main St, Anytown"
     },
     {
         id: 1002,
+        customerId: 102,
+        productId: 2,
         customer: "Jane Smith",
-        products: "Coffee - Arabica (1)",
+        products: "Coffee - Arabica",
+        quantity: 1,
+        totalPrice: 24.99,
         status: "In-Transit",
         address: "456 Oak Ave, Somewhere"
     }
@@ -115,6 +130,8 @@ const mockDeliveries: Delivery[] = [
 const mockComments: Comment[] = [
     {
         id: 1,
+        productId: 1,
+        customerId: 102,
         product: "Coffee - Guatemala",
         user: "Jane Smith",
         comment: "Great taste and quality!",
@@ -123,6 +140,8 @@ const mockComments: Comment[] = [
     },
     {
         id: 2,
+        productId: 2,
+        customerId: 103,
         product: "Coffee - Arabica",
         user: "Mike Johnson",
         comment: "Excellent aroma, would buy again.",
@@ -180,6 +199,12 @@ const ProductManagement: React.FC = () => {
     const handleUpdateDeliveryStatus = (deliveryId: number) => {
         console.log('Update status for delivery ID:', deliveryId);
         // Implement status update logic here
+    };
+
+    // Handler for canceling an order
+    const handleCancelDelivery = (deliveryId: number) => {
+        console.log('Cancel delivery with ID:', deliveryId);
+        // Implement cancel delivery logic here
     };
 
     // Handlers for comment approval/rejection
@@ -252,54 +277,17 @@ const ProductManagement: React.FC = () => {
                 <DeliveryTable
                     deliveries={deliveries}
                     onUpdateStatus={handleUpdateDeliveryStatus}
+                    onCancel={handleCancelDelivery}
                 />
             </div>
 
             {/* Comments Section */}
             <div ref={setCommentsElement} className="mb-5">
-                <Card className="rounded-border" style={{backgroundColor: '#fff0e2'}}>
-                    <Card.Header as="h4">Comments</Card.Header>
-                    <Card.Body>
-                        <Table striped bordered hover>
-                            <thead>
-                            <tr>
-                                <th>Product</th>
-                                <th>User</th>
-                                <th>Comment</th>
-                                <th>Rating</th>
-                                <th>Actions</th>
-                            </tr>
-                            </thead>
-                            <tbody>
-                            {comments.map(comment => (
-                                <tr key={comment.id}>
-                                    <td>{comment.product}</td>
-                                    <td>{comment.user}</td>
-                                    <td>{comment.comment}</td>
-                                    <td>{comment.rating}/5</td>
-                                    <td>
-                                        <Button
-                                            variant="success"
-                                            size="sm"
-                                            className="me-2"
-                                            onClick={() => handleApproveComment(comment.id)}
-                                        >
-                                            Approve
-                                        </Button>
-                                        <Button
-                                            variant="danger"
-                                            size="sm"
-                                            onClick={() => handleRejectComment(comment.id)}
-                                        >
-                                            Reject
-                                        </Button>
-                                    </td>
-                                </tr>
-                            ))}
-                            </tbody>
-                        </Table>
-                    </Card.Body>
-                </Card>
+                <CommentTable
+                    comments={comments}
+                    onApprove={handleApproveComment}
+                    onReject={handleRejectComment}
+                />
             </div>
 
         </Container>
