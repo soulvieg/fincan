@@ -1,11 +1,43 @@
-import React from 'react';
+import React from "react";
+import { useCart } from "../contexts/CartContext";
+import "../styles/ShoppingCart.css";
 
 const ShoppingCart: React.FC = () => {
-    return (
-        <div style={{display: 'flex', justifyContent: 'center',alignItems: 'center'}}>
-            <h3>Nothing to see here (yet)!</h3>
-        </div>
-    );
+  const { cart, removeFromCart } = useCart();
+
+  const calculateTotal = () =>
+    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+  return (
+    <div className="shopping-cart-page">
+      {/* Shopping Cart Content */}
+      <div className="shopping-cart">
+        <h2>Your Shopping Cart</h2>
+        {cart.length === 0 ? (
+          <p>Your cart is empty.</p>
+        ) : (
+          <>
+            <ul>
+              {cart.map((item) => (
+                <li key={item.id}>
+                  <img
+                    src={item.image}
+                    alt={item.name}
+                    className="cart-item-img"
+                  />
+                  {item.name} - ${item.price} x {item.quantity}
+                  <button onClick={() => removeFromCart(item.id)}>
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+            <h3>Total: ${calculateTotal()}</h3>
+          </>
+        )}
+      </div>
+    </div>
+  );
 };
 
 export default ShoppingCart;
