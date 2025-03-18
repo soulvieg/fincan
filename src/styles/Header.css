@@ -1,0 +1,100 @@
+/* General body and background styles */
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-size: cover;
+  margin: 0;
+}
+
+/* Header styles */
+.main-header {
+  display: flex;
+  position: relative;
+  width: 100%;
+  text-align: center;
+  padding: 10px 0;
+  background: rgba(228, 212, 180, 0.8);
+  z-index: 10;
+  border-bottom: 2px solid #6b3503;
+}
+
+/* Title styling */
+.title {
+  font-size: 90px;
+  font-weight: lighter;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 0;
+  font-family: "The Seasons";
+  color: #6b3503;
+}
+
+.title .emoji {
+  font-style: normal;
+  font-size: 3rem;
+  display: flex;
+  align-items: center;
+}
+
+.title span {
+  display: inline-block;
+}
+
+/* Shopping cart icon */
+nav a {
+  position: unset;
+  top: 20px;
+  right: 50px;
+  font-size: 1.8rem;
+  text-decoration: none;
+  color: black;
+  z-index: 20;
+}
+
+nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+}
+
+.search-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: absolute;
+  top: 100px; /* Move it up */
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.search-input {
+  padding: 10px;
+  font-size: 16px;
+  width: 400px;
+  border-radius: 25px;
+  border: 2px solid #ccc;
+}
+
+.search-button {
+  background-color: #ba8540;
+  color: black;
+  border: none;
+  padding: 10px 10px;
+  font-size: 16px;
+  border-radius: 25px;
+  cursor: pointer;
+  margin-left: 10px;
+  font-weight: bold;
+}
+
+.search-button:hover {
+  background-color: #6b3503;
+}
+
+.ShoppingCart:hover {
+  transform: scale(1.1); /* Optional: Adds a hover effect */
+}
