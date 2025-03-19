@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext";
 import { Button } from "react-bootstrap";
 import { MdOutlineModeEdit } from "react-icons/md";
+import "../styles/ProfileSettings.css"; // Make sure to import your CSS
 
 const ProfileSettings: React.FC = () => {
   useEffect(() => {
@@ -23,10 +24,9 @@ const ProfileSettings: React.FC = () => {
       document.body.style.margin = "";
     };
   }, []);
+
   const { user, updateUser } = useUser();
-
   const [editing, setEditing] = useState(false);
-
   const [formData, setFormData] = useState({
     name: "",
     surname: "",
@@ -57,8 +57,16 @@ const ProfileSettings: React.FC = () => {
   };
 
   return (
-    <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
-      <div className="w-100 mt-5">
+    <div className="profile-page-wrapper">
+      {/* Header outside the main container */}
+      <header className="second-header">
+        <h1 className="title2">
+          <span className="emoji2">☕</span>Fincan
+        </h1>
+      </header>
+
+      {/* Main content with proper spacing */}
+      <div className="container profile-container profile-settings-container">
         <div className="profile-settings">
           <h2>Profile Settings</h2>
 

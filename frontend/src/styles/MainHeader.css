@@ -113,6 +113,7 @@ nav {
   border: none;
   font-size: 3rem; /* Make it match ShoppingCart size */
   cursor: pointer;
+  padding-bottom: 100px;
 }
 
 .profile-dropdown {

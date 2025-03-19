@@ -9,7 +9,24 @@ const ShoppingCart: React.FC = () => {
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   return (
-    <div className="shopping-cart-page">
+    <div
+      className="shopping-cart-page"
+      style={{
+        backgroundImage: "url('/img/background1.jpg')",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+        backgroundAttachment: "fixed",
+        height: "100vh",
+        width: "100vw",
+      }}
+    >
+      {/* Header Section */}
+      <header className="second-header">
+        <h1 className="title2">
+          <span className="emoji2">☕</span>Fincan
+        </h1>
+      </header>
+
       {/* Shopping Cart Content */}
       <div className="shopping-cart">
         <h2>Your Shopping Cart</h2>
