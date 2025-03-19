@@ -14,6 +14,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import { CartProvider } from "./contexts/CartContext";
 import { UserProvider } from "./contexts/UserContext";
 import OrderHistory from "./pages/OrderHistory";
+import UserHistory from "./pages/UserOrderHistory";
 
 const App: React.FC = () => {
   const location = useLocation();
@@ -34,6 +35,7 @@ const App: React.FC = () => {
           <Route path="/login-user" element={<LoginUser />} />
           <Route path="/signup-user" element={<SignupUser />} />
           <Route path="/order-history" element={<OrderHistory />} />
+          <Route path="/user-history" element={<UserHistory />} />
 
           {/* Admin routes */}
           <Route path="/admin" element={<AdminHome />} />

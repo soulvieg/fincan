@@ -2,19 +2,18 @@ import React, { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext";
 import { Button } from "react-bootstrap";
 import { MdOutlineModeEdit } from "react-icons/md";
-import "../styles/ProfileSettings.css"; // Make sure to import your CSS
+import { Link } from "react-router-dom"; // Import Link
+import "../styles/ProfileSettings.css"; // Import CSS
 
 const ProfileSettings: React.FC = () => {
   useEffect(() => {
-    // Apply background to body
     document.body.style.backgroundImage = "url('/img/background1.jpg')";
     document.body.style.backgroundSize = "cover";
     document.body.style.backgroundPosition = "center";
     document.body.style.backgroundAttachment = "fixed";
     document.body.style.height = "100vh";
-    document.body.style.margin = "0"; // Prevents any default margin
+    document.body.style.margin = "0";
 
-    // Cleanup when the component unmounts
     return () => {
       document.body.style.backgroundImage = "";
       document.body.style.backgroundSize = "";
@@ -51,21 +50,14 @@ const ProfileSettings: React.FC = () => {
     setEditing(false);
   };
 
-  const handleLogout = () => {
-    console.log("Logging out...");
-    // Add your logout logic here
-  };
-
   return (
     <div className="profile-page-wrapper">
-      {/* Header outside the main container */}
       <header className="second-header">
         <h1 className="title2">
           <span className="emoji2">☕</span>Fincan
         </h1>
       </header>
 
-      {/* Main content with proper spacing */}
       <div className="container profile-container profile-settings-container">
         <div className="profile-settings">
           <h2>Profile Settings</h2>
@@ -144,6 +136,13 @@ const ProfileSettings: React.FC = () => {
                 <MdOutlineModeEdit size={22} />
               </Button>
             )}
+          </div>
+
+          {/* Add the "Go to Order History" button */}
+          <div className="mt-4">
+            <Link to="/user-history" className="btn btn-primary">
+              Go to Order History
+            </Link>
           </div>
         </div>
       </div>

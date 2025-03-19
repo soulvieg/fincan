@@ -25,7 +25,7 @@ const MainHeader: React.FC = () => {
 
           {/* Show "Please log in" only if no user is logged in */}
           {!user && (
-            <Link to="/login" className="login-button">
+            <Link to="/login-user" className="login-button">
               Please log in
             </Link>
           )}
