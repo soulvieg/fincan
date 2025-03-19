@@ -1,0 +1,68 @@
+@import "./Header.css";
+
+.title .emoji {
+  font-size: 7rem;
+}
+
+.ShoppingCart {
+  position: absolute; /* Allows independent positioning */
+  top: 85px; /* Adjust this value to move it vertically */
+  right: 200px; /* Adjust this value to move it horizontally */
+  font-size: 3rem; /* Adjust size if needed */
+  z-index: 20; /* Ensure it is above other elements */
+  transition: transform 0.3s ease; /* Add transition for smooth movement if you want */
+}
+.profile-container {
+  position: absolute; /* Allows independent positioning */
+  top: 65px; /* Adjust vertically */
+  right: 300px; /* Adjust horizontally */
+  font-size: 3rem;
+  z-index: 20;
+}
+
+.profile {
+  background: none;
+  border: none;
+  font-size: 3rem; /* Make it match ShoppingCart size */
+  cursor: pointer;
+}
+
+.profile-dropdown {
+  position: absolute;
+  top: 50px; /* Adjusts dropdown position below emoji */
+  right: 0;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 15px; /* Adds space inside the box */
+  border-radius: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  width: 220px; /* Ensure enough space for name and email */
+  text-align: left; /* Align text properly */
+  white-space: normal; /* Allows text to wrap inside */
+  word-wrap: break-word; /* Breaks long text */
+  z-index: 20;
+}
+
+.profile-dropdown p {
+  margin: 5px 0;
+  font-size: 14px; /* Adjust font size for better fit */
+  color: black; /* Ensure text is visible */
+  overflow-wrap: break-word; /* Ensures long words don't overflow */
+}
+
+.profile-dropdown button {
+  display: block;
+  width: 100%;
+  margin-top: 10px;
+  padding: 8px;
+  font-size: 14px;
+  background: #ba8540;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.profile-dropdown button:hover {
+  background: #6b3503;
+}

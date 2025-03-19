@@ -1,0 +1,21 @@
+@import "./Header.css";
+
+.admin-panel {
+  display: inline-block;
+  background-color: #ba8540;
+  color: white;
+  font-weight: bold;
+  text-decoration: none;
+  padding: 10px 15px;
+  border-radius: 5px;
+  text-align: center;
+  position: absolute; /* Absolute positioning */
+  top: 20px; /* Adjust this value to move it up */
+  right: 20px; /* Adjust this value to move it to the right */
+  transition: background-color 0.3s;
+  font-family: "The Seasons", serif;
+}
+
+.admin-panel:hover {
+  background-color: #6b3503;
+}
