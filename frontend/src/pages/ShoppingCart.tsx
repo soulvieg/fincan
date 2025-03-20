@@ -1,16 +1,23 @@
 import React, { useState } from "react";
 import { useCart } from "../contexts/CartContext";
+import { useUser } from "../contexts/UserContext";
 import "../styles/ShoppingCart.css";
 
 const ShoppingCart: React.FC = () => {
-  const { cart, removeFromCart } = useCart();
-  const [showMessage, setShowMessage] = useState(false);
+  const { cart, removeFromCart, clearCart } = useCart();
+  const { user } = useUser(); // Access user context
+  const [message, setMessage] = useState<string | null>(null);
 
   const calculateTotal = () =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
+
+    if (!user) {
+      setMessage("Please log in to confirm the checkout.");
+      return;
+    }
 
     const newOrder = {
       id: Date.now(), // Unique timestamp-based ID
@@ -23,30 +30,15 @@ const ShoppingCart: React.FC = () => {
     const updatedOrders = [...existingOrders, newOrder];
     localStorage.setItem("orders", JSON.stringify(updatedOrders));
 
-    setShowMessage(true);
-    setTimeout(() => setShowMessage(false), 3000);
+    setMessage("Thank you for your purchase!");
+    setTimeout(() => {
+      setMessage(null);
+      clearCart(); // Clear cart after successful checkout
+    }, 3000);
   };
 
   return (
-    <div
-      className="shopping-cart-page"
-      style={{
-        backgroundImage: "url('/img/background1.jpg')",
-        backgroundSize: "cover",
-        backgroundPosition: "center",
-        backgroundAttachment: "fixed",
-        height: "100vh",
-        width: "100vw",
-      }}
-    >
-      {/* Header Section */}
-      <header className="second-header">
-        <h1 className="title2">
-          <span className="emoji2">☕</span>Fincan
-        </h1>
-      </header>
-
-      {/* Shopping Cart Content */}
+    <div>
       <div className="shopping-cart">
         <h2>Your Shopping Cart</h2>
         {cart.length === 0 ? (
@@ -76,9 +68,7 @@ const ShoppingCart: React.FC = () => {
         )}
       </div>
 
-      {showMessage && (
-        <div className="purchase-message">Thank you for your purchase!</div>
-      )}
+      {message && <div className="purchase-message">{message}</div>}
     </div>
   );
 };

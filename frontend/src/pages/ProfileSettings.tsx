@@ -23,7 +23,6 @@ const ProfileSettings: React.FC = () => {
       document.body.style.margin = "";
     };
   }, []);
-
   const { user, updateUser } = useUser();
   const [editing, setEditing] = useState(false);
   const [formData, setFormData] = useState({
@@ -35,7 +34,9 @@ const ProfileSettings: React.FC = () => {
   });
 
   useEffect(() => {
-    setFormData(user);
+    if (user) {
+      setFormData(user);
+    }
   }, [user]);
 
   const handleChange = (
@@ -52,12 +53,6 @@ const ProfileSettings: React.FC = () => {
 
   return (
     <div className="profile-page-wrapper">
-      <header className="second-header">
-        <h1 className="title2">
-          <span className="emoji2">☕</span>Fincan
-        </h1>
-      </header>
-
       <div className="container profile-container profile-settings-container">
         <div className="profile-settings">
           <h2>Profile Settings</h2>
@@ -68,7 +63,7 @@ const ProfileSettings: React.FC = () => {
               type="text"
               name="name"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.name}
+              value={formData.name || ""}
               onChange={handleChange}
               readOnly={!editing}
             />
@@ -80,7 +75,7 @@ const ProfileSettings: React.FC = () => {
               type="text"
               name="surname"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.surname}
+              value={formData.surname || ""}
               onChange={handleChange}
               readOnly={!editing}
             />
@@ -92,7 +87,7 @@ const ProfileSettings: React.FC = () => {
               type="email"
               name="email"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.email}
+              value={formData.email || ""}
               onChange={handleChange}
               readOnly={!editing}
             />
@@ -104,7 +99,7 @@ const ProfileSettings: React.FC = () => {
               type="tel"
               name="phone"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.phone}
+              value={formData.phone || ""}
               onChange={handleChange}
               readOnly={!editing}
             />
@@ -115,7 +110,7 @@ const ProfileSettings: React.FC = () => {
             <textarea
               name="address"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.address}
+              value={formData.address || ""}
               onChange={handleChange}
               readOnly={!editing}
               rows={3}
@@ -136,13 +131,6 @@ const ProfileSettings: React.FC = () => {
                 <MdOutlineModeEdit size={22} />
               </Button>
             )}
-          </div>
-
-          {/* Add the "Go to Order History" button */}
-          <div className="mt-4">
-            <Link to="/user-history" className="btn btn-primary">
-              Go to Order History
-            </Link>
           </div>
         </div>
       </div>
