@@ -16,9 +16,6 @@ import { SiBuymeacoffee } from "react-icons/si";
 import Carousel from "./components/Carousel";
 import BestSeller from "./components/BestSeller";
 import { OrderProvider } from "./contexts/OrderContext";
-import ProductsPage from "./pages/ProductPage"; // Import the ProductsPage component
-import ProductDetailPage from "./pages/ProductDetailPage"; // Import ProductDetailPage if needed
-import { ProductProvider } from "./contexts/ProductContext"; // Import ProductProvider
 
 const MainStore: React.FC = () => (
   <div className="text-center mt-5">
@@ -53,40 +50,53 @@ const AdminHome: React.FC = () => (
 );
 
 const App: React.FC = () => {
-  // Uncomment the following useEffect to clear local storage for resetting order histories
+  //uncomment to delete local storage, for reseting order hitories
   // useEffect(() => {
-  //   localStorage.clear(); // This clears ALL localStorage for your domain
-  // }, []);
-
+  //  localStorage.clear(); // This clears ALL localStorage for your domain
+  //}, []);
   return (
     <UserProvider>
       <CartProvider>
         <OrderProvider>
-          <ProductProvider> {/* Wrap the Routes with ProductProvider */}
-            <div className="d-flex flex-column vh-100">
-              <NavBar />
-              <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
-                <div className="w-100 mt-5">
-                  <Routes>
-                    <Route path="/" element={<MainStore />} />
-                    <Route path="/admin" element={<AdminHome />} />
-                    <Route path="/admin/sales" element={<SalesManagement />} />
-                    <Route path="/admin/inventory" element={<ProductManagement />} />
-                    <Route path="/login-user" element={<LoginUser />} />
-                    <Route path="/signup-user" element={<SignupUser />} />
-                    <Route path="/profile-settings" element={<ProfileSettings />} />
-                    <Route path="/shoppingcart" element={<ShoppingCart />} />
-                    <Route path="/order-history" element={<OrderHistory />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
-                    <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
-                    <Route path="/adding-product" element={<Navigate to="/admin/adding-product" replace />} />
-                  </Routes>
-                </div>
+          <div className="d-flex flex-column vh-100">
+            <NavBar />
+            <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
+              <div className="w-100 mt-5">
+                <Routes>
+                  <Route path="/" element={<MainStore />} />
+                  <Route path="/admin" element={<AdminHome />} />
+                  <Route path="/admin/sales" element={<SalesManagement />} />
+                  <Route
+                    path="/admin/inventory"
+                    element={<ProductManagement />}
+                  />
+                  <Route path="/login-user" element={<LoginUser />} />
+                  <Route path="/signup-user" element={<SignupUser />} />
+                  <Route
+                    path="/profile-settings"
+                    element={<ProfileSettings />}
+                  />
+
+                  <Route path="/shoppingcart" element={<ShoppingCart />} />
+
+                  <Route path="/order-history" element={<OrderHistory />} />
+
+                  <Route
+                    path="/sales"
+                    element={<Navigate to="/admin/sales" replace />}
+                  />
+                  <Route
+                    path="/inventory"
+                    element={<Navigate to="/admin/inventory" replace />}
+                  />
+                  <Route
+                    path="/adding-product"
+                    element={<Navigate to="/admin/adding-product" replace />}
+                  />
+                </Routes>
               </div>
             </div>
-          </ProductProvider>
+          </div>
         </OrderProvider>
       </CartProvider>
     </UserProvider>
