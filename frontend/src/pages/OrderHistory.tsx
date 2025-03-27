@@ -1,73 +1,148 @@
-import React, { useState, useEffect } from "react";
-import "../styles/ShoppingCart.css";
+import React from "react";
+import { useOrders, Order } from "../contexts/OrderContext";
+import { Button, Card, Table, Badge } from "react-bootstrap";
+import "../styles/ShoppingCart.css"; // Use the existing CSS file
 
-// Define interfaces for Order and Item
-interface Item {
-  id: number;
-  name: string;
-  price: number;
-  quantity: number;
-  image: string;
-}
+const OrderHistory: React.FC = () => {
+  const { orders, cancelOrder } = useOrders();
 
-interface Order {
-  id: number;
-  date: string;
-  items: Item[];
-  total: number;
-}
+  const getStatusBadge = (status: Order["status"]) => {
+    let className = "";
+    switch (status) {
+      case "Processing":
+        className = "badge-primary";
+        break;
+      case "In-Transit":
+        className = "badge-warning";
+        break;
+      case "Delivered":
+        className = "badge-success";
+        break;
+      case "Cancelled":
+        className = "badge-danger";
+        break;
+      default:
+        className = "badge-secondary";
+    }
 
-const OrderPage: React.FC = () => {
-  // Specify the type for orders as an array of Order objects
-  const [orders, setOrders] = useState<Order[]>([]);
-
-  useEffect(() => {
-    const savedOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    setOrders(savedOrders);
-  }, []);
-
-  // Function to clear the order history
-  const clearOrderHistory = () => {
-    localStorage.removeItem("orders"); // Remove orders from localStorage
-    setOrders([]); // Clear the orders state
+    return (
+      <span className={`badge ${className}`} style={{ padding: "5px 10px" }}>
+        {status}
+      </span>
+    );
   };
 
-  return (
-    <div>
-      <div className="order-history">
-        <h2>Your Order History</h2>
-        {orders.length === 0 ? (
-          <p>No past orders.</p>
-        ) : (
-          orders.map((order) => (
-            <div key={order.id} className="order-item">
-              <h3>Order on {order.date}</h3>
-              <ul>
-                {order.items.map((item) => (
-                  <li key={item.id} className="order-list-item">
-                    <img
-                      src={item.image}
-                      alt={item.name}
-                      className="order-item-img"
-                    />
-                    {item.name} - ${item.price} x {item.quantity}
-                  </li>
-                ))}
-              </ul>
-              <h3>Total: ${order.total}</h3>
-            </div>
-          ))
-        )}
-        {/* Clear Order History Button */}
-        <button
-          className="clear-order-history-button"
-          onClick={clearOrderHistory}
+  const canCancel = (status: Order["status"]) => {
+    return status === "Processing" || status === "In-Transit";
+  };
+
+  if (orders.length === 0) {
+    return (
+      <div className="order-history-container">
+        <div
+          style={{
+            backgroundColor: "#fff",
+            padding: "20px",
+            borderRadius: "10px",
+            border: "1px solid #ddd",
+          }}
         >
-          Clear Order History
-        </button>
+          <h2 style={{ color: "#6b3503", marginBottom: "20px" }}>
+            Order History
+          </h2>
+          <p>You haven't placed any orders yet.</p>
+        </div>
       </div>
+    );
+  }
+
+  return (
+    <div className="order-history-container">
+      <h2
+        style={{
+          color: "#6b3503",
+          marginBottom: "20px",
+          backgroundColor: "#fff",
+          padding: "20px",
+          borderRadius: "10px",
+          border: "1px solid #ddd",
+        }}
+      >
+        Order History
+      </h2>
+      {orders.map((order) => (
+        <div key={order.id} className="order-card mb-4">
+          <div
+            className="card-header d-flex justify-content-between align-items-center"
+            style={{
+              padding: "15px",
+              backgroundColor: "rgba(228, 212, 180, 0.8)",
+            }}
+          >
+            <div>
+              <strong>Order #{order.id}</strong> - {order.date}
+            </div>
+            <div className="d-flex align-items-center">
+              <div className="me-3">Status: {getStatusBadge(order.status)}</div>
+              {canCancel(order.status) && (
+                <button
+                  className="clear-order-history-button"
+                  style={{ margin: "0", padding: "5px 10px" }}
+                  onClick={() => cancelOrder(order.id)}
+                >
+                  Cancel Order
+                </button>
+              )}
+            </div>
+          </div>
+          <div style={{ padding: "15px" }}>
+            <Table responsive>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>Price</th>
+                  <th>Quantity</th>
+                  <th>Subtotal</th>
+                </tr>
+              </thead>
+              <tbody>
+                {order.items.map((item, index) => (
+                  <tr key={index}>
+                    <td>
+                      <div className="d-flex align-items-center">
+                        <img
+                          src={item.image}
+                          alt={item.name}
+                          className="order-item-img"
+                        />
+                        {item.name}
+                      </div>
+                    </td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>{item.quantity}</td>
+                    <td>${(item.price * item.quantity).toFixed(2)}</td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td colSpan={3} className="text-end">
+                    <strong>Total:</strong>
+                  </td>
+                  <td>
+                    <strong>${order.total.toFixed(2)}</strong>
+                  </td>
+                </tr>
+              </tfoot>
+            </Table>
+            <div className="mt-3">
+              <strong>Shipping Address:</strong> {order.address}
+            </div>
+          </div>
+        </div>
+      ))}
     </div>
   );
 };
 
-export default OrderPage;
+export default OrderHistory;
