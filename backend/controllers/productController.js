@@ -88,10 +88,49 @@ async function decrementStockController(req, res) {
   }
 }
 
+const { approveComment, rejectComment } = require("../services/commentService");
+
+/**
+ * Approve a user comment
+ * @route PUT /api/comments/:commentId/approve
+ */
+async function approveCommentController(req, res) {
+  try {
+    const { commentId } = req.params;
+    const updatedComment = await approveComment(commentId);
+    return res.status(200).json({
+      message: "Comment approved successfully",
+      comment: updatedComment
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Reject a user comment
+ * @route PUT /api/comments/:commentId/reject
+ */
+async function rejectCommentController(req, res) {
+  try {
+    const { commentId } = req.params;
+    const updatedComment = await rejectComment(commentId);
+    return res.status(200).json({
+      message: "Comment rejected successfully",
+      comment: updatedComment
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
   deleteProductController,
   incrementStockController,
-  decrementStockController
+  decrementStockController,
+  ...require('./existingControllers'),
+  approveCommentController,
+  rejectCommentController
 };

@@ -207,15 +207,45 @@ const ProductManagement: React.FC = () => {
         // Implement cancel delivery logic here
     };
 
-    // Handlers for comment approval/rejection
-    const handleApproveComment = (commentId: number) => {
-        console.log('Approve comment ID:', commentId);
-        // Implement comment approval logic here
+    // Handler for approving a comment
+    const handleApproveComment = async (commentId: number) => {
+        try {
+            const response = await fetch(`/api/comments/${commentId}/approve`, {
+                method: 'PUT'
+            });
+
+            if (!response.ok) throw new Error("Failed to approve comment");
+
+            setComments(prevComments =>
+                prevComments.map(comment =>
+                    comment.id === commentId ? { ...comment, status: "Approved" } : comment
+                )
+            );
+
+            console.log(`Approved comment ID: ${commentId}`);
+        } catch (error) {
+            console.error("Error approving comment:", error);
+        }
     };
 
-    const handleRejectComment = (commentId: number) => {
-        console.log('Reject comment ID:', commentId);
-        // Implement comment rejection logic here
+    const handleRejectComment = async (commentId: number) => {
+        try {
+            const response = await fetch(`/api/comments/${commentId}/reject`, {
+                method: 'PUT'
+            });
+
+            if (!response.ok) throw new Error("Failed to reject comment");
+
+            setComments(prevComments =>
+                prevComments.map(comment =>
+                    comment.id === commentId ? { ...comment, status: "Rejected" } : comment
+                )
+            );
+
+            console.log(`Rejected comment ID: ${commentId}`);
+        } catch (error) {
+            console.error("Error rejecting comment:", error);
+        }
     };
 
     return (
