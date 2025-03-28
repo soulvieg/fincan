@@ -4,6 +4,8 @@ const cors = require("cors");
 const productRoutes = require("./routes/productRoutes");
 const userRoutes = require("./routes/userRoutes");     // Import user routes
 const adminRoutes = require("./routes/adminRoutes");     // Import admin routes
+const orderRoutes = require("./routes/orderRoutes"); 
+
 const sequelize = require("./config/db");                // Import the Sequelize instance
 
 const app = express();
@@ -20,6 +22,10 @@ app.use("/api/users", userRoutes);
 
 // Admin Routes
 app.use("/api/admins", adminRoutes);
+
+// Order Routes
+app.use("/api/orders", orderRoutes);
+
 
 // Synchronize models and then start the server
 sequelize
