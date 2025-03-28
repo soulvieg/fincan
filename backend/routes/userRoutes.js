@@ -3,6 +3,8 @@ const express = require("express");
 const {
   signupController,
   loginController,
+  getUserProfileController,
+  updateUserProfileController,
 } = require("../controllers/userController");
 
 const router = express.Router();
@@ -12,5 +14,11 @@ router.post("/signup", signupController);
 
 // POST /api/users/login
 router.post("/login", loginController);
+
+// GET /api/users/:id/profile
+router.get("/:id/profile", getUserProfileController);
+
+// PUT /api/users/:id/profile
+router.put("/:id/profile", updateUserProfileController);
 
 module.exports = router;
