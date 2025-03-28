@@ -1,11 +1,13 @@
 import React, { useState } from "react";
 import { useCart } from "../contexts/CartContext";
 import { useUser } from "../contexts/UserContext";
+import { useOrders } from "../contexts/OrderContext";
 import "../styles/ShoppingCart.css";
 
 const ShoppingCart: React.FC = () => {
   const { cart, removeFromCart, clearCart } = useCart();
-  const { user } = useUser(); // Access user context
+  const { user } = useUser();
+  const { addOrder } = useOrders();
   const [message, setMessage] = useState<string | null>(null);
 
   const calculateTotal = () =>
@@ -19,21 +21,17 @@ const ShoppingCart: React.FC = () => {
       return;
     }
 
-    const newOrder = {
-      id: Date.now(), // Unique timestamp-based ID
-      date: new Date().toLocaleString(), // Dynamic purchase date
+    // Create a new order using the OrderContext
+    addOrder({
+      date: new Date().toLocaleString(),
       items: cart,
       total: calculateTotal(),
-    };
-
-    const existingOrders = JSON.parse(localStorage.getItem("orders") || "[]");
-    const updatedOrders = [...existingOrders, newOrder];
-    localStorage.setItem("orders", JSON.stringify(updatedOrders));
+    });
 
     setMessage("Thank you for your purchase!");
     setTimeout(() => {
       setMessage(null);
-      clearCart(); // Clear cart after successful checkout
+      clearCart();
     }, 3000);
   };
 

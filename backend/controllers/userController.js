@@ -1,5 +1,10 @@
 // controllers/userController.js
-const { registerUser, loginUser } = require("../services/userService");
+const {
+  registerUser,
+  loginUser,
+  getUserById,
+  updateUserProfile,
+} = require("../services/userService");
 
 /**
  * Controller to handle user signup
@@ -54,7 +59,46 @@ async function loginController(req, res) {
   }
 }
 
+/**
+ * Controller to retrieve a user's profile
+ * @route GET /api/users/:id/profile
+ */
+async function getUserProfileController(req, res) {
+  try {
+    const { id } = req.params; // or use token-based auth in a real app
+    const user = await getUserById(id);
+    return res.status(200).json({
+      message: "User profile retrieved successfully",
+      user,
+    });
+  } catch (error) {
+    return res.status(404).json({ message: error.message });
+  }
+}
+
+/**
+ * Controller to update a user's profile
+ * @route PUT /api/users/:id/profile
+ */
+async function updateUserProfileController(req, res) {
+  try {
+    const { id } = req.params; // or use token-based auth in a real app
+    const { name, email, homeAddress } = req.body;
+
+    // No need to require all fields; user may update just one
+    const updatedUser = await updateUserProfile(id, { name, email, homeAddress });
+    return res.status(200).json({
+      message: "User profile updated successfully",
+      user: updatedUser,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
 module.exports = {
   signupController,
   loginController,
+  getUserProfileController,
+  updateUserProfileController,
 };
