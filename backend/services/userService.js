@@ -57,7 +57,62 @@ async function loginUser(credentials) {
   return { id, name, email, homeAddress };
 }
 
+/**
+ * Retrieve a user's profile by ID
+ * @param {number} userId - The user's ID
+ * @returns {object} - The user object (minus password) if found
+ * @throws {Error} - If user not found
+ */
+async function getUserById(userId) {
+  // Optionally exclude password at the DB query level
+  const user = await User.findByPk(userId, {
+    attributes: { exclude: ["password"] },
+  });
+  if (!user) {
+    throw new Error("User not found.");
+  }
+  return user;
+}
+
+/**
+ * Update a user's profile fields (name, email, homeAddress)
+ * @param {number} userId - The user's ID
+ * @param {object} updates - { name?, email?, homeAddress? }
+ * @returns {object} - The updated user object (minus password)
+ * @throws {Error} - If user not found or email is already taken
+ */
+async function updateUserProfile(userId, updates) {
+  const { name, email, homeAddress } = updates;
+
+  // Find the user
+  const user = await User.findByPk(userId);
+  if (!user) {
+    throw new Error("User not found.");
+  }
+
+  // If changing email, verify uniqueness
+  if (email && email !== user.email) {
+    const existingUser = await User.findOne({ where: { email } });
+    if (existingUser) {
+      throw new Error("This email is already in use.");
+    }
+  }
+
+  // Update only the fields provided
+  if (name !== undefined) user.name = name;
+  if (email !== undefined) user.email = email;
+  if (homeAddress !== undefined) user.homeAddress = homeAddress;
+
+  await user.save();
+
+  // Exclude password from return
+  const { password, ...updatedUser } = user.get({ plain: true });
+  return updatedUser;
+}
+
 module.exports = {
   registerUser,
   loginUser,
+  getUserById,
+  updateUserProfile,
 };
