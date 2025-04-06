@@ -70,7 +70,7 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
         <div
           className="position-absolute d-flex align-items-center justify-content-center gap-2 action-buttons"
           style={{
-            right: "-140px", // Increased this value to move buttons further right
+            right: "-130px", // Increased this value to move buttons further right
             top: "0",
             bottom: "0",
             height: "100%",
