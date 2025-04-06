@@ -53,7 +53,7 @@ const UserItem: React.FC<UserItemProps> = ({
                             <option value="Admin">Admin</option>
                             <option value="Sales Manager">Sales Manager</option>
                             <option value="Product Manager">Product Manager</option>
-                            <option value="Customer">User</option>
+                            <option value="Customer">Customer</option>
                         </Form.Select>
                         <div className="ms-2 d-flex flex-column">
                             <Button variant="success" size="sm" onClick={handleSaveRole} style={{ width: '65px', marginBottom: '5px' }}>
