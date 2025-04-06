@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Card, Table, Button } from 'react-bootstrap';
 import UserItem from './UserItem';
-import NewUserRow from './NewUserRow';
+import SearchBar from './SearchBar';
 import { useNavigate } from 'react-router-dom';
 
 export interface User {
@@ -31,10 +31,6 @@ const UserTable: React.FC<UserTableProps> = ({
     const navigate = useNavigate();
     const [showNewUserRow, setShowNewUserRow] = useState(false);
 
-    const handleAddUserClick = () => {
-        setShowNewUserRow(true);
-    };
-
     const handleSaveUser = (newUser: Omit<User, 'id'>) => {
         onAddUser(newUser);
         setShowNewUserRow(false);
@@ -49,15 +45,7 @@ const UserTable: React.FC<UserTableProps> = ({
             <div className="d-flex align-items-end mb-1 mt-2 justify-content-between">
                 <Card.Header as="h4" style={{borderBottom: 'none', backgroundColor: 'transparent'}}>User Management</Card.Header>
                 <div>
-                    <Button
-                        variant="outline-success"
-                        style={{ fontSize: '15px', padding: '5px 10px' }}
-                        size='sm'
-                        className="me-2 add-button"
-                        onClick={handleAddUserClick}
-                        disabled={showNewUserRow}>
-                        Add New User
-                    </Button>
+                    <SearchBar />
                 </div>
             </div>
             <Card.Body>
@@ -71,23 +59,16 @@ const UserTable: React.FC<UserTableProps> = ({
                         <th className="text-center align-middle">Role</th>
                     </tr>
                     </thead>
-                    <tbody>
-                    {users.map(user => (
-                        <UserItem
-                            key={user.id}
-                            user={user}
-                            onEdit={onEdit}
-                            onDelete={onDelete}
-                        />
-                    ))}
-                    {showNewUserRow && (
-                        <NewUserRow
-                            onSave={handleSaveUser}
-                            onCancel={handleCancelAddUser}
-                            roles={roles}
-                        />
-                    )}
-                    </tbody>
+               <tbody>
+                                   {users.map(user => (
+                                       <UserItem
+                                           key={user.id}
+                                           user={user}
+                                           onEdit={onEdit}
+                                           onDelete={onDelete}
+                                       />
+                                   ))}
+                                   </tbody>
                 </Table>
             </Card.Body>
         </Card>
