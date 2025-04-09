@@ -1,5 +1,5 @@
 // controllers/productController.js
-const { updateProductQuantity } = require("../services/productService");
+const productService = require("../services/productService");
 
 /**
  * Add a new product
@@ -124,6 +124,25 @@ async function rejectCommentController(req, res) {
   }
 }
 
+
+/**
+ * Controller to search products by name or description.
+ * Expects a query parameter "query".
+ * @route GET /api/products/search?query=searchTerm
+ */
+async function searchProductsController(req, res) {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: "Query parameter is required." });
+    }
+    const products = await productService.searchProducts(query);
+    return res.status(200).json({ message: "Products retrieved successfully", products });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
@@ -132,5 +151,6 @@ module.exports = {
   decrementStockController,
   ...require('./existingControllers'),
   approveCommentController,
-  rejectCommentController
+  rejectCommentController,
+  searchProductsController, 
 };
