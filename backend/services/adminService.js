@@ -1,6 +1,9 @@
 // services/adminService.js
 const bcrypt = require("bcrypt");
+const { Op } = require("sequelize");
 const Admin = require("../models/Admin");
+const Order = require("../models/Order");
+const Product = require("../models/Product");
 
 /**
  * Create/register a new admin
@@ -57,7 +60,54 @@ async function loginAdmin(credentials) {
   return { id, name, email, role };
 }
 
+/**
+ * Generate sales report for a given date range.
+ * Revenue is calculated as product.price * order.quantity.
+ * Cost defaults to 50% of revenue.
+ * Profit/Loss is revenue minus cost.
+ *
+ * @param {object} params - { startDate, endDate }
+ * @returns {object} - { totalRevenue, totalCost, profitOrLoss, startDate, endDate }
+ */
+async function getSalesReport({ startDate, endDate }) {
+  const start = new Date(startDate);
+  const end = new Date(endDate);
+  
+  // Find orders with status "delivered" within the date range.
+  const orders = await Order.findAll({
+    where: {
+      createdAt: { [Op.between]: [start, end] },
+      status: "delivered",
+    },
+  });
+  
+  let totalRevenue = 0;
+  let totalCost = 0;
+  
+  // For each order, retrieve the product to get its price and compute totals.
+  for (const order of orders) {
+    const product = await Product.findByPk(order.productId);
+    if (product) {
+      const salePrice = product.price;
+      const orderRevenue = salePrice * order.quantity;
+      totalRevenue += orderRevenue;
+      totalCost += 0.5 * orderRevenue; // cost defaults to 50% of revenue
+    }
+  }
+  
+  const profitOrLoss = totalRevenue - totalCost;
+  
+  return {
+    totalRevenue,
+    totalCost,
+    profitOrLoss,
+    startDate,
+    endDate,
+  };
+}
+
 module.exports = {
   registerAdmin,
   loginAdmin,
+  getSalesReport,
 };

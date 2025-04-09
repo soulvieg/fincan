@@ -1,5 +1,5 @@
 // controllers/adminController.js
-const { registerAdmin, loginAdmin } = require("../services/adminService");
+const { registerAdmin, loginAdmin, getSalesReport } = require("../services/adminService");
 
 /**
  * Controller to handle admin signup
@@ -60,7 +60,29 @@ async function loginAdminController(req, res) {
   }
 }
 
+/**
+ * Controller to generate sales report.
+ * Expects query parameters: startDate and endDate.
+ * @route GET /api/admins/salesReport
+ */
+async function getSalesReportController(req, res) {
+  try {
+    const { startDate, endDate } = req.query;
+    if (!startDate || !endDate) {
+      return res.status(400).json({ message: "Both startDate and endDate query parameters are required." });
+    }
+    const report = await getSalesReport({ startDate, endDate });
+    return res.status(200).json({
+      message: "Sales report generated successfully",
+      report,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   signupAdminController,
   loginAdminController,
+  getSalesReportController,
 };
