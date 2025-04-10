@@ -6,7 +6,9 @@ const { updateQuantityInStockController,
         incrementStockController,
         decrementStockController,
         approveCommentController,
-        rejectCommentController } = require("../controllers/productController");
+        rejectCommentController,
+        searchProductsController
+    } = require("../controllers/productController");
 
 const router = express.Router();
 
@@ -24,6 +26,10 @@ router.patch('/:productId/increment', incrementStockController);
 
 // PATCH /api/products/:productId/decrement
 router.patch('/:productId/decrement', decrementStockController);
+
+
+// GET /api/products/search - Search for products by name or description
+router.get("/search", searchProductsController);
 
 // PUT /api/comments/:commentId/approve - Approve a comment
 router.put("/comments/:commentId/approve", approveCommentController);
