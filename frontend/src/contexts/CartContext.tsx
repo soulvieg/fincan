@@ -12,7 +12,7 @@ interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
   removeFromCart: (id: number) => void;
-  clearCart: () => void; // Added function to clear cart
+  clearCart: () => void;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -30,16 +30,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   }, [cart]);
 
   const addToCart = (item: CartItem) => {
-    setCart((prevCart) => {
-      const existingItem = prevCart.find((cartItem) => cartItem.id === item.id);
-      if (existingItem) {
-        return prevCart.map((cartItem) =>
-          cartItem.id === item.id
-            ? { ...cartItem, quantity: cartItem.quantity + 1 }
-            : cartItem
-        );
+    setCart((prevItems) => {
+      const existingItemIndex = prevItems.findIndex(
+        (cartItem) => cartItem.id === item.id
+      );
+
+      if (existingItemIndex >= 0) {
+        const updatedItems = [...prevItems];
+        updatedItems[existingItemIndex].quantity += item.quantity;
+        return updatedItems;
       } else {
-        return [...prevCart, { ...item, quantity: 1 }];
+        return [...prevItems, item];
       }
     });
   };
@@ -49,8 +50,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const clearCart = () => {
-    setCart([]); // Clear cart after successful purchase
-    localStorage.removeItem("cart"); // Remove cart data from local storage
+    setCart([]);
+    localStorage.removeItem("cart");
   };
 
   return (

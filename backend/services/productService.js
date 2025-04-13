@@ -1,5 +1,4 @@
 // services/productService.js
-const { Op } = require("sequelize");
 const Product = require("../models/Product");
 
 /**
@@ -80,33 +79,10 @@ async function decrementStock(productId) {
   }
 }
 
-/**
- * Search products by name or description
- * @param {string} query - The search query string.
- * @returns {Array} - List of matching products.
- * @throws {Error} - If search fails.
- */
-async function searchProducts(query) {
-  try {
-    const products = await Product.findAll({
-      where: {
-        [Op.or]: [
-          { name: { [Op.like]: `%${query}%` } },
-          { description: { [Op.like]: `%${query}%` } },
-        ],
-      },
-    });
-    return products;
-  } catch (error) {
-    throw new Error(`Failed to search products: ${error.message}`);
-  }
-}
-
 module.exports = {
   addProduct,
   updateProductQuantity,
   deleteProduct,
   incrementStock,
   decrementStock,
-  searchProducts,
 };

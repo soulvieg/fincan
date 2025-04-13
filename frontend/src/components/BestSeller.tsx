@@ -1,24 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useCart } from "../contexts/CartContext";
+import { useProductContext } from "../contexts/ProductContext";
 import "../styles/BestSeller.css";
-
-interface BestSellerItem {
-  id: number;
-  name: string; // Change title to name
-  image: string;
-  price: number;
-}
 
 const BestSeller: React.FC = () => {
   const { addToCart } = useCart();
-  const [bestSellers, setBestSellers] = useState<BestSellerItem[]>([]);
-
-  useEffect(() => {
-    fetch("/data/BestSellers.json")
-      .then((response) => response.json())
-      .then((data) => setBestSellers(data))
-      .catch((error) => console.error("Error loading best sellers:", error));
-  }, []);
+  const { getBestSellers } = useProductContext();
+  const bestSellers = getBestSellers();
 
   return (
     <div className="best-seller">
@@ -30,7 +18,17 @@ const BestSeller: React.FC = () => {
             <p className="bs-caption">
               {item.name} - ${item.price}
             </p>
-            <button onClick={() => addToCart({ ...item, quantity: 1 })}>
+            <button
+              onClick={() =>
+                addToCart({
+                  id: item.id,
+                  name: item.name,
+                  price: item.price,
+                  image: item.image,
+                  quantity: 1,
+                })
+              }
+            >
               Add to Cart
             </button>
           </div>

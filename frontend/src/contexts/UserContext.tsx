@@ -1,18 +1,27 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
 
+interface CreditCard {
+  cardNumber: string;
+  expirationDate: string;
+  cvv: string;
+  cardholderName: string;
+}
+
 interface User {
   name: string;
   surname: string;
   email: string;
   phone: string;
   address: string;
+  creditCard?: CreditCard;
 }
 
 interface UserContextType {
   user: User | null;
   login: (userData: User) => void;
   logout: () => void;
-  updateUser: (updatedData: Partial<User>) => void; // Added updateUser
+  updateUser: (updatedData: Partial<User>) => void;
+  deleteCreditCard: () => void; // Added function to delete credit card
 }
 
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -38,6 +47,7 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     email: "johndoe@example.com",
     phone: "+1234567890",
     address: "123 Main St, Springfield",
+    creditCard: undefined,
   });
 
   const login = (userData: User) => {
@@ -57,8 +67,19 @@ export const UserProvider: React.FC<UserProviderProps> = ({ children }) => {
     }
   };
 
+  const deleteCreditCard = () => {
+    if (user) {
+      setUser((prevUser) => ({
+        ...prevUser!,
+        creditCard: undefined,
+      }));
+    }
+  };
+
   return (
-    <UserContext.Provider value={{ user, login, logout, updateUser }}>
+    <UserContext.Provider
+      value={{ user, login, logout, updateUser, deleteCreditCard }}
+    >
       {children}
     </UserContext.Provider>
   );

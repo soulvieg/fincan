@@ -1,10 +1,13 @@
 import React from "react";
 import { useOrders, Order } from "../contexts/OrderContext";
 import { Button, Card, Table, Badge } from "react-bootstrap";
+import { useNavigate } from "react-router-dom";
+import StarIcon from "@mui/icons-material/Star";
 import "../styles/ShoppingCart.css"; // Use the existing CSS file
 
 const OrderHistory: React.FC = () => {
   const { orders, cancelOrder } = useOrders();
+  const navigate = useNavigate();
 
   const getStatusBadge = (status: Order["status"]) => {
     let className = "";
@@ -24,7 +27,6 @@ const OrderHistory: React.FC = () => {
       default:
         className = "badge-secondary";
     }
-
     return (
       <span className={`badge ${className}`} style={{ padding: "5px 10px" }}>
         {status}
@@ -34,6 +36,10 @@ const OrderHistory: React.FC = () => {
 
   const canCancel = (status: Order["status"]) => {
     return status === "Processing" || status === "In-Transit";
+  };
+
+  const handleReviewClick = (productId: number) => {
+    navigate(`/product/${productId}#comments-section`);
   };
 
   if (orders.length === 0) {
@@ -103,6 +109,7 @@ const OrderHistory: React.FC = () => {
                   <th>Price</th>
                   <th>Quantity</th>
                   <th>Subtotal</th>
+                  <th>Review</th>
                 </tr>
               </thead>
               <tbody>
@@ -121,6 +128,30 @@ const OrderHistory: React.FC = () => {
                     <td>${item.price.toFixed(2)}</td>
                     <td>{item.quantity}</td>
                     <td>${(item.price * item.quantity).toFixed(2)}</td>
+                    <td>
+                      <div
+                        className="review-button"
+                        onClick={() => handleReviewClick(item.id)}
+                        style={{
+                          cursor: "pointer",
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "5px",
+                          color: "#4A756E",
+                        }}
+                      >
+                        <span>Leave a review?</span>
+                        <StarIcon
+                          sx={{
+                            color: "#ffc107",
+                            transition: "transform 0.2s",
+                            "&:hover": {
+                              transform: "scale(1.2)",
+                            },
+                          }}
+                        />
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -132,6 +163,7 @@ const OrderHistory: React.FC = () => {
                   <td>
                     <strong>${order.total.toFixed(2)}</strong>
                   </td>
+                  <td></td>
                 </tr>
               </tfoot>
             </Table>

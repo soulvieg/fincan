@@ -1,0 +1,218 @@
+.product-page {
+  font-family: "Arial, sans-serif";
+  color: #4a4a4a;
+  padding: 20px;
+  background-color: #f5f0e6;
+}
+
+.product-header {
+  position: relative;
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.header-image {
+  width: 100%;
+  border-radius: 20px;
+}
+
+.header-content {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  color: white;
+  background-color: rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  border-radius: 10px;
+}
+
+.categories {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.category-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  margin-bottom: 40px;
+}
+
+.category-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 20px;
+  background-color: #4a756e;
+  color: white;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.category-button.active {
+  background-color: #1b4b43;
+}
+
+.product-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 35px; /* Increase the gap between boxes */
+  padding: 0; /* Optional: Remove padding if needed */
+}
+
+.product-card {
+  position: relative; /* Enable positioning for child elements */
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  padding: 20px;
+  width: 250px; /* Make the box wider */
+  text-align: left; /* Align text to the left */
+  display: flex;
+  flex-direction: column; /* Stack content vertically */
+  justify-content: space-between; /* Push "Add to Cart" to the bottom */
+}
+
+.product-card img {
+  width: 100%; /* Make the image fit the card width */
+  height: 200px; /* Adjust height */
+  object-fit: cover; /* Ensure the image covers the area without distortion */
+  border-radius: 8px;
+  margin-bottom: 10px; /* Add spacing below the image */
+}
+
+/* Center-align the title and description */
+.product-card h3 {
+  font-size: 1.5rem; /* Keep the title size */
+  margin: 10px 0;
+  font-weight: bold;
+  text-align: center; /* Center-align the title */
+}
+
+.product-card p {
+  font-size: 0.9rem; /* Adjust font size for description */
+  color: #666;
+  margin-bottom: 10px;
+  text-align: center; /* Center-align the description */
+  overflow: hidden; /* Hide overflowing text */
+  text-overflow: ellipsis; /* Add ellipsis for long text */
+  display: -webkit-box;
+  -webkit-line-clamp: 3; /* Show only 3 lines */
+  line-clamp: 3; /* Standard property for compatibility */
+  -webkit-box-orient: vertical;
+}
+
+/* Make the price slightly bigger */
+.product-price {
+  font-size: 1rem; /* Increase the font size slightly */
+  align-self: center;
+  color: #333;
+  margin: 10px 0;
+}
+
+/* Style for the product rating */
+.product-rating {
+  position: absolute; /* Position the rating relative to the product card */
+  top: 20px; /* Move it slightly down for better visibility */
+  left: 25px; /* Adjust horizontal position */
+  color: #ffc107; /* Gold color for the star */
+  font-size: 0.9rem; /* Adjust font size for better visibility */
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Add spacing between the number and the star */
+}
+
+.stock-status {
+  font-size: 1em;
+  margin: 10px 0;
+}
+
+.stock-status.in-stock {
+  color: #28a745; /* Green for in stock */
+}
+
+.stock-status.out-of-stock {
+  color: #d9534f; /* Red for out of stock */
+}
+
+.add-to-cart-button {
+  padding: 10px 15px;
+  background-color: #55b2a2;
+  align-self: center;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.add-to-cart-button:hover {
+  background-color: #4a756e; /* Darker green on hover */
+}
+
+.box {
+  background-color: #4a756e; /* Teal color */
+  color: #fff;
+  padding: 16px; /* Equivalent to p: 4 */
+  border-radius: 15px; /* Updated border radius */
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2); /* Updated box shadow */
+}
+
+.box h4 {
+  font-weight: bold;
+  color: #ffcc80; /* Updated color for h4 */
+}
+
+.box p {
+  margin-top: 16px; /* Equivalent to mt: 2 */
+  font-size: 16px;
+  color: #fff;
+}
+
+.box h3 {
+  font-weight: bold;
+  color: #ffcc80; /* Updated color for h3 */
+  margin-top: 32px; /* Equivalent to mt: 4 */
+}
+
+.box-rating {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: 5px;
+  display: flex;
+  align-items: center;
+  gap: 1px;
+}
+
+.box-rating .star-icon {
+  color: #ffc107;
+}
+
+/* Add to cart notification styles */
+.add-to-cart-notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background-color: #4a756e; /* Match your theme color */
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+  opacity: 0;
+  transform: translateY(-20px);
+  transition: opacity 0.3s, transform 0.3s;
+  font-size: 0.9rem;
+  font-weight: bold;
+}
+
+.add-to-cart-notification.show {
+  opacity: 1;
+  transform: translateY(0);
+}

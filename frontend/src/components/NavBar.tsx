@@ -15,22 +15,38 @@ const NavBar: React.FC = () => {
   return (
     <nav
       className="navbar navbar-expand-lg"
-      style={{ backgroundColor: "#fff0e2", outline: "1px solid #666" }}
+      style={{ backgroundColor: "#6d4c41", outline: "1px solid #666" }}
     >
       <div className="container-fluid d-flex justify-content-between align-items-center">
-        <Link
-          className="navbar-brand brand-logo"
-          to={isAdminPage ? "/admin" : "/"}
-          style={{ color: "#6d4c41", fontFamily: '"The Seasons", serif' }}
-        >
-          Fincan
-          {isAdminPage && (
-            <MdOutlineAdminPanelSettings
-              size={22}
-              style={{ marginTop: "14px", marginLeft: "-2px" }}
-            />
-          )}
-        </Link>
+        <div className="d-flex align-items-center">
+          <Link
+            className="navbar-brand brand-logo"
+            to={isAdminPage ? "/admin" : "/"}
+            style={{ color: "#f5f0e6", fontSize: '35px',fontFamily: '"The Seasons", serif' }}
+          >
+            Fincan
+            {isAdminPage && (
+              <MdOutlineAdminPanelSettings
+                size={22}
+                style={{ marginTop: "14px", marginLeft: "-2px" }}
+              />
+            )}
+          </Link>
+          <Link
+            to="/products"
+            className="ms-3"
+            style={{
+              color: "#f5f0e6",
+              textDecoration: "none",
+              fontSize: "1rem",
+              border: "1px solid #f5f0e6",
+              borderRadius: "14px",
+              padding: "6px 12px",
+            }}
+          >
+            Products
+          </Link>
+        </div>
 
         {!isAdminPage ? (
           <>
@@ -42,7 +58,7 @@ const NavBar: React.FC = () => {
               to="/shoppingCart"
               className="btn btn-link"
               style={{
-                color: "#6d4c41",
+                color: "#f5f0e6",
                 border: "none",
               }}
             >
@@ -81,7 +97,7 @@ const NavBar: React.FC = () => {
               className="btn"
               style={{
                 color: "#6d4c41",
-                border: "1px solid #6d4c41",
+                border: "1px solid #f5f0e6",
                 borderRadius: "14px",
                 padding: "6px 12px",
               }}
@@ -101,3 +117,4 @@ const NavBar: React.FC = () => {
 };
 
 export default NavBar;
+
