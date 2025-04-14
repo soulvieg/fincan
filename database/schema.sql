@@ -103,10 +103,10 @@ CREATE TABLE Order_items (
 );
 
 CREATE TABLE Cards (
-    cart_id INT NOT NULL PRIMARY KEY,
+    card_id INT NOT NULL PRIMARY KEY,
+    card_name VARCHAR(64),
     customer_id INT NOT NULL,
     card_number INT,
     expiration_date DATE,
-    card_name VARCHAR(64),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
