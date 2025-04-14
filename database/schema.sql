@@ -101,3 +101,12 @@ CREATE TABLE Order_items (
     FOREIGN KEY (product_id) REFERENCES Products(product_id),
     FOREIGN KEY (order_id) REFERENCES Orders(order_id)
 );
+
+CREATE TABLE Cards (
+    cart_id INT NOT NULL PRIMARY KEY,
+    customer_id INT NOT NULL,
+    card_number INT,
+    expiration_date DATE,
+    card_name VARCHAR(64),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
+);
