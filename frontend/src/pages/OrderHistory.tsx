@@ -109,7 +109,7 @@ const OrderHistory: React.FC = () => {
                   <th>Price</th>
                   <th>Quantity</th>
                   <th>Subtotal</th>
-                  <th>Review</th>
+                  {order.status === "Delivered" && <th>Review</th>}
                 </tr>
               </thead>
               <tbody>
@@ -128,42 +128,47 @@ const OrderHistory: React.FC = () => {
                     <td>${item.price.toFixed(2)}</td>
                     <td>{item.quantity}</td>
                     <td>${(item.price * item.quantity).toFixed(2)}</td>
-                    <td>
-                      <div
-                        className="review-button"
-                        onClick={() => handleReviewClick(item.id)}
-                        style={{
-                          cursor: "pointer",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "5px",
-                          color: "#4A756E",
-                        }}
-                      >
-                        <span>Leave a review?</span>
-                        <StarIcon
-                          sx={{
-                            color: "#ffc107",
-                            transition: "transform 0.2s",
-                            "&:hover": {
-                              transform: "scale(1.2)",
-                            },
+                    {order.status === "Delivered" && (
+                      <td>
+                        <div
+                          className="review-button"
+                          onClick={() => handleReviewClick(item.id)}
+                          style={{
+                            cursor: "pointer",
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "5px",
+                            color: "#4A756E",
                           }}
-                        />
-                      </div>
-                    </td>
+                        >
+                          <span>Leave a review?</span>
+                          <StarIcon
+                            sx={{
+                              color: "#ffc107",
+                              transition: "transform 0.2s",
+                              "&:hover": {
+                                transform: "scale(1.2)",
+                              },
+                            }}
+                          />
+                        </div>
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
               <tfoot>
                 <tr>
-                  <td colSpan={3} className="text-end">
+                  <td
+                    colSpan={order.status === "Delivered" ? 3 : 2}
+                    className="text-end"
+                  >
                     <strong>Total:</strong>
                   </td>
                   <td>
                     <strong>${order.total.toFixed(2)}</strong>
                   </td>
-                  <td></td>
+                  {order.status === "Delivered" && <td></td>}
                 </tr>
               </tfoot>
             </Table>

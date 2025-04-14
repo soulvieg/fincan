@@ -66,7 +66,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
         id: nextId,
         customerId: Date.now(),
         status: "Processing",
-        customer: `${user.name} ${user.surname}`,
+        customer: `${user.first_name} ${user.last_name}`,
         address: user.address || "No address provided",
       };
       return [...prevOrders, newOrder];

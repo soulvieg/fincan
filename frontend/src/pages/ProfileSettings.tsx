@@ -8,7 +8,6 @@ import "../styles/ProfileSettings.css";
 interface CreditCard {
   cardNumber: string;
   expirationDate: string;
-  cvv: string;
   cardholderName: string;
 }
 
@@ -34,30 +33,31 @@ const ProfileSettings: React.FC = () => {
   const [editing, setEditing] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
-    name: "",
-    surname: "",
+    first_name: "",
+    last_name: "",
     email: "",
-    phone: "",
+    phone_number: "",
     address: "",
     creditCard: {
       cardNumber: "",
       expirationDate: "",
-      cvv: "",
       cardholderName: "",
     } as CreditCard | undefined,
   });
 
   useEffect(() => {
     if (user) {
-      setFormData({
+      setFormData((prev) => ({
+        ...prev,
         ...user,
-        creditCard: user.creditCard || {
-          cardNumber: "",
-          expirationDate: "",
-          cvv: "",
-          cardholderName: "",
-        },
-      });
+        creditCard: user.creditCard
+          ? user.creditCard
+          : prev.creditCard ?? {
+              cardNumber: "",
+              expirationDate: "",
+              cardholderName: "",
+            },
+      }));
     }
   }, [user]);
 
@@ -65,12 +65,8 @@ const ProfileSettings: React.FC = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
-
-    // Handle credit card fields
     if (name.startsWith("creditCard.")) {
       const field = name.split(".")[1];
-
-      // Validate card number (only numbers, max 16 digits)
       if (field === "cardNumber") {
         const numericValue = value.replace(/\D/g, "").slice(0, 16);
         setFormData({
@@ -82,21 +78,6 @@ const ProfileSettings: React.FC = () => {
         });
         return;
       }
-
-      // Validate CVV (only numbers, max 3 digits)
-      if (field === "cvv") {
-        const numericValue = value.replace(/\D/g, "").slice(0, 3);
-        setFormData({
-          ...formData,
-          creditCard: {
-            ...formData.creditCard!,
-            [field]: numericValue,
-          },
-        });
-        return;
-      }
-
-      // Handle expiration date (MM/YY format)
       if (field === "expirationDate") {
         let formatted = value.replace(/\D/g, "");
         if (formatted.length > 2) {
@@ -111,8 +92,6 @@ const ProfileSettings: React.FC = () => {
         });
         return;
       }
-
-      // For cardholder name, just update normally
       setFormData({
         ...formData,
         creditCard: {
@@ -122,41 +101,32 @@ const ProfileSettings: React.FC = () => {
       });
       return;
     }
-
-    // For non-credit card fields
     setFormData({ ...formData, [name]: value });
   };
 
   const validateCreditCard = (): boolean => {
     const newErrors: { [key: string]: string } = {};
     const card = formData.creditCard;
-
     if (!card) {
       newErrors["creditCard"] = "Credit card information is required";
       setErrors(newErrors);
       return false;
     }
-
-    // Check if fields are empty
     if (!card.cardNumber) {
       newErrors["creditCard.cardNumber"] = "Card number cannot be empty";
     } else if (card.cardNumber.length !== 16) {
       newErrors["creditCard.cardNumber"] = "Card number must be 16 digits";
     }
-
     if (!card.expirationDate) {
       newErrors["creditCard.expirationDate"] =
         "Expiration date cannot be empty";
     } else {
-      // Validate expiration date
       const [month, year] = card.expirationDate.split("/");
       const currentDate = new Date();
-      const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
-      const currentMonth = currentDate.getMonth() + 1; // 1-12
-
+      const currentYear = currentDate.getFullYear() % 100;
+      const currentMonth = currentDate.getMonth() + 1;
       const expMonth = parseInt(month, 10);
       const expYear = parseInt(year, 10);
-
       if (
         isNaN(expMonth) ||
         isNaN(expYear) ||
@@ -169,36 +139,24 @@ const ProfileSettings: React.FC = () => {
           "Card has expired or invalid date format";
       }
     }
-
-    if (!card.cvv) {
-      newErrors["creditCard.cvv"] = "CVV cannot be empty";
-    } else if (card.cvv.length !== 3) {
-      newErrors["creditCard.cvv"] = "CVV must be 3 digits";
-    }
-
     if (!card.cardholderName) {
       newErrors["creditCard.cardholderName"] =
         "Cardholder name cannot be empty";
     }
-
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleSave = () => {
-    // Validate credit card if it exists
     if (formData.creditCard && !validateCreditCard()) {
       return;
     }
-
-    // Update user data
     updateUser({
       email: formData.email,
-      phone: formData.phone,
+      phone_number: formData.phone_number,
       address: formData.address,
       creditCard: formData.creditCard,
     });
-
     setEditing(false);
     setErrors({});
   };
@@ -210,7 +168,6 @@ const ProfileSettings: React.FC = () => {
       creditCard: {
         cardNumber: "",
         expirationDate: "",
-        cvv: "",
         cardholderName: "",
       },
     });
@@ -222,22 +179,22 @@ const ProfileSettings: React.FC = () => {
         <div className="profile-settings">
           <h2>Profile Settings</h2>
           <div className="mb-3">
-            <label className="form-label">Name:</label>
+            <label className="form-label">First Name:</label>
             <input
               type="text"
-              name="name"
+              name="first_name"
               className={`form-control read-only`}
-              value={formData.name || ""}
+              value={formData.first_name || ""}
               readOnly={true}
             />
           </div>
           <div className="mb-3">
-            <label className="form-label">Surname:</label>
+            <label className="form-label">Last Name:</label>
             <input
               type="text"
-              name="surname"
+              name="last_name"
               className={`form-control read-only`}
-              value={formData.surname || ""}
+              value={formData.last_name || ""}
               readOnly={true}
             />
           </div>
@@ -256,9 +213,9 @@ const ProfileSettings: React.FC = () => {
             <label className="form-label">Phone:</label>
             <input
               type="tel"
-              name="phone"
+              name="phone_number"
               className={`form-control ${!editing ? "read-only" : ""}`}
-              value={formData.phone || ""}
+              value={formData.phone_number || ""}
               onChange={handleChange}
               readOnly={!editing}
             />
@@ -274,8 +231,6 @@ const ProfileSettings: React.FC = () => {
               rows={3}
             ></textarea>
           </div>
-
-          {/* Credit Card Section */}
           <div className="credit-card-section mt-4">
             <h3>Payment Information</h3>
             <div className="mb-3">
@@ -287,7 +242,7 @@ const ProfileSettings: React.FC = () => {
                 value={formData.creditCard?.cardNumber || ""}
                 onChange={handleChange}
                 readOnly={!editing}
-                placeholder="1234567890123456"
+                placeholder=" "
                 maxLength={16}
               />
               {errors["creditCard.cardNumber"] && (
@@ -305,29 +260,13 @@ const ProfileSettings: React.FC = () => {
                 value={formData.creditCard?.expirationDate || ""}
                 onChange={handleChange}
                 readOnly={!editing}
-                placeholder="MM/YY"
+                placeholder=" "
                 maxLength={5}
               />
               {errors["creditCard.expirationDate"] && (
                 <div className="error-message">
                   {errors["creditCard.expirationDate"]}
                 </div>
-              )}
-            </div>
-            <div className="mb-3">
-              <label className="form-label">CVV:</label>
-              <input
-                type="text"
-                name="creditCard.cvv"
-                className={`form-control ${!editing ? "read-only" : ""}`}
-                value={formData.creditCard?.cvv || ""}
-                onChange={handleChange}
-                readOnly={!editing}
-                placeholder="123"
-                maxLength={3}
-              />
-              {errors["creditCard.cvv"] && (
-                <div className="error-message">{errors["creditCard.cvv"]}</div>
               )}
             </div>
             <div className="mb-3">
@@ -339,7 +278,7 @@ const ProfileSettings: React.FC = () => {
                 value={formData.creditCard?.cardholderName || ""}
                 onChange={handleChange}
                 readOnly={!editing}
-                placeholder="John Doe"
+                placeholder=" "
               />
               {errors["creditCard.cardholderName"] && (
                 <div className="error-message">
@@ -356,7 +295,6 @@ const ProfileSettings: React.FC = () => {
               </button>
             )}
           </div>
-
           <div className="profile-buttons mt-4">
             {editing ? (
               <button className="btn btn-success me-2" onClick={handleSave}>

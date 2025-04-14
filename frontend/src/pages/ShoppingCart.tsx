@@ -5,7 +5,7 @@ import { useOrders } from "../contexts/OrderContext";
 import "../styles/ShoppingCart.css";
 
 const ShoppingCart: React.FC = () => {
-  const { cart, removeFromCart, clearCart } = useCart();
+  const { cart, loading, removeFromCart, clearCart } = useCart();
   const { user } = useUser();
   const { addOrder } = useOrders();
   const [message, setMessage] = useState<string | null>(null);
@@ -36,35 +36,23 @@ const ShoppingCart: React.FC = () => {
   // Check if credit card is valid
   const isCreditCardValid = () => {
     if (!user || !user.creditCard) return false;
-
-    const { cardNumber, expirationDate, cvv, cardholderName } = user.creditCard;
-
+    const { cardNumber, expirationDate, cardholderName } = user.creditCard;
     // Check if all fields exist
-    if (!cardNumber || !expirationDate || !cvv || !cardholderName) {
+    if (!cardNumber || !expirationDate || !cardholderName) {
       return false;
     }
-
     // Check card number length
     if (cardNumber.length !== 16) {
       return false;
     }
-
-    // Check CVV length
-    if (cvv.length !== 3) {
-      return false;
-    }
-
     // Check expiration date
     const [month, year] = expirationDate.split("/");
     if (!month || !year) return false;
-
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear() % 100; // Get last 2 digits
     const currentMonth = currentDate.getMonth() + 1; // 1-12
-
     const expMonth = parseInt(month, 10);
     const expYear = parseInt(year, 10);
-
     if (
       isNaN(expMonth) ||
       isNaN(expYear) ||
@@ -75,35 +63,43 @@ const ShoppingCart: React.FC = () => {
     ) {
       return false;
     }
-
     return true;
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (cart.length === 0) return;
-
     if (!user) {
       setMessage("Please log in to confirm the checkout.");
       return;
     }
-
     if (!isCreditCardValid()) {
       setMessage("Please add a valid credit card to your account.");
       return;
     }
 
-    // Create a new order using the OrderContext
-    addOrder({
-      date: new Date().toLocaleString(),
-      items: cart,
-      total: calculateTotal(),
-    });
+    try {
+      // Create a new order using the OrderContext
+      addOrder({
+        date: new Date().toLocaleString(),
+        items: cart,
+        total: calculateTotal(),
+      });
 
-    setMessage("Thank you for your purchase!");
-    setTimeout(() => {
-      clearCart();
-    }, 3000);
+      setMessage("Thank you for your purchase!");
+
+      // Clear the cart after successful checkout
+      setTimeout(() => {
+        clearCart();
+      }, 3000);
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      setMessage("There was an error processing your order. Please try again.");
+    }
   };
+
+  if (loading) {
+    return <div className="shopping-cart">Loading cart...</div>;
+  }
 
   return (
     <div>
