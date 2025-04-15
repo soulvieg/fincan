@@ -1,17 +1,7 @@
 import React, { createContext, useState, useContext, useEffect } from "react";
 import { useUser } from "./UserContext";
 
-// This interface represents what we get from the backend
-interface CartItemResponse {
-  id: number;
-  userId: number | null;
-  sessionId: string | null;
-  productId: number;
-  quantity: number;
-}
-
 // This interface represents what we display in the UI
-// We'll need to fetch product details separately
 interface CartItemWithDetails {
   id: number;
   productId: number;
@@ -47,82 +37,28 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [cart, setCart] = useState<CartItemWithDetails[]>([]);
+  const [cart, setCart] = useState<CartItemWithDetails[]>(() => {
+    // Load cart from localStorage on initialization
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
   const [loading, setLoading] = useState<boolean>(false);
   const { user } = useUser();
-  const [sessionId, setSessionId] = useState<string | null>(null);
 
-  // Initialize session ID for guest users
+  // Save cart to localStorage whenever it changes
   useEffect(() => {
-    // If no session ID in localStorage, create one
-    if (!localStorage.getItem("sessionId")) {
-      const newSessionId = `guest-${Date.now()}-${Math.random()
-        .toString(36)
-        .substring(2, 9)}`;
-      localStorage.setItem("sessionId", newSessionId);
-    }
-    setSessionId(localStorage.getItem("sessionId"));
-  }, []);
+    localStorage.setItem("cart", JSON.stringify(cart));
+  }, [cart]);
 
-  // Fetch cart when user or sessionId changes
-  useEffect(() => {
-    if (user || sessionId) {
-      fetchCart();
-    }
-  }, [user, sessionId]);
-
-  // Mock function to get product details - replace with actual API call
-  const getProductDetails = async (
-    productId: number
-  ): Promise<{
-    name: string;
-    price: number;
-    image: string;
-  }> => {
-    // This should be replaced with an actual API call to get product details
-    // For now, returning mock data
-    return {
-      name: `Product ${productId}`,
-      price: 9.99,
-      image: "/img/product-placeholder.jpg",
-    };
-  };
-
+  // Fetch cart from localStorage
   const fetchCart = async () => {
     try {
       setLoading(true);
-      const userId = user?.id;
-      const queryParams = new URLSearchParams();
-
-      if (userId) {
-        queryParams.append("userId", userId.toString());
-      } else if (sessionId) {
-        queryParams.append("sessionId", sessionId);
+      // Just load from localStorage - no API call needed
+      const savedCart = localStorage.getItem("cart");
+      if (savedCart) {
+        setCart(JSON.parse(savedCart));
       }
-
-      const response = await fetch(`/api/cart?${queryParams.toString()}`);
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch cart");
-      }
-
-      const data = await response.json();
-      const cartItems: CartItemResponse[] = data.cart;
-
-      // Fetch product details for each cart item
-      const itemsWithDetails = await Promise.all(
-        cartItems.map(async (item) => {
-          const productDetails = await getProductDetails(item.productId);
-          return {
-            id: item.id,
-            productId: item.productId,
-            quantity: item.quantity,
-            ...productDetails,
-          };
-        })
-      );
-
-      setCart(itemsWithDetails);
     } catch (error) {
       console.error("Error fetching cart:", error);
     } finally {
@@ -130,61 +66,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Updated addToCart to handle both ways of calling it
+  // Add item to cart - store in localStorage
   const addToCart = async (
     productIdOrItem: number | CartItemInput,
     quantity?: number
   ) => {
     try {
       setLoading(true);
-      const userId = user?.id;
 
-      let productId: number;
-      let productQuantity: number;
-
-      // Check if the first argument is a number (productId) or an object (CartItemInput)
       if (typeof productIdOrItem === "number") {
-        productId = productIdOrItem;
-        productQuantity = quantity || 1; // Default to 1 if quantity is not provided
+        // This case isn't fully implemented since we need product details
+        // In a real app, you'd fetch the product details here
+        console.warn("Adding by product ID is not fully implemented");
+        return;
       } else {
-        // It's a CartItemInput object
-        productId = productIdOrItem.id;
-        productQuantity = productIdOrItem.quantity;
+        // It's a CartItemInput object with all the details we need
+        const productId = productIdOrItem.id;
 
-        // For now, we'll just add it to the local state for immediate feedback
-        // and then sync with the backend
-        const newItem: CartItemWithDetails = {
-          id: Date.now(), // Temporary ID until we get the real one from the backend
-          productId: productIdOrItem.id,
-          name: productIdOrItem.name,
-          price: productIdOrItem.price,
-          quantity: productIdOrItem.quantity,
-          image: productIdOrItem.image,
-        };
+        // Check if the item already exists in the cart
+        const existingItemIndex = cart.findIndex(
+          (item) => item.productId === productId
+        );
 
-        setCart((prevCart) => [...prevCart, newItem]);
+        if (existingItemIndex >= 0) {
+          // Update quantity if item exists
+          const updatedCart = [...cart];
+          updatedCart[existingItemIndex].quantity += productIdOrItem.quantity;
+          setCart(updatedCart);
+        } else {
+          // Add new item with the original product ID
+          const newItem: CartItemWithDetails = {
+            id: Date.now(), // This is just a unique identifier for the cart item
+            productId: productIdOrItem.id, // This is the actual product ID
+            name: productIdOrItem.name,
+            price: productIdOrItem.price,
+            quantity: productIdOrItem.quantity,
+            image: productIdOrItem.image,
+          };
+          setCart((prevCart) => [...prevCart, newItem]);
+        }
       }
-
-      // Now send the request to the backend
-      const response = await fetch("/api/cart", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          userId: userId || null,
-          sessionId: userId ? null : sessionId,
-          productId,
-          quantity: productQuantity,
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to add item to cart");
-      }
-
-      // Refresh the cart after adding an item to get the updated state from the backend
-      await fetchCart();
     } catch (error) {
       console.error("Error adding to cart:", error);
     } finally {
@@ -192,20 +113,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Remove item from cart
   const removeFromCart = async (id: number) => {
     try {
       setLoading(true);
-      // This endpoint doesn't exist yet in your backend
-      // You'll need to add it
-      const response = await fetch(`/api/cart/${id}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to remove item from cart");
-      }
-
-      // Update local state
+      // Update local state and localStorage
       setCart((prevCart) => prevCart.filter((item) => item.id !== id));
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -214,30 +126,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
+  // Clear the entire cart
   const clearCart = async () => {
     try {
       setLoading(true);
-      // This endpoint doesn't exist yet in your backend
-      // You'll need to add it
-      const userId = user?.id;
-      const queryParams = new URLSearchParams();
-
-      if (userId) {
-        queryParams.append("userId", userId.toString());
-      } else if (sessionId) {
-        queryParams.append("sessionId", sessionId);
-      }
-
-      const response = await fetch(`/api/cart?${queryParams.toString()}`, {
-        method: "DELETE",
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to clear cart");
-      }
-
-      // Clear local state
+      // Clear local state and localStorage
       setCart([]);
+      localStorage.setItem("cart", JSON.stringify([]));
     } catch (error) {
       console.error("Error clearing cart:", error);
     } finally {
