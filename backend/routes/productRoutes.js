@@ -25,10 +25,6 @@ router.patch('/:productId/increment', incrementStockController);
 // PATCH /api/products/:productId/decrement
 router.patch('/:productId/decrement', decrementStockController);
 
-// PUT /api/comments/:commentId/approve - Approve a comment
-router.put("/comments/:commentId/approve", approveCommentController);
 
-// PUT /api/comments/:commentId/reject - Reject a comment
-router.put("/comments/:commentId/reject", rejectCommentController);
 
 module.exports = router;
