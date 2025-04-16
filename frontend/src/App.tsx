@@ -1,23 +1,31 @@
 import React, { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
+
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+
 import ProductManagement from "./pages/ProductManagement";
 import SalesManagement from "./pages/SalesManagement";
 import UserManagement from "./pages/UserManagement";
 import LoginUser from "./pages/LoginUser";
 import SignupUser from "./pages/SignupUser";
-import NavBar from "./components/NavBar";
+import OrderHistory from "./pages/OrderHistory";
+import Wishlists from "./pages/Wishlist";
+
 import ShoppingCart from "./pages/ShoppingCart";
 import ProfileSettings from "./pages/ProfileSettings";
 import { CartProvider } from "./contexts/CartContext";
 import { UserProvider } from "./contexts/UserContext";
 import { ProductProvider } from "./contexts/ProductContext";
-import OrderHistory from "./pages/OrderHistory";
-import { SiBuymeacoffee } from "react-icons/si";
+import { OrderProvider } from "./contexts/OrderContext";
+
+
 import Carousel from "./components/Carousel";
 import BestSeller from "./components/BestSeller";
-import { OrderProvider } from "./contexts/OrderContext";
+import NavBar from "./components/NavBar";
+
+import { SiBuymeacoffee } from "react-icons/si";
+
 
 const MainStore: React.FC = () => (
     <div className="text-center mt-5">
@@ -91,6 +99,7 @@ const App: React.FC = () => {
                                         <Route path="/shoppingcart" element={<ShoppingCart />} />
 
                                         <Route path="/order-history" element={<OrderHistory />} />
+                                        <Route path="/wishlist" element={<Wishlists />} />
 
                                         <Route
                                             path="/sales"

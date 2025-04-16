@@ -55,7 +55,7 @@ const NavBar: React.FC = () => {
                 menuItems={[
                   { label: "Profile", href: "/profile-settings" },
                   { label: "Orders", href: "/order-history" },
-                  { label: "Settings", href: "/settings" },
+                  { label: "Wishlist", href: "/wishlist" },
                   {
                     label: "Sign Out",
                     href: "/",
