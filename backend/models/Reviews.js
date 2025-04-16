@@ -1,4 +1,4 @@
-// models/Review.js
+// models/Reviews.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 

@@ -1,8 +1,8 @@
-const db = require("../models"); // Assuming Sequelize ORM is used
+const Review = require("../models/Reviews"); // Import the Reviews model
 
 async function approveComment(commentId) {
   try {
-    const comment = await db.Comment.findByPk(commentId);
+    const comment = await Review.findByPk(commentId);
     if (!comment) throw new Error("Comment not found");
 
     comment.status = "Approved";
@@ -17,7 +17,7 @@ async function approveComment(commentId) {
 
 async function rejectComment(commentId) {
   try {
-    const comment = await db.Comment.findByPk(commentId);
+    const comment = await Review.findByPk(commentId);
     if (!comment) throw new Error("Comment not found");
 
     comment.status = "Rejected";
