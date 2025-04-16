@@ -38,8 +38,15 @@ const OrderHistory: React.FC = () => {
     return status === "Processing" || status === "In-Transit";
   };
 
+  // Update the handleReviewClick function
   const handleReviewClick = (productId: number) => {
-    navigate(`/product/${productId}#comments-section`);
+    // First navigate to the products page, then to the specific product
+    navigate("/products");
+
+    // Use setTimeout to ensure the first navigation completes
+    setTimeout(() => {
+      navigate(`/product/${productId}#comments-section`);
+    }, 10);
   };
 
   if (orders.length === 0) {
@@ -132,7 +139,7 @@ const OrderHistory: React.FC = () => {
                       <td>
                         <div
                           className="review-button"
-                          onClick={() => handleReviewClick(item.id)}
+                          onClick={() => handleReviewClick(item.productId)}
                           style={{
                             cursor: "pointer",
                             display: "flex",

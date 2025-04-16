@@ -3,7 +3,6 @@ import { useUser } from "./UserContext";
 
 // This interface represents what we display in the UI
 interface CartItemWithDetails {
-  id: number;
   productId: number;
   name: string;
   price: number;
@@ -66,17 +65,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Add item to cart - store in localStorage
   const addToCart = async (
     productIdOrItem: number | CartItemInput,
     quantity?: number
   ) => {
     try {
       setLoading(true);
-
       if (typeof productIdOrItem === "number") {
         // This case isn't fully implemented since we need product details
-        // In a real app, you'd fetch the product details here
         console.warn("Adding by product ID is not fully implemented");
         return;
       } else {
@@ -96,8 +92,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         } else {
           // Add new item with the original product ID
           const newItem: CartItemWithDetails = {
-            id: Date.now(), // This is just a unique identifier for the cart item
-            productId: productIdOrItem.id, // This is the actual product ID
+            productId: productIdOrItem.id, // Use the product's actual ID
             name: productIdOrItem.name,
             price: productIdOrItem.price,
             quantity: productIdOrItem.quantity,
@@ -113,12 +108,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     }
   };
 
-  // Remove item from cart
-  const removeFromCart = async (id: number) => {
+  const removeFromCart = async (productId: number) => {
     try {
       setLoading(true);
       // Update local state and localStorage
-      setCart((prevCart) => prevCart.filter((item) => item.id !== id));
+      setCart((prevCart) =>
+        prevCart.filter((item) => item.productId !== productId)
+      );
     } catch (error) {
       console.error("Error removing from cart:", error);
     } finally {

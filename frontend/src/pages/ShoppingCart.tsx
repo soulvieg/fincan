@@ -111,14 +111,14 @@ const ShoppingCart: React.FC = () => {
           <>
             <ul>
               {cart.map((item) => (
-                <li key={item.id}>
+                <li key={item.productId}>
                   <img
                     src={item.image}
                     alt={item.name}
                     className="cart-item-img"
                   />
                   {item.name} - ${formatCurrency(item.price)} x {item.quantity}
-                  <button onClick={() => removeFromCart(item.id)}>
+                  <button onClick={() => removeFromCart(item.productId)}>
                     Remove
                   </button>
                 </li>
