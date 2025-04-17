@@ -6,7 +6,9 @@ const { updateQuantityInStockController,
         incrementStockController,
         decrementStockController,
         approveCommentController,
-        rejectCommentController } = require("../controllers/productController");
+        rejectCommentController,
+        searchProductsController,
+     } = require("../controllers/productController");
 
 const router = express.Router();
 
@@ -18,6 +20,9 @@ router.put("/:productId/quantity", updateQuantityInStockController);
 
 // DELETE /api/products/:productId - Delete a product
 router.delete("/:productId", deleteProductController);
+
+// GET /api/products/search?query=coffee
+router.get("/search", searchProductsController);
 
 // PATCH /api/products/:productId/increment
 router.patch('/:productId/increment', incrementStockController);

@@ -85,7 +85,7 @@ async function decrementStockController(req, res) {
   }
 }
 
-const { approveComment, rejectComment } = require("../services/commentService");
+const { approveComment, rejectComment } = require("../services/commentsService");
 
 /**
  * Approve a user comment
