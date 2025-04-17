@@ -11,6 +11,7 @@ const sequelize = require("../config/db");
  * - email:        Email address (unique)
  * - homeAddress:  Home address of the user
  * - password:     Hashed password
+ * 
  */
 const User = sequelize.define("User", {
   id: {
@@ -42,6 +43,12 @@ const User = sequelize.define("User", {
     type: DataTypes.STRING,
     allowNull: false,
   },
+
+  role: {
+    type: DataTypes.STRING,
+    allowNull: false,
+    defaultValue: "customer", // roles: "customer"
+  }
 });
 
 module.exports = User;

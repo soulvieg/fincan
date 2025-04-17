@@ -40,8 +40,12 @@ const Admin = sequelize.define("Admin", {
   },
 
   role: {
-    type: DataTypes.ENUM("productManager", "salesManager"),
+    type: DataTypes.STRING,
     allowNull: false,
+    //defaultValue: "product_manager", // or "sales_manager"
+    validate: {
+      isIn: [["salesManager", "productManager", 'overseeingAdmin']],
+    },
   },
 });
 

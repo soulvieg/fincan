@@ -11,19 +11,20 @@ CREATE TABLE Customers(
     password VARCHAR(255),
     address VARCHAR(255),
     phone_number VARCHAR(255),
-    type VARCHAR(255)
+    type VARCHAR(255),
+    PRIMARY KEY (customer_id)
 );
 
 CREATE TABLE Products(
     product_id INT NOT NULL PRIMARY KEY,
     category_id INT NOT NULL,
     sku VARCHAR(10),
+    name VARCHAR(255),
     description VARCHAR(255),
     price DECIMAL(10, 2),
     stock INT,
     FOREIGN KEY (category_id) REFERENCES Categories(category_id)
 );
-
 
 CREATE TABLE Ratings(
     review_id INT NOT NULL PRIMARY KEY,
@@ -103,10 +104,10 @@ CREATE TABLE Order_items (
 );
 
 CREATE TABLE Cards (
-    card_id INT NOT NULL PRIMARY KEY,
-    card_name VARCHAR(64),
+    cart_id INT NOT NULL PRIMARY KEY,
     customer_id INT NOT NULL,
     card_number INT,
     expiration_date DATE,
+    card_name VARCHAR(64),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );

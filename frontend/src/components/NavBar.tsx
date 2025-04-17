@@ -22,7 +22,11 @@ const NavBar: React.FC = () => {
           <Link
             className="navbar-brand brand-logo"
             to={isAdminPage ? "/admin" : "/"}
-            style={{ color: "#f5f0e6", fontSize: '35px',fontFamily: '"The Seasons", serif' }}
+            style={{
+              color: "#f5f0e6",
+              fontSize: "35px",
+              fontFamily: '"The Seasons", serif',
+            }}
           >
             Fincan
             {isAdminPage && (
@@ -32,20 +36,22 @@ const NavBar: React.FC = () => {
               />
             )}
           </Link>
-          <Link
-            to="/products"
-            className="ms-3"
-            style={{
-              color: "#f5f0e6",
-              textDecoration: "none",
-              fontSize: "1rem",
-              border: "1px solid #f5f0e6",
-              borderRadius: "14px",
-              padding: "6px 12px",
-            }}
-          >
-            Products
-          </Link>
+          {!isAdminPage && (
+            <Link
+              to="/products"
+              className="ms-3"
+              style={{
+                color: "#f5f0e6",
+                textDecoration: "none",
+                fontSize: "1rem",
+                border: "1px solid #f5f0e6",
+                borderRadius: "14px",
+                padding: "6px 12px",
+              }}
+            >
+              Products
+            </Link>
+          )}
         </div>
 
         {!isAdminPage ? (
@@ -66,50 +72,50 @@ const NavBar: React.FC = () => {
             </Link>
 
             {user ? (
-              // If user is logged in, show profile dropdown
               <ProfileDropdown
                 menuItems={[
                   { label: "Profile", href: "/profile-settings" },
                   { label: "Orders", href: "/order-history" },
-                  { label: "Settings", href: "/settings" },
+                  { label: "Wishlist", href: "/wishlist" }, // from first version
                   {
                     label: "Sign Out",
                     href: "/",
-                    onClick: () => logout(), // Call logout function
+                    onClick: () => logout(),
                   },
                 ]}
               />
             ) : (
-              // If user is not logged in, show log in button
               <Link
                 to="/login-user"
-                className="btn btn-outline-dark ms-3"
-                style={{ borderRadius: "10px" }}
+                className="btn btn-outline-light ms-3"
+                style={{
+                  borderRadius: "10px",
+                  color: "#f5f0e6",
+                  borderColor: "#f5f0e6",
+                }}
               >
                 Log in
               </Link>
             )}
           </>
         ) : (
-          <>
-            <Link
-              to="/"
-              className="btn"
-              style={{
-                color: "#6d4c41",
-                border: "1px solid #f5f0e6",
-                borderRadius: "14px",
-                padding: "6px 12px",
-              }}
-              onClick={() => logout()} // Log out when clicking sign out
-            >
-              Sign Out{" "}
-              <IoLogOutOutline
-                size={20}
-                style={{ marginLeft: "0px", marginBottom: "2px" }}
-              />
-            </Link>
-          </>
+          <Link
+            to="/"
+            className="btn"
+            style={{
+              color: "#f5f0e6",
+              border: "1px solid #f5f0e6",
+              borderRadius: "14px",
+              padding: "6px 12px",
+            }}
+            onClick={() => logout()}
+          >
+            Sign Out{" "}
+            <IoLogOutOutline
+              size={20}
+              style={{ marginLeft: "0px", marginBottom: "2px" }}
+            />
+          </Link>
         )}
       </div>
     </nav>
@@ -117,4 +123,3 @@ const NavBar: React.FC = () => {
 };
 
 export default NavBar;
-

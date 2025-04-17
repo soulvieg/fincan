@@ -10,8 +10,11 @@ import {
   Button,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
 import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
+import { useWishlist } from "../contexts/WishlistContext";
 import StarComponent from "../components/StarComponent";
 import CommentComponent from "../components/CommentComponent";
 import StarIcon from "@mui/icons-material/Star";
@@ -21,6 +24,7 @@ const ProductDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { products, updateRating } = useProductContext();
   const { addToCart } = useCart();
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
 
   const product = products.find(
@@ -74,6 +78,23 @@ const ProductDetailPage: React.FC = () => {
 
   const handleGoBack = () => {
     navigate(-1);
+  };
+
+  const handleWishlistToggle = () => {
+    if (!product) return;
+
+    const wishlistItem = {
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: product.image,
+    };
+
+    if (isInWishlist(product.id)) {
+      removeFromWishlist(product.id);
+    } else {
+      addToWishlist(wishlistItem);
+    }
   };
 
   if (!product) {
@@ -249,20 +270,40 @@ const ProductDetailPage: React.FC = () => {
                   +
                 </Button>
               </Box>
-              <Button
-                variant="contained"
-                startIcon={<ShoppingCartIcon />}
-                sx={{
-                  bgcolor: "#ffcc80",
-                  color: "#4e342e",
-                  ":hover": { bgcolor: "#ffb74d" },
-                  fontSize: "18px",
-                  px: 4,
-                }}
-                onClick={handleAddToCart}
-              >
-                Add to Cart
-              </Button>
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <Button
+                  variant="contained"
+                  startIcon={<ShoppingCartIcon />}
+                  sx={{
+                    bgcolor: "#ffcc80",
+                    color: "#4e342e",
+                    ":hover": { bgcolor: "#ffb74d" },
+                    fontSize: "14px",
+                    px: 2,
+                    py: 1,
+                    minWidth: "auto",
+                  }}
+                  onClick={handleAddToCart}
+                >
+                  Add to Cart
+                </Button>
+                <Button
+                  variant="contained"
+                  startIcon={isInWishlist(product.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+                  sx={{
+                    bgcolor: isInWishlist(product.id) ? "#ff4081" : "#ffcc80",
+                    color: "#4e342e",
+                    ":hover": { bgcolor: isInWishlist(product.id) ? "#f50057" : "#ffb74d" },
+                    fontSize: "14px",
+                    px: 2,
+                    py: 1,
+                    minWidth: "auto",
+                  }}
+                  onClick={handleWishlistToggle}
+                >
+                  {isInWishlist(product.id) ? "In Wishlist" : "Add to Wishlist"}
+                </Button>
+              </Box>
             </Box>
           </Box>
         </Grid>

@@ -2,23 +2,34 @@ import React, { useEffect } from "react";
 import { Routes, Route, Navigate, useLocation, Link } from "react-router-dom";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "./App.css";
+
+// Pages
 import ProductManagement from "./pages/ProductManagement";
 import SalesManagement from "./pages/SalesManagement";
+import UserManagement from "./pages/UserManagement";
 import LoginUser from "./pages/LoginUser";
 import SignupUser from "./pages/SignupUser";
-import NavBar from "./components/NavBar";
+import OrderHistory from "./pages/OrderHistory";
+import Wishlists from "./pages/Wishlist";
 import ShoppingCart from "./pages/ShoppingCart";
 import ProfileSettings from "./pages/ProfileSettings";
+import ProductsPage from "./pages/ProductPage";
+import ProductDetailPage from "./pages/ProductDetailPage";
+
+// Contexts
 import { CartProvider } from "./contexts/CartContext";
 import { UserProvider } from "./contexts/UserContext";
-import OrderHistory from "./pages/OrderHistory";
-import { SiBuymeacoffee } from "react-icons/si";
+import { ProductProvider } from "./contexts/ProductContext";
+import { OrderProvider } from "./contexts/OrderContext";
+import { WishlistProvider } from "./contexts/WishlistContext";
+
+// Components
 import Carousel from "./components/Carousel";
 import BestSeller from "./components/BestSeller";
-import { OrderProvider } from "./contexts/OrderContext";
-import ProductsPage from "./pages/ProductPage"; // Import the ProductsPage component
-import ProductDetailPage from "./pages/ProductDetailPage"; // Import ProductDetailPage if needed
-import { ProductProvider } from "./contexts/ProductContext"; // Import ProductProvider
+import NavBar from "./components/NavBar";
+
+// Icons
+import { SiBuymeacoffee } from "react-icons/si";
 
 const MainStore: React.FC = () => (
   <div className="text-center mt-5">
@@ -44,16 +55,22 @@ const AdminHome: React.FC = () => (
       </Link>
       <Link
         to="/admin/inventory"
-        className="btn btn-outline-dark btn-lg departments-custom-outline rounded-border"
+        className="btn btn-outline-dark btn-lg me-3 departments-custom-outline rounded-border"
       >
         Product Management
+      </Link>
+      <Link
+        to="/admin/users"
+        className="btn btn-outline-dark btn-lg departments-custom-outline rounded-border"
+      >
+        User Management
       </Link>
     </div>
   </div>
 );
 
 const App: React.FC = () => {
-  // Uncomment the following useEffect to clear local storage for resetting order histories
+  // Uncomment to clear local storage (e.g., for resetting order histories)
   // useEffect(() => {
   //   localStorage.clear(); // This clears ALL localStorage for your domain
   // }, []);
@@ -62,30 +79,57 @@ const App: React.FC = () => {
     <UserProvider>
       <CartProvider>
         <OrderProvider>
-          <ProductProvider> {/* Wrap the Routes with ProductProvider */}
-            <div className="d-flex flex-column vh-100">
-              <NavBar />
-              <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
-                <div className="w-100 mt-5">
-                  <Routes>
-                    <Route path="/" element={<MainStore />} />
-                    <Route path="/admin" element={<AdminHome />} />
-                    <Route path="/admin/sales" element={<SalesManagement />} />
-                    <Route path="/admin/inventory" element={<ProductManagement />} />
-                    <Route path="/login-user" element={<LoginUser />} />
-                    <Route path="/signup-user" element={<SignupUser />} />
-                    <Route path="/profile-settings" element={<ProfileSettings />} />
-                    <Route path="/shoppingcart" element={<ShoppingCart />} />
-                    <Route path="/order-history" element={<OrderHistory />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route path="/product/:id" element={<ProductDetailPage />} />
-                    <Route path="/sales" element={<Navigate to="/admin/sales" replace />} />
-                    <Route path="/inventory" element={<Navigate to="/admin/inventory" replace />} />
-                    <Route path="/adding-product" element={<Navigate to="/admin/adding-product" replace />} />
-                  </Routes>
+          <ProductProvider>
+            <WishlistProvider>
+              <div className="d-flex flex-column vh-100">
+                <NavBar />
+                <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
+                  <div className="w-100 mt-5">
+                    <Routes>
+                      {/* Public/Main Routes */}
+                      <Route path="/" element={<MainStore />} />
+                      <Route path="/login-user" element={<LoginUser />} />
+                      <Route path="/signup-user" element={<SignupUser />} />
+                      <Route
+                        path="/profile-settings"
+                        element={<ProfileSettings />}
+                      />
+                      <Route path="/shoppingcart" element={<ShoppingCart />} />
+                      <Route path="/order-history" element={<OrderHistory />} />
+                      <Route path="/wishlist" element={<Wishlists />} />
+                      <Route path="/products" element={<ProductsPage />} />
+                      <Route
+                        path="/product/:id"
+                        element={<ProductDetailPage />}
+                      />
+
+                      {/* Admin Routes */}
+                      <Route path="/admin" element={<AdminHome />} />
+                      <Route path="/admin/sales" element={<SalesManagement />} />
+                      <Route
+                        path="/admin/inventory"
+                        element={<ProductManagement />}
+                      />
+                      <Route path="/admin/users" element={<UserManagement />} />
+
+                      {/* Redirects */}
+                      <Route
+                        path="/sales"
+                        element={<Navigate to="/admin/sales" replace />}
+                      />
+                      <Route
+                        path="/inventory"
+                        element={<Navigate to="/admin/inventory" replace />}
+                      />
+                      <Route
+                        path="/adding-product"
+                        element={<Navigate to="/admin/adding-product" replace />}
+                      />
+                    </Routes>
+                  </div>
                 </div>
               </div>
-            </div>
+            </WishlistProvider>
           </ProductProvider>
         </OrderProvider>
       </CartProvider>

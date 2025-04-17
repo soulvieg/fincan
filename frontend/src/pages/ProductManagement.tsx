@@ -6,6 +6,7 @@ import CommentTable from "../components/CommentTable";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
+import { OrderProvider } from "../contexts/OrderContext";
 
 interface Product {
   id: number;
@@ -152,12 +153,12 @@ const mockComments: Comment[] = [
 
 const ProductManagement: React.FC = () => {
   const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(
-    null
+      null
   );
   const [deliveriesElement, setDeliveriesElement] =
-    useState<HTMLDivElement | null>(null);
+      useState<HTMLDivElement | null>(null);
   const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(
-    null
+      null
   );
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
@@ -166,9 +167,9 @@ const ProductManagement: React.FC = () => {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showAddProductModal, setShowAddProductModal] =
-    useState<boolean>(false);
+      useState<boolean>(false);
   const [showAddCategoryModal, setShowAddCategoryModal] =
-    useState<boolean>(false);
+      useState<boolean>(false);
 
   // Function to handle scrolling to sections
   const scrollToSection = (element: HTMLDivElement | null) => {
@@ -256,132 +257,134 @@ const ProductManagement: React.FC = () => {
   };
 
   return (
-    <Container>
-      <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
-        <Card.Body>
-          <Card.Text
-            style={{
-              fontSize: "30px",
-              textAlign: "center",
-              marginTop: "40px",
-              marginBottom: "60px",
-            }}
-          >
-            What would you like to do?
-          </Card.Text>
-          {/* Navigation Buttons */}
-          <div
-            className="d-flex gap-3 mt-3 justify-content-center"
-            style={{ marginBottom: "240px" }}
-          >
-            <Button
-              variant="primary"
-              onClick={() => scrollToSection(stocksElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
-            >
-              <div
+      <Container>
+        <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
+          <Card.Body>
+            <Card.Text
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
+                  fontSize: "30px",
+                  textAlign: "center",
+                  marginTop: "40px",
+                  marginBottom: "60px",
                 }}
-              >
-                <FaBoxOpen style={{ fontSize: "100px" }} />
-              </div>
-              Manage Stocks
-            </Button>
-            <Button
-              variant="outline-primary"
-              onClick={() => scrollToSection(deliveriesElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
-              >
-                <TbTruckDelivery style={{ fontSize: "100px" }} />
-              </div>
-              Manage Deliveries
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => scrollToSection(commentsElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
+              What would you like to do?
+            </Card.Text>
+            {/* Navigation Buttons */}
+            <div
+                className="d-flex gap-3 mt-3 justify-content-center"
+                style={{ marginBottom: "240px" }}
             >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
+              <Button
+                  variant="primary"
+                  onClick={() => scrollToSection(stocksElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
               >
-                <VscCommentDiscussion style={{ fontSize: "100px" }} />
-              </div>
-              Manage Comments
-            </Button>
-          </div>
-        </Card.Body>
-      </Card>
+                <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                >
+                  <FaBoxOpen style={{ fontSize: "100px" }} />
+                </div>
+                Manage Stocks
+              </Button>
+              <Button
+                  variant="outline-primary"
+                  onClick={() => scrollToSection(deliveriesElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
+              >
+                <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                >
+                  <TbTruckDelivery style={{ fontSize: "100px" }} />
+                </div>
+                Manage Deliveries
+              </Button>
+              <Button
+                  variant="primary"
+                  onClick={() => scrollToSection(commentsElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
+              >
+                <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                >
+                  <VscCommentDiscussion style={{ fontSize: "100px" }} />
+                </div>
+                Manage Comments
+              </Button>
+            </div>
+          </Card.Body>
+        </Card>
 
-      <div ref={setStocksElement} className="mb-5">
-        <ProductInventoryTable
-          products={products}
-          categories={[]}
-          onEdit={handleEditProduct}
-          onDelete={handleDeleteProduct}
-          onAddProduct={handleAddProduct}
-          onAddCategory={handleAddCategory}
-        />
-      </div>
+        <div ref={setStocksElement} className="mb-5">
+          <ProductInventoryTable
+              products={products}
+              categories={[]}
+              onEdit={handleEditProduct}
+              onDelete={handleDeleteProduct}
+              onAddProduct={handleAddProduct}
+              onAddCategory={handleAddCategory}
+          />
+        </div>
 
-      {/* Deliveries Section */}
-      <div ref={setDeliveriesElement} className="mb-5">
-        <DeliveryTable
-          deliveries={deliveries}
-          onUpdateStatus={handleUpdateDeliveryStatus}
-          onCancel={handleCancelDelivery}
-        />
-      </div>
+        {/* Deliveries Section */}
+        <div ref={setDeliveriesElement} className="mb-5">
+          <OrderProvider>
+            <DeliveryTable
+                deliveries={deliveries}
+                onUpdateStatus={handleUpdateDeliveryStatus}
+                onCancel={handleCancelDelivery}
+            />
+          </OrderProvider>
+        </div>
 
-      {/* Comments Section */}
-      <div ref={setCommentsElement} className="mb-5">
-        <CommentTable
-          comments={comments}
-          onApprove={handleApproveComment}
-          onReject={handleRejectComment}
-        />
-      </div>
-    </Container>
+        {/* Comments Section */}
+        <div ref={setCommentsElement} className="mb-5">
+          <CommentTable
+              comments={comments}
+              onApprove={handleApproveComment}
+              onReject={handleRejectComment}
+          />
+        </div>
+      </Container>
   );
 };
 

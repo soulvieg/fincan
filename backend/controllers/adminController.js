@@ -17,9 +17,9 @@ async function signupAdminController(req, res) {
     }
 
     // role should be either 'productManager' or 'salesManager'
-    if (!["productManager", "salesManager"].includes(role)) {
+    if (!["productManager", "salesManager","overseeingAdmin"].includes(role)) {
       return res.status(400).json({
-        message: "Invalid role. Must be either 'productManager' or 'salesManager'.",
+        message: "Invalid role. Must be either 'productManager' or 'salesManager' or 'overseeingAdmin'.",
       });
     }
 
@@ -51,6 +51,14 @@ async function loginAdminController(req, res) {
     }
 
     const adminData = await loginAdmin({ email, password });
+    // ✅ Set session
+    req.session.admin = {
+      id: adminData.id,
+      name: adminData.name,
+      email: adminData.email,
+      role: adminData.role, // This is crucial
+    };
+    console.log("Logged in as:", adminData.role);
     return res.status(200).json({
       message: "Login successful",
       admin: adminData,
