@@ -1,4 +1,4 @@
-// services/productService.js
+const { Op, fn, col, where } = require("sequelize");
 const Product = require("../models/Product");
 
 /**
@@ -79,10 +79,37 @@ async function decrementStock(productId) {
   }
 }
 
+/**
+ * Search products by name or description
+ */
+async function searchProducts(query) {
+  try {
+    const lowerQuery = `%${query.toLowerCase()}%`;
+
+    const products = await Product.findAll({
+      where: {
+        [Op.or]: [
+          where(fn('LOWER', col('name')), {
+            [Op.like]: lowerQuery
+          }),
+          where(fn('LOWER', col('description')), {
+            [Op.like]: lowerQuery
+          })
+        ]
+      }
+    });
+
+    return products;
+  } catch (error) {
+    throw new Error(`Failed to search products: ${error.message}`);
+  }
+}
+
 module.exports = {
   addProduct,
   updateProductQuantity,
   deleteProduct,
   incrementStock,
   decrementStock,
+  searchProducts,
 };

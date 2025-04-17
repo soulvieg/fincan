@@ -1,76 +1,60 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
-/**
- * Product Model
- *
- * Required fields (from the project specs):
- * - id:                Primary key, auto-increment
- * - name:              Name of the product
- * - model:             Model name/number
- * - serialNumber:      Unique serial number
- * - description:       Description of the product
- * - quantityInStock:   Current stock quantity
- * - price:             Product price
- * - warrantyStatus:    Warranty details/status
- * - distributor:       Distributor information
- */
-const Product = sequelize.define("Product", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
+const Product = sequelize.define(
+  "Product",
+  {
+    // 'id' in DB => 'id' in model
+    product_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      primaryKey: true,
+      // If your DB column is actually AUTO_INCREMENT, include this:
+      autoIncrement: true,
+      field: "product_id", // <-- the actual DB column name
+    },
 
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    // 'category_id' in DB => 'category_id' in model
+    category_id: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+    },
 
-  model: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
+    // 'sku' in DB => 'sku' in model
+    sku: {
+      type: DataTypes.STRING(10),
+      allowNull: true, // or false, up to you
+    },
 
-  serialNumber: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,  // Typically, serial numbers are unique
-  },
+    // 'name' in DB => 'name' in model
+    name: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
 
-  description: {
-    type: DataTypes.TEXT,
-    allowNull: true,
-  },
+    // 'description' in DB => 'description' in model
+    description: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+    },
 
-  quantityInStock: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 0,
-    validate: {
-      min: 0,
+    // 'price' in DB => 'price' in model
+    price: {
+      type: DataTypes.DECIMAL(10, 2),
+      allowNull: false,
+    },
+
+    // 'stock' in DB => 'stock' in model
+    stock: {
+      type: DataTypes.INTEGER,
+      allowNull: true, // or false if you want to require it
     },
   },
-
-  price: {
-    type: DataTypes.FLOAT,
-    allowNull: false,
-    validate: {
-      min: 0,
-    },
-  },
-
-  warrantyStatus: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    // e.g. "1 year", "2 years", "Lifetime", etc.
-  },
-
-  distributor: {
-    type: DataTypes.STRING,
-    allowNull: true,
-    // Alternatively, you could have a "distributorId" if you keep distributor info in another table
-  },
-});
+  {
+    tableName: "Products", // EXACT table name in DB
+    timestamps: false,
+    // disable auto-createdAt/updatedAt columns
+  }
+);
 
 module.exports = Product;
