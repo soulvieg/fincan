@@ -9,7 +9,7 @@ const adminRoutes = require("./routes/adminRoutes");     // Import admin routes
 const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes"); 
 const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
-
+const wishlistRoutes = require("./routes/wishlistRoutes");
 
 const sequelize = require("./config/db");                // Import the Sequelize instance
 
@@ -49,6 +49,9 @@ app.use("/api/admins/overseeing", overseeingAdminRoutes);
 
 // Order Routes
 app.use("/api/orders", orderRoutes);
+
+// Wishlist routes
+app.use("/api/wishlist", wishlistRoutes);
 
 
 // Synchronize models and then start the server
