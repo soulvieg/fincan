@@ -21,6 +21,7 @@ import { CartProvider } from "./contexts/CartContext";
 import { UserProvider } from "./contexts/UserContext";
 import { ProductProvider } from "./contexts/ProductContext";
 import { OrderProvider } from "./contexts/OrderContext";
+import { WishlistProvider } from "./contexts/WishlistContext";
 
 // Components
 import Carousel from "./components/Carousel";
@@ -79,54 +80,56 @@ const App: React.FC = () => {
       <CartProvider>
         <OrderProvider>
           <ProductProvider>
-            <div className="d-flex flex-column vh-100">
-              <NavBar />
-              <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
-                <div className="w-100 mt-5">
-                  <Routes>
-                    {/* Public/Main Routes */}
-                    <Route path="/" element={<MainStore />} />
-                    <Route path="/login-user" element={<LoginUser />} />
-                    <Route path="/signup-user" element={<SignupUser />} />
-                    <Route
-                      path="/profile-settings"
-                      element={<ProfileSettings />}
-                    />
-                    <Route path="/shoppingcart" element={<ShoppingCart />} />
-                    <Route path="/order-history" element={<OrderHistory />} />
-                    <Route path="/wishlist" element={<Wishlists />} />
-                    <Route path="/products" element={<ProductsPage />} />
-                    <Route
-                      path="/product/:id"
-                      element={<ProductDetailPage />}
-                    />
+            <WishlistProvider>
+              <div className="d-flex flex-column vh-100">
+                <NavBar />
+                <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
+                  <div className="w-100 mt-5">
+                    <Routes>
+                      {/* Public/Main Routes */}
+                      <Route path="/" element={<MainStore />} />
+                      <Route path="/login-user" element={<LoginUser />} />
+                      <Route path="/signup-user" element={<SignupUser />} />
+                      <Route
+                        path="/profile-settings"
+                        element={<ProfileSettings />}
+                      />
+                      <Route path="/shoppingcart" element={<ShoppingCart />} />
+                      <Route path="/order-history" element={<OrderHistory />} />
+                      <Route path="/wishlist" element={<Wishlists />} />
+                      <Route path="/products" element={<ProductsPage />} />
+                      <Route
+                        path="/product/:id"
+                        element={<ProductDetailPage />}
+                      />
 
-                    {/* Admin Routes */}
-                    <Route path="/admin" element={<AdminHome />} />
-                    <Route path="/admin/sales" element={<SalesManagement />} />
-                    <Route
-                      path="/admin/inventory"
-                      element={<ProductManagement />}
-                    />
-                    <Route path="/admin/users" element={<UserManagement />} />
+                      {/* Admin Routes */}
+                      <Route path="/admin" element={<AdminHome />} />
+                      <Route path="/admin/sales" element={<SalesManagement />} />
+                      <Route
+                        path="/admin/inventory"
+                        element={<ProductManagement />}
+                      />
+                      <Route path="/admin/users" element={<UserManagement />} />
 
-                    {/* Redirects */}
-                    <Route
-                      path="/sales"
-                      element={<Navigate to="/admin/sales" replace />}
-                    />
-                    <Route
-                      path="/inventory"
-                      element={<Navigate to="/admin/inventory" replace />}
-                    />
-                    <Route
-                      path="/adding-product"
-                      element={<Navigate to="/admin/adding-product" replace />}
-                    />
-                  </Routes>
+                      {/* Redirects */}
+                      <Route
+                        path="/sales"
+                        element={<Navigate to="/admin/sales" replace />}
+                      />
+                      <Route
+                        path="/inventory"
+                        element={<Navigate to="/admin/inventory" replace />}
+                      />
+                      <Route
+                        path="/adding-product"
+                        element={<Navigate to="/admin/adding-product" replace />}
+                      />
+                    </Routes>
+                  </div>
                 </div>
               </div>
-            </div>
+            </WishlistProvider>
           </ProductProvider>
         </OrderProvider>
       </CartProvider>
