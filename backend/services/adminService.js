@@ -1,6 +1,7 @@
 // services/adminService.js
 const bcrypt = require("bcryptjs");
 const Admin = require("../models/Admin");
+const User = require("../models/User");
 
 /**
  * Create/register a new admin
@@ -52,10 +53,15 @@ async function loginAdmin(credentials) {
     throw new Error("Invalid email or password.");
   }
 
+    
   // Return admin data (omit the password field)
   const { id, name, role } = admin;
   return { id, name, email, role };
 }
+
+
+
+
 
 module.exports = {
   registerAdmin,

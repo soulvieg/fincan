@@ -9,7 +9,7 @@ const User = require("../models/User");
  * @throws {Error} - If email is already taken or other issues occur
  */
 async function registerUser(userData) {
-  const { name, email, homeAddress, password } = userData;
+  const { name, email, homeAddress, password, role } = userData;
 
   // Check if user already exists
   const existingUser = await User.findOne({ where: { email } });
@@ -26,6 +26,7 @@ async function registerUser(userData) {
     email,
     homeAddress,
     password: hashedPassword,
+    role,
   });
 
   return newUser;
@@ -51,7 +52,14 @@ async function loginUser(credentials) {
   if (!isMatch) {
     throw new Error("Invalid email or password.");
   }
-
+  // Store user information in the session after login
+   /*req.session.admin = {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      role: user.role,  // e.g., 'customer', 'admin', 'overseeing_admin'
+    };*/
+  
   // Return user data (omit the password field)
   const { id, name, homeAddress } = user;
   return { id, name, email, homeAddress };
