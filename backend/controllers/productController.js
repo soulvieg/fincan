@@ -1,6 +1,5 @@
-// controllers/productController.js
-const { updateProductQuantity } = require("../services/productService");
 const productService = require("../services/productService");
+
 /**
  * Add a new product
  * @param {object} req - Express request object
@@ -57,9 +56,7 @@ async function deleteProductController(req, res) {
   }
 }
 
-
 // controllers/productController.js
-
 const { incrementStock, decrementStock } = require("../services/productService");
 
 async function incrementStockController(req, res) {
@@ -88,10 +85,73 @@ async function decrementStockController(req, res) {
   }
 }
 
+const { approveComment, rejectComment } = require("../services/commentService");
+
+/**
+ * Approve a user comment
+ * @route PUT /api/comments/:commentId/approve
+ */
+async function approveCommentController(req, res) {
+  try {
+    const { commentId } = req.params;
+    const updatedComment = await approveComment(commentId);
+    return res.status(200).json({
+      message: "Comment approved successfully",
+      comment: updatedComment
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Reject a user comment
+ * @route PUT /api/comments/:commentId/reject
+ */
+async function rejectCommentController(req, res) {
+  try {
+    const { commentId } = req.params;
+    const updatedComment = await rejectComment(commentId);
+    return res.status(200).json({
+      message: "Comment rejected successfully",
+      comment: updatedComment
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Controller to search products by name or description.
+ * Expects a query parameter "query".
+ * @route GET /api/products/search?query=searchTerm
+ */
+async function searchProductsController(req, res) {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: "Query parameter is required." });
+    }
+    const products = await productService.searchProducts(query);
+
+    // return a 404 if no results
+    if (!products || products.length === 0) {
+      return res.status(404).json({ message: "No products found for your query." });
+    }
+
+    return res.status(200).json({ message: "Products retrieved successfully", products });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
   deleteProductController,
   incrementStockController,
   decrementStockController,
+  approveCommentController,
+  rejectCommentController,
+  searchProductsController,
 };
