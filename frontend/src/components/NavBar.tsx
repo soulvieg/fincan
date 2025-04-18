@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import { MdOutlineAdminPanelSettings } from "react-icons/md";
+import { MdOutlineAdminPanelSettings, MdHome } from "react-icons/md";
 import { RiShoppingCart2Fill } from "react-icons/ri";
 import { IoLogOutOutline } from "react-icons/io5";
 import SearchBar from "./SearchBar";
@@ -36,23 +36,53 @@ const NavBar: React.FC = () => {
               />
             )}
           </Link>
-          {!isAdminPage && (
+        </div>
+
+        {!isAdminPage && (
+          <div className="d-flex justify-content-end flex-grow-1 me-5" style={{ marginLeft: "20rem" }}>
             <Link
-              to="/products"
-              className="ms-3"
+              to="/"
+              className="mx-3 d-flex align-items-center"
               style={{
                 color: "#f5f0e6",
                 textDecoration: "none",
                 fontSize: "1rem",
-                border: "1px solid #f5f0e6",
-                borderRadius: "14px",
-                padding: "6px 12px",
+                textTransform: "uppercase",
+                lineHeight: "1",
+                display: "flex",
+                alignItems: "center",
+                gap: "2px"
+              }}
+            >
+              <MdHome size={20} className="me-0" style={{ marginRight: "-2px", marginBottom: "2px" }} />
+              Home
+            </Link>
+            <Link
+              to="/products"
+              className="mx-3"
+              style={{
+                color: "#f5f0e6",
+                textDecoration: "none",
+                fontSize: "1rem",
+                textTransform: "uppercase",
               }}
             >
               Products
             </Link>
-          )}
-        </div>
+            <Link
+              to="/about"
+              className="mx-3"
+              style={{
+                color: "#f5f0e6",
+                textDecoration: "none",
+                fontSize: "1rem",
+                textTransform: "uppercase",
+              }}
+            >
+              About Us
+            </Link>
+          </div>
+        )}
 
         {!isAdminPage ? (
           <>
