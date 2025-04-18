@@ -3,6 +3,8 @@ import { Button, Form, InputGroup } from 'react-bootstrap';
 import { IoTrashOutline } from "react-icons/io5";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
+import { FaCheck, FaTimes } from "react-icons/fa";
+import './ProductInventoryItem.css';
 
 interface Product {
     id: number;
@@ -74,8 +76,14 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
 
     return (
         <tr
-            className="rounded-row position-relative"
-            style={{ backgroundColor: '#f9f9f9' }}
+            className="rounded-row"
+            style={{ 
+                backgroundColor: '#f9f9f9',
+                transition: 'all 0.5s ease',
+                transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+                boxShadow: isHovering ? '0 4px 8px rgba(0,0,0,0.1)' : 'none',
+                zIndex: isHovering ? 1 : 'auto'
+            }}
             onMouseEnter={() => setIsHovering(true)}
             onMouseLeave={() => setIsHovering(false)}
         >
@@ -99,6 +107,7 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
                                 value={tempQuantity}
                                 onChange={(e) => setTempQuantity(Math.max(0, parseInt(e.target.value) || 0))}
                                 size="sm"
+                                className="no-spinners"
                                 style={{ textAlign: 'center', fontSize: '14px' }}
                             />
                             <InputGroup.Text className="p-0 d-flex flex-column" style={{ height: '31px' }}>
@@ -123,36 +132,65 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
                                 </Button>
                             </InputGroup.Text>
                         </InputGroup>
-                        <div className="ms-2 d-flex flex-column">
-                            <Button variant="success" size="sm" onClick={handleSaveQuantity} style={{ width: '65px', marginBottom: '5px' }}>
-                                Save
+                        <div className="ms-2 d-flex">
+                            <Button 
+                                variant="outline-success" 
+                                size="sm" 
+                                onClick={handleSaveQuantity} 
+                                style={{ width: '40px', marginRight: '5px' }}
+                            >
+                                <FaCheck size={14} />
                             </Button>
-                            <Button variant="outline-danger" size="sm" onClick={handleCancelEdit} style={{ width: '65px' }}>
-                                Cancel
+                            <Button 
+                                variant="outline-danger" 
+                                size="sm" 
+                                onClick={handleCancelEdit} 
+                                style={{ width: '40px' }}
+                            >
+                                <FaTimes size={14} />
                             </Button>
                         </div>
                     </div>
                 ) : (
-                    product.quantity === 0 ? 'Out of stock' : product.quantity
+                    <div className="position-relative">
+                        <span>{product.quantity === 0 ? 'Out of stock' : product.quantity}</span>
+                        {isHovering && !isEditingQuantity && (
+                            <div className={`action-buttons ${isHovering ? 'visible' : 'invisible'}`}
+                                style={{
+                                    position: 'absolute',
+                                    left: '95%',
+                                    top: '50%',
+                                    transform: 'translateY(-50%)',
+                                    backgroundColor: '#f9f9f9',
+                                    padding: '0.25rem',
+                                    height: '66px',
+                                    border: '1.4px solid #000',
+                                    borderLeft: 'none',
+                                    display: 'flex',
+                                    gap: '0.5rem',
+                                    alignItems: 'center',
+                                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                                }}
+                            >
+                                <Button 
+                                    variant="outline-warning" 
+                                    size="sm" 
+                                    onClick={() => setIsEditingQuantity(true)}
+                                >
+                                    <MdOutlineModeEdit size={16}/>
+                                </Button>
+                                <Button 
+                                    variant="outline-danger" 
+                                    size="sm" 
+                                    onClick={() => onDelete(product.id)}
+                                >
+                                    <IoTrashOutline size={16}/>
+                                </Button>
+                            </div>
+                        )}
+                    </div>
                 )}
             </td>
-            {isHovering && !isEditingQuantity && (
-                <div className="position-absolute d-flex align-items-center justify-content-center gap-2 action-buttons"
-                     style={{
-                         right: '-100px',
-                         top: '0',
-                         bottom: '0',
-                         height: '100%',
-                         outline: '1px solid #666',
-                     }}>
-                    <Button variant="outline-warning" size="sm" onClick={() => setIsEditingQuantity(true)}>
-                        <MdOutlineModeEdit size={22}/>
-                    </Button>
-                    <Button variant="outline-danger" size="sm" onClick={() => onDelete(product.id)}>
-                        <IoTrashOutline size={22}/>
-                    </Button>
-                </div>
-            )}
         </tr>
     );
 };

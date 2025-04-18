@@ -6,11 +6,16 @@ import { IoLogOutOutline } from "react-icons/io5";
 import SearchBar from "./SearchBar";
 import ProfileDropdown from "./ProfileDropdown";
 import { useUser } from "../contexts/UserContext"; // Import user context
+import { useCart } from "../contexts/CartContext"; // Import useCart
 
 const NavBar: React.FC = () => {
   const location = useLocation();
   const isAdminPage = location.pathname.includes("/admin");
   const { user, logout } = useUser(); // Access user context
+  const { cart } = useCart(); // Get cart from context
+
+  // Calculate total items in cart
+  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <nav
@@ -92,13 +97,32 @@ const NavBar: React.FC = () => {
 
             <Link
               to="/shoppingCart"
-              className="btn btn-link"
+              className="btn btn-link position-relative"
               style={{
                 color: "#f5f0e6",
                 border: "none",
+                padding: "0.5rem",
               }}
             >
               <RiShoppingCart2Fill size={34} />
+              {totalItems > 0 && (
+                <span
+                  className="position-absolute badge rounded-pill"
+                  style={{
+                    fontSize: "0.75rem",
+                    padding: "0.25rem 0.5rem",
+                    right: "-5px",
+                    minWidth: "20px",
+                    height: "20px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    backgroundColor: "#3a655e",
+                  }}
+                >
+                  {totalItems}
+                </span>
+              )}
             </Link>
 
             {user ? (
