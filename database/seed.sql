@@ -1,8 +1,15 @@
 -- Seed the Categories table
 INSERT INTO Categories (category_id, name) VALUES
-(1, 'Coffee Beans'), (2, 'Coffee Mugs'), (3, 'Brewing Equipment'),
-(4, 'Accessories'), (5, 'Merchandise'), (6, 'Tea'),
-(7, 'Snacks'), (8, 'Syrups'), (9, 'Cups'), (10, 'Filters');
+(1, 'Coffee Beans'), 
+(2, 'Coffee Mugs'), 
+(3, 'Brewing Equipment'),
+(4, 'Accessories'), 
+(5, 'Merchandise'), 
+(6, 'Tea'),
+(7, 'Snacks'), 
+(8, 'Syrups'), 
+(9, 'Cups'), 
+(10, 'Filters');
 
 -- Seed the Customers table
 INSERT INTO Customers (customer_id, first_name, last_name, email, password, address, phone_number, type) VALUES
@@ -17,18 +24,21 @@ INSERT INTO Customers (customer_id, first_name, last_name, email, password, addr
 (9, 'Ian', 'Hall', 'ian.hall@example.com', 'password718', '718 Robusta Rd', '555-1009', 'manager'),
 (10, 'Julia', 'Young', 'julia.young@example.com', 'password919', '919 Macchiato Mn', '555-1010', 'manager');
 
--- Seed the Products table with a new "name" column
+-- Seed the Products table to match frontend products
 INSERT INTO Products (product_id, category_id, sku, name, description, price, stock) VALUES
-(1, 1, 'CB001', 'Arabica Coffee Beans', 'Arabica Coffee Beans - 1kg', 25.99, 100),
-(2, 1, 'CB002', 'Robusta Coffee Beans', 'Robusta Coffee Beans - 1kg', 22.99, 150),
-(3, 1, 'CB003', 'Ethiopian Yirgacheffe', 'Ethiopian Yirgacheffe - 500g', 19.99, 75),
-(4, 2, 'CM001', 'Classic Ceramic Mug', 'Classic Ceramic Coffee Mug', 12.99, 200),
-(5, 2, 'CM002', 'Insulated Steel Mug', 'Insulated Stainless Steel Mug', 24.99, 150),
-(6, 3, 'BE001', 'French Press', 'French Press - 1L', 29.99, 50),
-(7, 3, 'BE002', 'Pour Over Maker', 'Pour Over Coffee Maker', 34.99, 60),
-(8, 4, 'AC001', 'Coffee Grinder', 'Coffee Grinder', 49.99, 40),
-(9, 4, 'AC002', 'Milk Frother', 'Milk Frother', 19.99, 80),
-(10, 5, 'ME001', 'Coffee Lover T-Shirt', 'Coffee Lover T-Shirt', 22.99, 100);
+(1, 1, 'CB001', 'Kenya Coffee', 'Rich and smooth', 15.99, 100),
+(2, 1, 'CB002', 'Premium Coffee', 'Local Farming', 12.99, 150),
+(3, 1, 'CB003', 'Blue Coffee', 'Blue Bottle coffee', 18.99, 75),
+(4, 1, 'CB004', 'Vienese Coffee', 'Rich and smooth', 14.99, 200),
+(5, 1, 'CB005', 'Moroccan Coffee', 'Rich and smooth', 16.99, 150),
+(6, 6, 'TE001', 'Fresh Tea', 'Refreshing and healthy', 9.99, 50),
+(7, 6, 'TE002', 'Chamomile Tea', 'Chamomile herbal tea', 8.99, 60),
+(8, 6, 'TE003', 'Blackcurrant Tea', 'Authentic Handmade tea', 10.99, 40),
+(9, 6, 'TE004', 'Jasmine Tea', 'Jasmine herbal tea', 11.99, 80),
+(10, 4, 'AC001', 'Espresso Machine', 'Perfect brew every time', 199.99, 100),
+(11, 4, 'AC002', 'Coffee Grinder', 'Freshly ground beans', 49.99, 100),
+(12, 4, 'AC003', 'Turkish Coffee Cup', 'Traditional Turkish coffee cup with elegant design', 4.99, 200),
+(13, 4, 'AC004', 'Tea Cup & Kettle', 'Premium tea cup and kettle set for tea enthusiasts', 19.99, 150);
 
 -- Seed the Ratings table
 INSERT INTO Ratings (review_id, customer_id, manager_id, product_id, score, approval) VALUES
@@ -133,3 +143,4 @@ INSERT INTO Order_items (order_item_id, order_id, product_id, quantity) VALUES
 (8, 8, 8, 1),
 (9, 9, 9, 1),
 (10, 10, 10, 2);
+
