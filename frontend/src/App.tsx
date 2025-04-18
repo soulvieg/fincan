@@ -30,14 +30,30 @@ import NavBar from "./components/NavBar";
 
 // Icons
 import { SiBuymeacoffee } from "react-icons/si";
+import { BsEnvelope, BsQuestionCircle } from "react-icons/bs";
 
 const MainStore: React.FC = () => (
-  <div className="text-center mt-5">
-    <Link to="/admin" className="btn btn-outline-dark rounded-border">
-      Go to Admin Panel
-    </Link>
-    <Carousel />
-    <BestSeller />
+  <div className="d-flex flex-column min-vh-100">
+    <div className="flex-grow-1">
+      <Carousel />
+      <BestSeller />
+    </div>
+    <div className="mt-auto py-4 border-top">
+      <div className="container d-flex justify-content-center gap-2">
+        <Link to="/contact" className="text-decoration-underline text-dark d-flex align-items-center gap-1">
+          Contact
+        </Link>
+        <Link to="/help" className="text-decoration-underline text-dark d-flex align-items-center gap-1">
+          Help
+        </Link>
+        <Link to="/legal" className="text-decoration-underline text-dark">
+          Legal
+        </Link>
+        <Link to="/admin" className="text-decoration-underline text-dark">
+          Admin Panel
+        </Link>
+      </div>
+    </div>
   </div>
 );
 
