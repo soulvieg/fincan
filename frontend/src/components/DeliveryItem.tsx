@@ -23,10 +23,10 @@ interface DeliveryItemProps {
 }
 
 const DeliveryItem: React.FC<DeliveryItemProps> = ({
-                                                     delivery,
-                                                     onUpdateStatus,
-                                                     onCancel,
-                                                   }) => {
+  delivery,
+  onUpdateStatus,
+  onCancel,
+}) => {
   const [isHovering, setIsHovering] = useState(false);
 
   const getStatusStyle = (status: string) => {
@@ -46,82 +46,95 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
 
   // Display product IDs differently based on whether it's a real order or mock delivery
   const displayProductIds =
-      delivery._isRealOrder && delivery._productIds
-          ? delivery._productIds.join(", ")
-          : delivery.productId;
+    delivery._isRealOrder && delivery._productIds
+      ? delivery._productIds.join(", ")
+      : delivery.productId;
 
   return (
-      <tr
-          className="rounded-row position-relative"
-          style={{ backgroundColor: "#f9f9f9" }}
-          onMouseEnter={() => setIsHovering(true)}
-          onMouseLeave={() => setIsHovering(false)}
+    <tr
+      className="rounded-row"
+      style={{ 
+        backgroundColor: '#f9f9f9',
+        transition: 'all 0.5s ease',
+        transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovering ? '0 4px 8px rgba(0,0,0,0.1)' : 'none',
+        zIndex: isHovering ? 1 : 'auto'
+      }}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+    >
+      <td className="text-center align-middle">{delivery.id}</td>
+      <td className="text-center align-middle">{delivery.customerId}</td>
+      <td className="text-center align-middle">{delivery.customer}</td>
+      <td className="text-center align-middle">{displayProductIds}</td>
+      <td className="text-center align-middle">{delivery.products}</td>
+      <td className="text-center align-middle">{delivery.quantity}</td>
+      <td className="text-center align-middle">
+        ${delivery.totalPrice.toFixed(2)}
+      </td>
+      <td
+        className="text-center align-middle"
+        style={getStatusStyle(delivery.status)}
       >
-        <td className="text-center align-middle">{delivery.id}</td>
-        <td className="text-center align-middle">{delivery.customerId}</td>
-        <td className="text-center align-middle">{delivery.customer}</td>
-        <td className="text-center align-middle">{displayProductIds}</td>
-        <td className="text-center align-middle">{delivery.products}</td>
-        <td className="text-center align-middle">{delivery.quantity}</td>
-        <td className="text-center align-middle">
-          ${delivery.totalPrice.toFixed(2)}
-        </td>
-        <td
-            className="text-center align-middle"
-            style={getStatusStyle(delivery.status)}
-        >
-          {delivery.status}
-        </td>
-        <td className="text-center align-middle">{delivery.address}</td>
+        {delivery.status}
+      </td>
+      <td className="text-center align-middle position-relative">
+        {delivery.address}
         {isHovering && (
-            <div
-                className="position-absolute d-flex align-items-center justify-content-center gap-2 action-buttons"
-                style={{
-                  right: "-140px", // Increased this value to move buttons further right
-                  top: "0",
-                  bottom: "0",
-                  height: "100%",
-                  width: "150px", // Added fixed width for the button container
-                  outline: "1px solid #666",
-                  backgroundColor: "#f9f9f9",
-                  zIndex: 1000, // Added z-index to ensure buttons appear on top
-                }}
+          <div
+            className={`action-buttons ${isHovering ? 'visible' : 'invisible'}`}
+            style={{
+              position: 'absolute',
+              left: '95%',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              backgroundColor: '#f9f9f9',
+              padding: '0.25rem',
+              height: '42px',
+              border: '1.4px solid #000',
+              borderLeft: 'none',
+              display: 'flex',
+              gap: '0.2rem',
+              alignItems: 'center',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+            }}
+          >
+            <Button
+              variant="outline-warning"
+              size="sm"
+              onClick={() => onUpdateStatus(delivery.id, "In-Transit")}
+              disabled={
+                delivery.status === "In-Transit" ||
+                delivery.status === "Delivered" ||
+                delivery.status === "Cancelled"
+              }
             >
-              <Button
-                  variant="warning"
-                  size="sm"
-                  onClick={() => onUpdateStatus(delivery.id, "In-Transit")}
-                  disabled={
-                      delivery.status === "In-Transit" ||
-                      delivery.status === "Delivered" ||
-                      delivery.status === "Cancelled"
-                  }
-              >
-                <TbTruckDelivery size={22} />
-              </Button>
-              <Button
-                  variant="success"
-                  size="sm"
-                  onClick={() => onUpdateStatus(delivery.id, "Delivered")}
-                  disabled={
-                      delivery.status === "Delivered" || delivery.status === "Cancelled"
-                  }
-              >
-                <BsCheckCircleFill size={22} />
-              </Button>
-              <Button
-                  variant="danger"
-                  size="sm"
-                  onClick={() => onCancel(delivery.id)}
-                  disabled={
-                      delivery.status === "Delivered" || delivery.status === "Cancelled"
-                  }
-              >
-                <IoTrashOutline size={22} />
-              </Button>
-            </div>
+              <TbTruckDelivery size={16} />
+            </Button>
+            <Button
+              variant="outline-success"
+              size="sm"
+              onClick={() => onUpdateStatus(delivery.id, "Delivered")}
+              disabled={
+                delivery.status === "Delivered" || delivery.status === "Cancelled"
+              }
+            >
+              <BsCheckCircleFill size={16} />
+            </Button>
+            <Button
+              variant="outline-danger"
+              size="sm"
+              onClick={() => onCancel(delivery.id)}
+              disabled={
+                delivery.status === "Delivered" || delivery.status === "Cancelled"
+              }
+            >
+              <IoTrashOutline size={16} />
+            </Button>
+          </div>
         )}
-      </tr>
+      </td>
+    </tr>
   );
 };
 

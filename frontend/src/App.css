@@ -72,6 +72,35 @@ body {
   border-bottom-right-radius: 14px;
 }
 
+/* Action buttons visibility */
+.action-buttons.visible {
+  opacity: 1;
+  transition: opacity 0.2s ease-in-out;
+}
+
+.action-buttons.invisible {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s ease-in-out;
+}
+
+/* Enhance action buttons styles */
+.action-buttons button {
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+}
+
+/* Add hover effect for the entire row */
+.custom-table tr.hover-active td {
+  background-color: #f0f0f0;
+  transition: background-color 0.2s ease-in-out;
+}
+
 .profile-dropdown {
   position: relative;
   display: inline-block;
