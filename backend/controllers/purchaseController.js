@@ -1,4 +1,4 @@
-const { hasUserPurchasedProduct } = require("../services/orderService");
+const { hasUserPurchasedProduct, placeOrder } = require("../services/orderService");
 
 /**
  * Controller to check if a user purchased a given product.
@@ -24,6 +24,34 @@ async function checkPurchaseController(req, res) {
   }
 }
 
+/**
+ * Controller to handle placing an order
+ * @route POST /api/orders
+ */
+
+async function placeOrderController(req, res) {
+  try {
+    const userId = req.user.id;
+    const { productId, quantity, paymentInfo } = req.body;
+    if (!userId || !productId || !quantity || !paymentInfo) {
+      return res.status(400).json({
+        message: "productId, quantity, and paymentInfo are required.",
+      });
+    }
+
+    const order = await placeOrder({ userId, productId, quantity, paymentInfo });
+
+    return res.status(201).json({
+      message: "Order placed and payment processed successfully",
+      order,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+
 module.exports = {
   checkPurchaseController,
+  placeOrderController,
 };

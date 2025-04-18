@@ -1,4 +1,6 @@
 // server.js
+require('dotenv').config(); 
+
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
@@ -10,6 +12,7 @@ const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes"); 
 const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
+const authRoutes = require("./routes/authRoutes");
 
 const sequelize = require("./config/db");                // Import the Sequelize instance
 
@@ -32,6 +35,8 @@ app.use(
 
 app.use(express.json());
 app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+
+app.use("/api/auth", authRoutes);
 
 // Product Routes
 app.use("/api/products", productRoutes);
