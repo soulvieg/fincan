@@ -3,6 +3,7 @@ import { Button, Form } from 'react-bootstrap';
 import { IoTrashOutline } from "react-icons/io5";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { User } from './UserTable';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 
 interface UserItemProps {
   user: User;
@@ -31,10 +32,13 @@ const UserItem: React.FC<UserItemProps> = ({
 
   return (
     <tr
-      className={`rounded-row position-relative ${isHovering ? 'hover-active' : ''}`}
+      className="rounded-row"
       style={{ 
-        backgroundColor: isHovering ? '#f0f0f0' : '#f9f9f9',
-        position: 'relative' // Ensure the tr has relative positioning
+        backgroundColor: '#f9f9f9',
+        transition: 'all 0.5s ease',
+        transform: isHovering ? 'scale(1.02)' : 'scale(1)',
+        boxShadow: isHovering ? '0 4px 8px rgba(0,0,0,0.1)' : 'none',
+        zIndex: isHovering ? 1 : 'auto'
       }}
       onMouseEnter={() => setIsHovering(true)}
       onMouseLeave={() => setIsHovering(false)}
@@ -45,60 +49,78 @@ const UserItem: React.FC<UserItemProps> = ({
       <td className="text-center align-middle">{user.lastName}</td>
       <td className="text-center align-middle">
         {isEditingRole ? (
-          <div className="d-flex align-items-center">
+          <div className="d-flex align-items-center justify-content-center">
             <Form.Select
               autoFocus={true}
               value={tempRole}
               onChange={(e) => setTempRole(e.target.value)}
               size="sm"
-              style={{ width: '120px', fontSize: '14px' }}
+              style={{ width: '120px', fontSize: '14px', height: '31px' }}
             >
               <option value="Admin">Admin</option>
               <option value="Sales Manager">Sales Manager</option>
               <option value="Product Manager">Product Manager</option>
               <option value="Customer">Customer</option>
             </Form.Select>
-            <div className="ms-2 d-flex flex-column">
-              <Button variant="success" size="sm" onClick={handleSaveRole} style={{ width: '65px', marginBottom: '5px' }}>
-                Save
+            <div className="ms-2 d-flex">
+              <Button 
+                variant="outline-success" 
+                size="sm" 
+                onClick={handleSaveRole} 
+                style={{ width: '40px', marginRight: '5px' }}
+              >
+                <FaCheck size={14} />
               </Button>
-              <Button variant="outline-danger" size="sm" onClick={handleCancelEdit} style={{ width: '65px' }}>
-                Cancel
+              <Button 
+                variant="outline-danger" 
+                size="sm" 
+                onClick={handleCancelEdit}
+                style={{ width: '40px' }}
+              >
+                <FaTimes size={14} />
               </Button>
             </div>
           </div>
         ) : (
-          user.role
+          <div className="position-relative">
+            <span>{user.role}</span>
+            {isHovering && !isEditingRole && (
+              <div className={`action-buttons ${isHovering ? 'visible' : 'invisible'}`}
+                style={{
+                  position: 'absolute',
+                  left: '95%',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  backgroundColor: '#f9f9f9',
+                  padding: '0.25rem',
+                  height: '42px',
+                  border: '1.4px solid #000',
+                  borderLeft: 'none',
+                  display: 'flex',
+                  gap: '0.5rem',
+                  alignItems: 'center',
+                  boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
+                }}
+              >
+                <Button 
+                  variant="outline-warning" 
+                  size="sm" 
+                  onClick={() => setIsEditingRole(true)}
+                >
+                  <MdOutlineModeEdit size={16}/>
+                </Button>
+                <Button 
+                  variant="outline-danger" 
+                  size="sm" 
+                  onClick={() => onDelete(user.id)}
+                >
+                  <IoTrashOutline size={16}/>
+                </Button>
+              </div>
+            )}
+          </div>
         )}
       </td>
-      {isHovering && !isEditingRole && (
-        <td 
-          className="action-buttons-cell" 
-          style={{ 
-            position: 'absolute',
-            right: '-100px',
-            top: '0',
-            height: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '2px',
-            background: '#f0f0f0',
-            border: '1px solid #ddd',
-            borderRadius: '0 4px 4px 0',
-            padding: '0 8px',
-            zIndex: 10,
-            boxShadow: '2px 0 5px rgba(0,0,0,0.1)'
-          }}
-        >
-          <Button variant="outline-warning" size="sm" onClick={() => setIsEditingRole(true)}>
-            <MdOutlineModeEdit size={22}/>
-          </Button>
-          <Button variant="outline-danger" size="sm" onClick={() => onDelete(user.id)}>
-            <IoTrashOutline size={22}/>
-          </Button>
-        </td>
-      )}
     </tr>
   );
 };
