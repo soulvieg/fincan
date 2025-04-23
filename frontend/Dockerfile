@@ -11,6 +11,10 @@ RUN npm ci
 # Copy all frontend files
 COPY . ./
 
+# Ensure images are copied to build directory
+RUN mkdir -p /app/build/img
+RUN cp -r /app/public/img/* /app/build/img/ || true
+
 # Build the app
 RUN npm run build
 
