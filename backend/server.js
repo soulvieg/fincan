@@ -4,15 +4,15 @@ const session = require("express-session");
 const cors = require("cors");
 
 const productRoutes = require("./routes/productRoutes");
-const userRoutes = require("./routes/userRoutes");     // Import user routes
-const adminRoutes = require("./routes/adminRoutes");     // Import admin routes
+const userRoutes = require("./routes/userRoutes"); // Import user routes
+const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
 const reviewRoutes = require("./routes/reviewRoutes");
-const orderRoutes = require("./routes/orderRoutes"); 
+const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
 const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
 const wishlistRoutes = require("./routes/wishlistRoutes");
 
-const sequelize = require("./config/db");                // Import the Sequelize instance
+const sequelize = require("./config/db"); // Import the Sequelize instance
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -20,19 +20,24 @@ const PORT = process.env.PORT || 5000;
 // Session middleware configuration
 app.use(
   session({
-    secret: "TesterKey",          // Secret key used for signing the session ID cookie
-    resave: false,                      // Don't save session if unmodified
-    saveUninitialized: false,           // Don't create session until something is stored
+    secret: "TesterKey", // Secret key used for signing the session ID cookie
+    resave: false, // Don't save session if unmodified
+    saveUninitialized: false, // Don't create session until something is stored
     cookie: {
-      secure: false,                    // Set to true if using https (not needed in development with http)
-      httpOnly: true,                    // Prevent client-side JavaScript from accessing session cookie
-      maxAge: 1000 * 60 * 60 * 24,       // Set cookie expiration (1 day here)
+      secure: false, // Set to true if using https (not needed in development with http)
+      httpOnly: true, // Prevent client-side JavaScript from accessing session cookie
+      maxAge: 1000 * 60 * 60 * 24, // Set cookie expiration (1 day here)
     },
   })
 );
 
 app.use(express.json());
-app.use(cors({ origin: "http://localhost:3000", credentials: true }));
+app.use(
+  cors({
+    origin: ["http://localhost", "http://localhost:3000"],
+    credentials: true,
+  })
+);
 
 // Product Routes
 app.use("/api/products", productRoutes);
@@ -56,8 +61,6 @@ app.use("/api/cart", cartRoutes);
 
 // Wishlist routes
 app.use("/api/wishlist", wishlistRoutes);
-
-
 
 // Synchronize models and then start the server
 // DB Sync and Auto-increment setup
