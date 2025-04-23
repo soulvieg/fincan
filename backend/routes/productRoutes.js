@@ -8,12 +8,15 @@ const { updateQuantityInStockController,
         approveCommentController,
         rejectCommentController,
         searchProductsController,
+            getProductsController
      } = require("../controllers/productController");
 
 const router = express.Router();
 
 // POST /api/products - Add a new product
 router.post("/", addProductController);
+
+router.get("/", getProductsController);
 
 // PUT /api/products/:productId/quantity
 router.put("/:productId/quantity", updateQuantityInStockController);

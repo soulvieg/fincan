@@ -105,7 +105,39 @@ async function searchProducts(query) {
   }
 }
 
+async function getProducts({ categoryFilter = 'All', sortMethod = 'default' }) {
+  const query = {};
+
+  // Handle category filtering
+  if (categoryFilter && categoryFilter !== 'All') {
+    if (categoryFilter === 'Best Sellers') {
+      query.isBestSeller = true;
+    } else {
+      query.category = categoryFilter;
+    }
+  }
+
+  // Handle sorting
+  const sortOptions = {};
+  switch(sortMethod) {
+    case 'priceAsc':
+      sortOptions.price = 1;
+      break;
+    case 'priceDesc':
+      sortOptions.price = -1;
+      break;
+    case 'ratingDesc':
+      sortOptions.rating = -1;
+      break;
+    default:
+      sortOptions.createdAt = -1;
+  }
+
+  return Product.find(query).sort(sortOptions).exec();
+}
+
 module.exports = {
+  getProducts,
   addProduct,
   updateProductQuantity,
   deleteProduct,

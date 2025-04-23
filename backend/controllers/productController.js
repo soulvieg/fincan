@@ -85,7 +85,7 @@ async function decrementStockController(req, res) {
   }
 }
 
-const { approveComment, rejectComment } = require("../services/commentsService");
+const { approveComment, rejectComment } = require("../services/commentService");
 
 /**
  * Approve a user comment
@@ -145,6 +145,22 @@ async function searchProductsController(req, res) {
   }
 }
 
+async function getProductsController(req, res) {
+  try {
+    const { category, sort } = req.query;
+
+    // Get products through service layer
+    const products = await productService.getProducts({
+      categoryFilter: category,
+      sortMethod: sort
+    });
+
+    res.status(200).json(products);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
@@ -154,4 +170,5 @@ module.exports = {
   approveCommentController,
   rejectCommentController,
   searchProductsController,
+  getProductsController
 };
