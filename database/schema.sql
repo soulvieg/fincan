@@ -111,25 +111,20 @@ CREATE TABLE Shipments (
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
-CREATE TABLE Orders (
-    order_id     INT NOT NULL AUTO_INCREMENT,
-    customer_id  INT NOT NULL,
-    order_date   DATETIME,
-    order_status VARCHAR(10),
-    total_amount DECIMAL(10,2),
-    PRIMARY KEY (order_id),
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-);
-
-CREATE TABLE Order_items (
-    order_item_id INT NOT NULL AUTO_INCREMENT,
+CREATE TABLE Orders(
     order_id      INT NOT NULL,
+    customer_id   INT NOT NULL,
     product_id    INT NOT NULL,
     quantity      INT,
-    PRIMARY KEY (order_item_id),
-    FOREIGN KEY (product_id) REFERENCES Products(product_id),
-    FOREIGN KEY (order_id)   REFERENCES Orders(order_id)
+    order_date    DATETIME,
+    order_status  VARCHAR(20),
+    total_amount  DECIMAL(10,2),
+    PRIMARY KEY (order_id, product_id),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
+    FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 );
+
+
 
 CREATE TABLE Cards (
     card_id      INT NOT NULL AUTO_INCREMENT,

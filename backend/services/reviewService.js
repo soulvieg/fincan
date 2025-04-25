@@ -12,16 +12,16 @@ const { hasUserPurchasedProduct } = require("../services/orderService");
  * @throws {Error} - If product not found or user hasn't purchased the product.
  */
 async function addCommentToProduct(productId, userId, comment) {
+    // Verify the product exists.
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+  
   // Verify if the user purchased the product.
   const purchased = await hasUserPurchasedProduct(userId, productId);
   if (!purchased) {
     throw new Error("User has not purchased this product and cannot leave a comment.");
-  }
-
-  // Verify the product exists.
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("Product not found");
   }
 
   // Find existing review or create a new one.
@@ -50,16 +50,16 @@ async function addCommentToProduct(productId, userId, comment) {
  * @throws {Error} - If product not found, rating out of range, or user hasn't purchased the product.
  */
 async function addRatingToProduct(productId, userId, rating) {
+    // Verify the product exists.
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      throw new Error("Product not found");
+    }
+  
   // Verify if the user purchased the product.
   const purchased = await hasUserPurchasedProduct(userId, productId);
   if (!purchased) {
     throw new Error("User has not purchased this product and cannot leave a rating.");
-  }
-
-  // Verify the product exists.
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("Product not found");
   }
 
   // Validate the rating value.
