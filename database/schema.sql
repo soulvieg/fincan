@@ -15,6 +15,18 @@ CREATE TABLE Customers(
     PRIMARY KEY (customer_id)
 );
 
+CREATE TABLE Admins (
+  id INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(255) NOT NULL
+);
+
+INSERT INTO Admins (name, email, password, role)
+VALUES ('Top Admin', 'admin@fincan.com', ' $2b$10$irEyZLMsqFu41HOJDVQPduGLCW./8cmKzndPApnlE9QgSyMTmig3G', 'overseeingAdmin');
+
+
 CREATE TABLE Products(
     product_id INT NOT NULL PRIMARY KEY,
     category_id INT NOT NULL,
@@ -43,6 +55,8 @@ CREATE TABLE Comments(
     customer_id INT NOT NULL,
     product_id INT NOT NULL,
     text VARCHAR(512),
+    approval BOOL,
+    manager_id INT NOT NULL,
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id) REFERENCES Products(product_id)
 );
@@ -52,6 +66,7 @@ CREATE TABLE Carts(
     customer_id INT NOT NULL,
     product_id INT NOT NULL,
     quantity INT,
+    session_id VARCHAR(255) NULL,
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id) REFERENCES Products(product_id)
 );
