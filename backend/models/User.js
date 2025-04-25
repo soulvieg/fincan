@@ -2,53 +2,54 @@
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
-/**
- * User Model
- *
- * Fields:
- * - id:           Primary key, auto-increment
- * - name:         Full name of the user
- * - email:        Email address (unique)
- * - homeAddress:  Home address of the user
- * - password:     Hashed password
- * 
- */
-const User = sequelize.define("User", {
-  id: {
-    type: DataTypes.INTEGER,
-    primaryKey: true,
-    autoIncrement: true,
-  },
-
-  name: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
-  email: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    unique: true,
-    validate: {
-      isEmail: true,
+const User = sequelize.define(
+  "User",
+  {
+    id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      autoIncrement: true,
+      field: "customer_id",  // "id" in code => "customer_id" in DB
+    },
+    firstName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: "first_name",
+    },
+    lastName: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: "last_name",
+    },
+    email: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      unique: true,
+    },
+    password: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+    },
+    homeAddress: {
+      type: DataTypes.STRING(255),
+      allowNull: false,
+      field: "address", // "homeAddress" => "address" in DB
+    },
+    phoneNumber: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "phone_number",
+    },
+    userType: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "type",
     },
   },
-
-  homeAddress: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
-  password: {
-    type: DataTypes.STRING,
-    allowNull: false,
-  },
-
-  role: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    defaultValue: "customer", // roles: "customer"
+  {
+    tableName: "Customers",
+    timestamps: false,
   }
-});
+);
 
 module.exports = User;

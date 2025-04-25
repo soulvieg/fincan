@@ -1,101 +1,94 @@
-// services/cartService.js
 const CartItem = require("../models/cartItem");
+const Product = require("../models/Product");
 
 /**
  * Add or update an item in the cart
- * @param {object} options - { userId, sessionId, productId, quantity }
+ * @param {object} options - { customer_id, session_id, product_id, quantity }
  * @returns {object} - The newly created or updated CartItem
  */
-async function addProductToCart({ userId, sessionId, productId, quantity }) {
-  // We need either userId or sessionId
-  if (!userId && !sessionId) {
-    throw new Error("Either userId or sessionId is required.");
+async function addProductToCart({ customer_id, session_id, product_id, quantity }) {
+  if (!customer_id && !session_id) {
+    throw new Error("Either customer_id or session_id is required.");
   }
 
-  // Check if there's already a cart item for the same product
-  const existingCartItem = await CartItem.findOne({
+  const product = await Product.findByPk(product_id);
+  if (!product) {
+    throw new Error("Product not found.");
+  }
+
+  const existing = await CartItem.findOne({
     where: {
-      productId,
-      userId: userId || null,
-      sessionId: sessionId || null,
+      product_id,
+      customer_id: customer_id || null,
+      session_id: session_id || null,
     },
   });
 
-  if (existingCartItem) {
-    // Update the quantity
-    existingCartItem.quantity += quantity;
-    await existingCartItem.save();
-    return existingCartItem;
+  const alreadyInCart = existing ? existing.quantity : 0;
+
+  if (product.stock === 0) {
+    throw new Error("This product is out of stock.");
+  }
+
+  if (alreadyInCart + quantity > product.stock) {
+    const available = product.stock - alreadyInCart;
+    throw new Error(
+      `Cannot add ${quantity} item(s). Only ${available} left in stock.`
+    );
+  }
+
+  if (existing) {
+    existing.quantity += quantity;
+    await existing.save();
+    return existing;
   } else {
-    // Create a new cart item
-    const newCartItem = await CartItem.create({
-      userId: userId || null,
-      sessionId: sessionId || null,
-      productId,
+    return await CartItem.create({
+      customer_id: customer_id || null,
+      session_id: session_id || null,
+      product_id,
       quantity,
     });
-    return newCartItem;
   }
 }
 
 /**
  * Get the cart items for a given user or session
- * @param {object} options - { userId, sessionId }
- * @returns {Array} - List of CartItems
  */
-async function getCart({ userId, sessionId }) {
-  // Must have at least one
-  if (!userId && !sessionId) {
-    throw new Error("Either userId or sessionId is required.");
+async function getCart({ customer_id, session_id }) {
+  if (!customer_id && !session_id) {
+    throw new Error("Either customer_id or session_id is required.");
   }
 
-  const cartItems = await CartItem.findAll({
+  return await CartItem.findAll({
     where: {
-      userId: userId || null,
-      sessionId: sessionId || null,
+      customer_id: customer_id || null,
+      session_id: session_id || null,
     },
   });
-
-  return cartItems;
 }
 
 /**
- * Merge a guest cart into a user cart upon login
- * @param {string} guestSessionId - The sessionId for the guest cart
- * @param {number} userId - The userId to merge into
+ * Merge guest cart into user cart upon login
  */
-async function mergeGuestCartIntoUser(guestSessionId, userId) {
-  if (!guestSessionId || !userId) return;
+async function mergeGuestCartIntoUser(session_id, customer_id) {
+  if (!session_id || !customer_id) return;
 
-  // Find all cart items for the guest session
-  const guestCartItems = await CartItem.findAll({
-    where: {
-      sessionId: guestSessionId,
-      userId: null,
-    },
+  const guestItems = await CartItem.findAll({
+    where: { session_id, customer_id: null },
   });
 
-  // Reassign each guest cart item to the logged-in user
-  for (const item of guestCartItems) {
-    // Check if the user already has the same product in their cart
-    const existingUserCartItem = await CartItem.findOne({
-      where: {
-        userId,
-        productId: item.productId,
-      },
+  for (const item of guestItems) {
+    const existing = await CartItem.findOne({
+      where: { customer_id, product_id: item.product_id },
     });
 
-    if (existingUserCartItem) {
-      // Merge quantity
-      existingUserCartItem.quantity += item.quantity;
-      await existingUserCartItem.save();
-
-      // Remove the guest cart item
+    if (existing) {
+      existing.quantity += item.quantity;
+      await existing.save();
       await item.destroy();
     } else {
-      // Just update the guest item to belong to this user
-      item.userId = userId;
-      item.sessionId = null; // no longer needed
+      item.customer_id = customer_id;
+      item.session_id = null;
       await item.save();
     }
   }
