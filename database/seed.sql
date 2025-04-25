@@ -1,14 +1,14 @@
 -- Seed the Categories table
 INSERT INTO Categories (category_id, name) VALUES
-(1, 'Coffee Beans'), 
-(2, 'Coffee Mugs'), 
+(1, 'Coffee Beans'),
+(2, 'Coffee Mugs'),
 (3, 'Brewing Equipment'),
-(4, 'Accessories'), 
-(5, 'Merchandise'), 
+(4, 'Accessories'),
+(5, 'Merchandise'),
 (6, 'Tea'),
-(7, 'Snacks'), 
-(8, 'Syrups'), 
-(9, 'Cups'), 
+(7, 'Snacks'),
+(8, 'Syrups'),
+(9, 'Cups'),
 (10, 'Filters');
 
 -- Seed the Customers table
@@ -26,7 +26,7 @@ INSERT INTO Customers (customer_id, first_name, last_name, email, password, addr
 
 -- Seed the Products table to match frontend products
 INSERT INTO Products (product_id, category_id, sku, name, description, price, stock) VALUES
-(1, 1, 'CB001', 'Kenya Coffee', 'Rich and smooth', 15.99, 100),
+(1, 1, 'CB001', 'Kenya Coffee', 'Rich and smooth', 15.99, 0),
 (2, 1, 'CB002', 'Premium Coffee', 'Local Farming', 12.99, 150),
 (3, 1, 'CB003', 'Blue Coffee', 'Blue Bottle coffee', 18.99, 75),
 (4, 1, 'CB004', 'Vienese Coffee', 'Rich and smooth', 14.99, 200),
@@ -54,17 +54,18 @@ INSERT INTO Ratings (review_id, customer_id, manager_id, product_id, score, appr
 (10, 3, 8, 10, 4, TRUE);
 
 -- Seed the Comments table
-INSERT INTO Comments (commnt_id, customer_id, product_id, text) VALUES
-(1, 1, 1, 'Great coffee beans!'),
-(2, 2, 2, 'Very robust flavor.'),
-(3, 3, 3, 'Smooth and aromatic.'),
-(4, 4, 4, 'Love the design of this mug.'),
-(5, 5, 5, 'Keeps coffee hot for hours.'),
-(6, 6, 6, 'Easy to use and clean.'),
-(7, 7, 7, 'Perfect for pour-over coffee.'),
-(8, 1, 8, 'Grinds coffee beans evenly.'),
-(9, 2, 9, 'Froths milk perfectly.'),
-(10, 3, 10, 'Comfortable and stylish.');
+INSERT INTO Comments (commnt_id, customer_id, product_id, text, approval, manager_id) VALUES
+(1, 1, 1, 'Great coffee beans!', FALSE, 8),
+(2, 2, 2, 'Very robust flavor.', FALSE, 8),
+(3, 3, 3, 'Smooth and aromatic.', TRUE, 9),
+(4, 4, 4, 'Love the design of this mug.', FALSE, 9),
+(5, 5, 5, 'Keeps coffee hot for hours.', TRUE, 10),
+(6, 6, 6, 'Easy to use and clean.', TRUE, 10),
+(7, 7, 7, 'Perfect for pour-over coffee.', FALSE, 8),
+(8, 1, 8, 'Grinds coffee beans evenly.', TRUE, 9),
+(9, 2, 9, 'Froths milk perfectly.', FALSE, 10),
+(10, 3, 10, 'Comfortable and stylish.', TRUE, 8);
+
 
 -- Seed the Carts table
 INSERT INTO Carts (cart_id, customer_id, product_id, quantity) VALUES
@@ -79,8 +80,8 @@ INSERT INTO Carts (cart_id, customer_id, product_id, quantity) VALUES
 (9, 2, 9, 1),
 (10, 3, 10, 2);
 
--- Seed the Wishlists table
-INSERT INTO Wishlists (whishlist_id, customer_id, product_id) VALUES
+-- Seed the Wishlists table  (fixed column name)
+INSERT INTO Wishlists (wishlist_id, customer_id, product_id) VALUES
 (1, 1, 2),
 (2, 2, 3),
 (3, 3, 4),

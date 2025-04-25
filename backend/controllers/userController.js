@@ -7,29 +7,28 @@ const {
   updateUserProfile,
 } = require("../services/userService");
 
-/**
- * Controller to handle user signup
- * @route POST /api/users/signup
- */
+// Signup controller
 async function signupController(req, res) {
   try {
-    const { name, email, homeAddress, password } = req.body;
+    const { firstName, lastName, email, homeAddress, password, userType } = req.body;
 
-    // Basic validation
-    if (!name || !email || !homeAddress || !password) {
+    if (!firstName || !lastName || !email || !homeAddress || !password) {
       return res.status(400).json({
-        message: "All fields (name, email, homeAddress, password) are required.",
+        message: "All fields (firstName, lastName, email, homeAddress, password) are required.",
       });
     }
 
-    const newUser = await registerUser({ name, email, homeAddress, password });
+    const newUser = await registerUser({ firstName, lastName, email, homeAddress, password, userType });
+
     return res.status(201).json({
       message: "User created successfully",
       user: {
         id: newUser.id,
-        name: newUser.name,
+        firstName: newUser.firstName,
+        lastName: newUser.lastName,
         email: newUser.email,
         homeAddress: newUser.homeAddress,
+        userType: newUser.userType,
       },
     });
   } catch (error) {
@@ -37,20 +36,17 @@ async function signupController(req, res) {
   }
 }
 
-/**
- * Controller to handle user login
- * @route POST /api/users/login
- */
+// Login controller
 async function loginController(req, res) {
   try {
     const { email, password } = req.body;
 
-    // Basic validation
     if (!email || !password) {
       return res.status(400).json({ message: "Email and password are required." });
     }
 
     const userData = await loginUser({ email, password });
+
 
     // Generate JWT
     const token = jwt.sign(
@@ -69,14 +65,12 @@ async function loginController(req, res) {
   }
 }
 
-/**
- * Controller to retrieve a user's profile
- * @route GET /api/users/:id/profile
- */
+// Get profile controller
 async function getUserProfileController(req, res) {
   try {
-    const { id } = req.params; // or use token-based auth in a real app
+    const { id } = req.params;
     const user = await getUserById(id);
+
     return res.status(200).json({
       message: "User profile retrieved successfully",
       user,
@@ -86,17 +80,14 @@ async function getUserProfileController(req, res) {
   }
 }
 
-/**
- * Controller to update a user's profile
- * @route PUT /api/users/:id/profile
- */
+// Update profile controller
 async function updateUserProfileController(req, res) {
   try {
-    const { id } = req.params; // or use token-based auth in a real app
-    const { name, email, homeAddress } = req.body;
+    const { id } = req.params;
+    const { firstName, lastName, email, homeAddress } = req.body;
 
-    // No need to require all fields; user may update just one
-    const updatedUser = await updateUserProfile(id, { name, email, homeAddress });
+    const updatedUser = await updateUserProfile(id, { firstName, lastName, email, homeAddress });
+
     return res.status(200).json({
       message: "User profile updated successfully",
       user: updatedUser,

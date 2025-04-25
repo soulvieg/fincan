@@ -6,8 +6,8 @@ const session = require("express-session");
 const cors = require("cors");
 
 const productRoutes = require("./routes/productRoutes");
-const userRoutes = require("./routes/userRoutes"); // Import user routes
-const adminRoutes = require("./routes/adminRoutes"); // Import admin routes
+const userRoutes = require("./routes/userRoutes"); 
+const adminRoutes = require("./routes/adminRoutes"); 
 const reviewRoutes = require("./routes/reviewRoutes");
 const orderRoutes = require("./routes/orderRoutes");
 const cartRoutes = require("./routes/cartRoutes");
@@ -73,7 +73,8 @@ sequelize
   .sync()
   .then(async () => {
     // Set starting ID for Users table
-    await sequelize.query("ALTER TABLE Users AUTO_INCREMENT = 1000;"); // Users => Customers 
+    await sequelize.query("ALTER TABLE Customers AUTO_INCREMENT = 1000;");
+
     console.log("Database synced and User ID auto-increment set to 1000");
 
     app.listen(PORT, () => {
