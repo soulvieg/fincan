@@ -3,7 +3,7 @@ const {
     addCommentToProduct,
     addRatingToProduct,
   } = require("../services/reviewService");
-  
+  const { hasUserPurchasedProduct } = require("../services/orderService");
   /**
    * Controller to add or update a comment
    * @route POST /api/products/:productId/comment
@@ -39,7 +39,7 @@ const {
       if (!userId || typeof rating === "undefined") {
         return res.status(400).json({ message: "userId and rating are required." });
       }
-  
+      
       const review = await addRatingToProduct(productId, userId, rating);
       return res.status(201).json({
         message: "Rating added successfully",

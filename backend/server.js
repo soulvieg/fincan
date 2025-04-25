@@ -73,7 +73,7 @@ sequelize
   .sync()
   .then(async () => {
     // Set starting ID for Users table
-    await sequelize.query("ALTER TABLE Users AUTO_INCREMENT = 1000;");
+    await sequelize.query("ALTER TABLE Users AUTO_INCREMENT = 1000;"); // Users => Customers 
     console.log("Database synced and User ID auto-increment set to 1000");
 
     app.listen(PORT, () => {

@@ -1,4 +1,5 @@
 // controllers/userController.js
+const jwt = require('jsonwebtoken');
 const {
   registerUser,
   loginUser,
@@ -50,9 +51,18 @@ async function loginController(req, res) {
     }
 
     const userData = await loginUser({ email, password });
+
+    // Generate JWT
+    const token = jwt.sign(
+      { id: userData.id, email: userData.email },
+      process.env.JWT_SECRET,
+      { expiresIn: '1h' }
+    );
+
     return res.status(200).json({
       message: "Login successful",
       user: userData,
+      token,
     });
   } catch (error) {
     return res.status(401).json({ message: error.message });

@@ -1,5 +1,6 @@
 // routes/userRoutes.js
 const express = require("express");
+const authenticate = require("../middlewares/authenticate");
 const {
   signupController,
   loginController,
@@ -14,6 +15,8 @@ router.post("/signup", signupController);
 
 // POST /api/users/login
 router.post("/login", loginController);
+
+router.use(authenticate);
 
 // GET /api/users/:id/profile
 router.get("/:id/profile", getUserProfileController);

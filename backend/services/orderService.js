@@ -95,7 +95,7 @@ async function hasUserPurchasedProduct(userId, productId) {
     where: {
       userId: userId,
       productId: productId,
-      status: "delivered",
+      status: "processing",  // "delivered"
     },
   });
   return !!order;
