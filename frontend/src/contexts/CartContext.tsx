@@ -178,7 +178,7 @@ interface CartContextType {
   addToCart: (
     productIdOrItem: number | CartItemInput,
     quantity?: number
-  ) => Promise<void>;
+  ) => Promise<{ success: boolean; message: string }>;
   removeFromCart: (id: number) => Promise<void>;
   clearCart: () => Promise<void>;
   fetchCart: () => Promise<void>;
@@ -244,7 +244,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         quantity: qty,
         ...(user?.id
           ? { customer_id: user.id }
-          : { session_id: localStorage.getItem("guest_session_id") || generateSession() }),
+          : {
+              session_id:
+                localStorage.getItem("guest_session_id") || generateSession(),
+            }),
       };
 
       const response = await fetch("http://localhost:5001/api/cart", {
@@ -256,6 +259,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       const data = await response.json();
 
       if (!response.ok) {
+        // Check if the error is due to out of stock
+        if (data.message && data.message.includes("out of stock")) {
+          return {
+            success: false,
+            message: data.message || "Item is out of stock",
+          };
+        }
         throw new Error(data.message || "Failed to add to cart");
       }
 
@@ -268,7 +278,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       };
 
       setCart((prevCart) => {
-        const existingIndex = prevCart.findIndex((item) => item.productId === productId);
+        const existingIndex = prevCart.findIndex(
+          (item) => item.productId === productId
+        );
         if (existingIndex >= 0) {
           const updated = [...prevCart];
           updated[existingIndex].quantity += qty;
@@ -276,10 +288,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         }
         return [...prevCart, newItem];
       });
-
+      return { success: true, message: "Item added to cart successfully" };
     } catch (error: any) {
       alert(error.message || "Error adding to cart");
       console.error(error);
+      return {
+        success: false,
+        message: error.message || "Error adding to cart",
+      };
     } finally {
       setLoading(false);
     }
@@ -326,4 +342,3 @@ export const useCart = () => {
   }
   return context;
 };
-
