@@ -1,14 +1,14 @@
 -- Seed the Categories table
 INSERT INTO Categories (category_id, name) VALUES
-(1, 'Coffee Beans'), 
-(2, 'Coffee Mugs'), 
+(1, 'Coffee Beans'),
+(2, 'Coffee Mugs'),
 (3, 'Brewing Equipment'),
-(4, 'Accessories'), 
-(5, 'Merchandise'), 
+(4, 'Accessories'),
+(5, 'Merchandise'),
 (6, 'Tea'),
-(7, 'Snacks'), 
-(8, 'Syrups'), 
-(9, 'Cups'), 
+(7, 'Snacks'),
+(8, 'Syrups'),
+(9, 'Cups'),
 (10, 'Filters');
 
 -- Seed the Customers table
@@ -80,8 +80,8 @@ INSERT INTO Carts (cart_id, customer_id, product_id, quantity) VALUES
 (9, 2, 9, 1),
 (10, 3, 10, 2);
 
--- Seed the Wishlists table
-INSERT INTO Wishlists (whishlist_id, customer_id, product_id) VALUES
+-- Seed the Wishlists table  (fixed column name)
+INSERT INTO Wishlists (wishlist_id, customer_id, product_id) VALUES
 (1, 1, 2),
 (2, 2, 3),
 (3, 3, 4),

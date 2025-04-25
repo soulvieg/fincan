@@ -6,7 +6,7 @@ const Admin = require("../models/Admin");
 const User = require("../models/User");
 const Order = require("../models/Order");
 const Product = require("../models/Product");
-const OrderItem = require("../models/OrderItem");
+// const OrderItem = require("../models/OrderItem");
 
 /**
  * Create/register a new admin
