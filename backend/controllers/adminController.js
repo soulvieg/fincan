@@ -1,10 +1,10 @@
 // controllers/adminController.js
-const { registerAdmin, loginAdmin } = require("../services/adminService");
-
+const { getSalesReport } = require("../services/adminService");
 /**
  * Controller to handle admin signup
  * @route POST /api/admins/signup
  */
+/*
 async function signupAdminController(req, res) {
   try {
     const { name, email, password, role } = req.body;
@@ -37,11 +37,13 @@ async function signupAdminController(req, res) {
     return res.status(500).json({ message: error.message });
   }
 }
+*/
 
 /**
  * Controller to handle admin login
  * @route POST /api/admins/login
  */
+/*
 async function loginAdminController(req, res) {
   try {
     const { email, password } = req.body;
@@ -51,7 +53,7 @@ async function loginAdminController(req, res) {
     }
 
     const adminData = await loginAdmin({ email, password });
-    // ✅ Set session
+    
     req.session.admin = {
       id: adminData.id,
       name: adminData.name,
@@ -67,8 +69,39 @@ async function loginAdminController(req, res) {
     return res.status(401).json({ message: error.message });
   }
 }
+*/
+/**
+  * Controller to generate sales report.
+  * Expects query parameters: startDate and endDate.
+  * @route GET /api/admins/salesReport
+  */
+async function getSalesReportController(req, res) {
+  try {
+
+    //Check if user is logged in AND is a sales manager
+    if (!req.session.user || req.session.user.userType !== "salesManager") {
+      return res.status(403).json({ message: "Access denied. Sales managers only." });
+    }
+    
+    const { startDate, endDate } = req.query;
+
+    if (!startDate || !endDate) {
+      return res
+        .status(400)
+        .json({ message: "Both startDate and endDate query parameters are required." });
+    }
+
+    const report = await getSalesReport({ startDate, endDate });
+    return res.status(200).json({
+      message: "Sales report generated successfully",
+      report,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: error.message });
+  }
+}
+
 
 module.exports = {
-  signupAdminController,
-  loginAdminController,
+  getSalesReportController,
 };

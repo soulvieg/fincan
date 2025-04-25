@@ -1,29 +1,21 @@
-// controllers/cartController.js
 const {
   addProductToCart,
   getCart,
   mergeGuestCartIntoUser,
 } = require("../services/cartService");
 
-/**
- * Controller to add a product to the cart
- * @route POST /api/cart
- */
 async function addToCartController(req, res) {
   try {
-    const { userId, sessionId, productId, quantity } = req.body;
+    const { customer_id, session_id, product_id, quantity } = req.body;
 
-    // Basic validation
-    if (!productId || !quantity) {
-      return res
-        .status(400)
-        .json({ message: "productId and quantity are required." });
+    if (!product_id || !quantity) {
+      return res.status(400).json({ message: "product_id and quantity are required." });
     }
 
     const cartItem = await addProductToCart({
-      userId,
-      sessionId,
-      productId,
+      customer_id,
+      session_id,
+      product_id,
       quantity,
     });
 
@@ -36,16 +28,11 @@ async function addToCartController(req, res) {
   }
 }
 
-/**
- * Controller to get cart items
- * @route GET /api/cart
- */
 async function getCartController(req, res) {
   try {
-    // Could be query params or body
-    const { userId, sessionId } = req.query;
+    const { customer_id, session_id } = req.query;
 
-    const items = await getCart({ userId, sessionId });
+    const items = await getCart({ customer_id, session_id });
     return res.status(200).json({
       message: "Cart retrieved successfully",
       cart: items,
@@ -55,19 +42,15 @@ async function getCartController(req, res) {
   }
 }
 
-/**
- * Controller to merge guest cart into user cart upon login
- * @route POST /api/cart/merge
- */
 async function mergeCartController(req, res) {
   try {
-    const { sessionId, userId } = req.body;
+    const { session_id, customer_id } = req.body;
 
-    if (!sessionId || !userId) {
-      return res.status(400).json({ message: "sessionId and userId are required." });
+    if (!session_id || !customer_id) {
+      return res.status(400).json({ message: "session_id and customer_id are required." });
     }
 
-    await mergeGuestCartIntoUser(sessionId, userId);
+    await mergeGuestCartIntoUser(session_id, customer_id);
 
     return res.status(200).json({ message: "Cart merged successfully." });
   } catch (error) {

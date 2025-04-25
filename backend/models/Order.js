@@ -1,40 +1,32 @@
-const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db");
+// models/Order.js
+const { DataTypes } = require("sequelize");    
+const sequelize = require("../config/db");      
 
-/**
- * Order Model
- *
- * Fields:
- * - id:        Primary key, auto-increment
- * - userId:    The ID of the user who made the purchase
- * - productId: The ID of the purchased product
- * - quantity:  Number of items purchased
- * - status:    Order status (e.g., "processing", "delivered")
- */
 const Order = sequelize.define("Order", {
-  id: {
+  order_id: {
     type: DataTypes.INTEGER,
     primaryKey: true,
     autoIncrement: true,
   },
-  userId: {
+  customer_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  productId: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
+  order_date: {
+    type: DataTypes.DATE,
+    allowNull: true,
   },
-  quantity: {
-    type: DataTypes.INTEGER,
-    allowNull: false,
-    defaultValue: 1,
+  order_status: {
+    type: DataTypes.STRING(10),
+    allowNull: true,
   },
-  status: {
-    type: DataTypes.STRING,
-    allowNull: false,
-    // For this check we use "delivered" to allow reviews.
+  total_amount: {
+    type: DataTypes.DECIMAL(10, 2),
+    allowNull: true,
   },
+}, {
+  tableName: "Orders",
+  timestamps: false,
 });
 
 module.exports = Order;
