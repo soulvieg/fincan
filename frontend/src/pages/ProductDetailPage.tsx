@@ -37,7 +37,7 @@ const ProductDetailPage: React.FC = () => {
     { user: "Bob", text: "A bit too strong for my taste, but still good." },
   ]);
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!product) return;
 
     const cartItem = {
@@ -49,14 +49,10 @@ const ProductDetailPage: React.FC = () => {
     };
 
     addToCart(cartItem);
-    const result = await addToCart(cartItem);
 
     const notification = document.createElement("div");
     notification.className = "add-to-cart-notification";
     notification.textContent = `${quantity} × ${product.name} added to cart!`;
-    notification.textContent = result.success
-      ? `${quantity} × ${product.name} added to cart!`
-      : result.message;
     document.body.appendChild(notification);
 
     setTimeout(() => {
@@ -293,19 +289,11 @@ const ProductDetailPage: React.FC = () => {
                 </Button>
                 <Button
                   variant="contained"
-                  startIcon={
-                    isInWishlist(product.id) ? (
-                      <FavoriteIcon />
-                    ) : (
-                      <FavoriteBorderIcon />
-                    )
-                  }
+                  startIcon={isInWishlist(product.id) ? <FavoriteIcon /> : <FavoriteBorderIcon />}
                   sx={{
                     bgcolor: isInWishlist(product.id) ? "#ff4081" : "#ffcc80",
                     color: "#4e342e",
-                    ":hover": {
-                      bgcolor: isInWishlist(product.id) ? "#f50057" : "#ffb74d",
-                    },
+                    ":hover": { bgcolor: isInWishlist(product.id) ? "#f50057" : "#ffb74d" },
                     fontSize: "14px",
                     px: 2,
                     py: 1,

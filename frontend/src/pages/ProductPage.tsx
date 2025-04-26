@@ -36,27 +36,11 @@ const ProductPage: React.FC = () => {
       ? products.filter((product) => product.isBestSeller)
       : products.filter((product) => product.category === selectedCategory);
 
-  const handleAddToCart = async (
+  const handleAddToCart = (
     product: any,
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.stopPropagation();
-    if (product.stock === 0) {
-      const notification = document.createElement("div");
-      notification.className = "add-to-cart-notification";
-      notification.textContent = `${product.name} is out of stock!`;
-      document.body.appendChild(notification);
-      setTimeout(() => {
-        notification.classList.add("show");
-        setTimeout(() => {
-          notification.classList.remove("show");
-          setTimeout(() => {
-            document.body.removeChild(notification);
-          }, 300);
-        }, 2000);
-      }, 10);
-      return;
-    }
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -64,13 +48,10 @@ const ProductPage: React.FC = () => {
       quantity: 1,
       image: product.image,
     };
-    const result = await addToCart(cartItem);
+    addToCart(cartItem);
     const notification = document.createElement("div");
     notification.className = "add-to-cart-notification";
     notification.textContent = `${product.name} added to cart!`;
-    notification.textContent = result.success
-      ? `${product.name} added to cart!`
-      : result.message;
     document.body.appendChild(notification);
     setTimeout(() => {
       notification.classList.add("show");
