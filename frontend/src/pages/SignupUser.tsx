@@ -1,49 +1,33 @@
 import React, { useState } from "react";
-import {
-  Container,
-  Box,
-  TextField,
-  Button,
-  Typography,
-  Link,
-  InputAdornment,
-  IconButton,
-} from "@mui/material";
+import { Container, Box, TextField, Button, Typography, Link, InputAdornment, IconButton } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-import api from "../services";   // << use the shared axios instance
+import axios from "axios";
 
-const SignupUser: React.FC = () => {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
+const SignupUser = () => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [homeAddress, setAddress] = useState("");
-  const [showPassword, setShowPass] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+
 
   const handleUserSignup = async () => {
     try {
-      setError("");
-      await api.post(
-        "/users/signup",
-        {
-          firstName,
-          lastName,
-          email,
-          homeAddress,
-          password,
-          userType: "regular",
-        },
-        { withCredentials: true }
-      );
+      const response = await axios.post(`${process.env.REACT_APP_API_BASE_URL}/api/signup`, {
+        name,
+        email,
+        password
+      });
+      console.log("Signup successful:", response.data);
+      // Navigate to login page or another page after successful signup
       navigate("/login-user");
-    } catch (err: any) {
-      console.error(err);
-      setError(err.response?.data?.message || "Signup failed");
+    } catch (error) {
+      console.error("Signup error:", error);
     }
   };
+
+
 
   return (
     <Box
@@ -53,8 +37,7 @@ const SignupUser: React.FC = () => {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        backgroundImage:
-          "url('https://images.pexels.com/photos/3737655/pexels-photo-3737655.jpeg')",
+        backgroundImage: "url('https://images.pexels.com/photos/3737655/pexels-photo-3737655.jpeg')",
         backgroundSize: "cover",
         backgroundPosition: "center",
         backgroundRepeat: "no-repeat",
@@ -64,84 +47,33 @@ const SignupUser: React.FC = () => {
       }}
     >
       <Container maxWidth="xs">
-        <Box
-          sx={{
-            p: 4,
-            boxShadow: 3,
-            borderRadius: 2,
-            backgroundColor: "rgba(255, 255, 255, 0.9)",
-            textAlign: "center",
-          }}
-        >
-          <Typography variant="h4" gutterBottom fontFamily="'Rubik', sans-serif">
+        <Box sx={{ p: 4, boxShadow: 3, borderRadius: 2, backgroundColor: "rgba(255, 255, 255, 0.9)", textAlign: "center" }}>
+          <Typography variant="h4" gutterBottom sx={{ fontFamily: "'Rubik', sans-serif" }}>
             ☕ Create Account
           </Typography>
-
-          <TextField
-            fullWidth
-            label="First Name"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Last Name"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Email"
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            margin="normal"
-          />
-          <TextField
-            fullWidth
-            label="Address"
-            value={homeAddress}
-            onChange={(e) => setAddress(e.target.value)}
-            margin="normal"
-          />
+          <TextField fullWidth label="Full Name" value={name} onChange={(e) => setName(e.target.value)} variant="outlined" margin="normal" />
+          <TextField fullWidth label="Email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} variant="outlined" margin="normal" />
           <TextField
             fullWidth
             label="Password"
             type={showPassword ? "text" : "password"}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            variant="outlined"
             margin="normal"
             InputProps={{
               endAdornment: (
                 <InputAdornment position="end">
-                  <IconButton
-                    onClick={() => setShowPass(!showPassword)}
-                    edge="end"
-                  >
+                  <IconButton onClick={() => setShowPassword(!showPassword)} edge="end">
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
                 </InputAdornment>
               ),
             }}
           />
-
-          {error && (
-            <Typography color="error" mt={1}>
-              {error}
-            </Typography>
-          )}
-
-          <Button
-            variant="contained"
-            fullWidth
-            sx={{ mt: 2, bgcolor: "#6d4c41" }}
-            onClick={handleUserSignup}
-          >
+          <Button variant="contained" fullWidth sx={{ mt: 2, bgcolor: "#6d4c41" }} onClick={handleUserSignup}>
             Sign Up
           </Button>
-
           <Typography mt={2}>
             Already have an account?{" "}
             <Link onClick={() => navigate("/login-user")} sx={{ cursor: "pointer" }}>
