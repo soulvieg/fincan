@@ -2,6 +2,7 @@ const Order = require("../models/Order");
 const User = require("../models/User");
 const Product = require("../models/Product");
 
+
 /**
  * Place a new order if the user is "logged in"
  */
@@ -47,59 +48,82 @@ function isValidCard(cardInfo) {
 
 
 async function placeOrder(orderData) {
-  const { userId, productId, quantity, paymentInfo} = orderData;
+  const { customer_id, products, paymentInfo } = orderData;
+  // products = [{ productId: 3, quantity: 1 }, { productId: 7, quantity: 2 }]
 
   // Check if user exists
-  const user = await User.findByPk(userId);
-  if (!user) {
+  const customer = await User.findByPk(customer_id);
+  if (!customer) {
     throw new Error("You must be logged in to place an order.");
   }
-  // Check if product exists
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("The product you're referring to doesn't exist.");
-  }
-  
-  // Validate payment here(Mock payment for now)
+
+  // Validate payment (mock payment for now)
   const validation = isValidCard(paymentInfo);
-if (!validation.valid) {
-  throw new Error(`Payment failed: ${validation.message}`);
-}  
+  if (!validation.valid) {
+    throw new Error(`Payment failed: ${validation.message}`);
+  }
 
-  const newOrder = await Order.create({
-    userId,
-    productId,
-    quantity,
-    status: "processing", // initial status
-  });
+  let totalAmount = 0;
+  const orderDate = new Date();
 
-  return newOrder;
+  const orderItems = [];
+
+  // Loop through the products, validate each, and calculate the total amount
+  for (const { productId, quantity } of products) {
+    const product = await Product.findByPk(productId);
+    if (!product) {
+      throw new Error(`Product with ID ${productId} does not exist.`);
+    }
+
+    totalAmount += product.price * quantity;
+
+    orderItems.push({
+      customer_id,
+      product_id: productId,
+      quantity,
+      order_date: orderDate,
+      order_status: "processing", // Initial status for all items
+      total_amount: 0, // Placeholder for the final total amount
+    });
+  }
+
+  // Set the total_amount on each item and insert all items in bulk
+  const finalItems = orderItems.map(item => ({
+    ...item,
+    total_amount: totalAmount,
+  }));
+
+  const newOrder = await Order.bulkCreate(finalItems);
+
+  return { order_id: newOrder[0].order_id, total_amount: totalAmount };
 }
 
 
 
-
-
-
-/**
- * Check if a user has purchased a given product.
- * Only orders with status "delivered" count as a valid purchase.
- *
- * @param {number} userId - The ID of the user.
- * @param {number} productId - The ID of the product.
- * @returns {boolean} - True if an order exists, false otherwise.
- * @throws {Error} - If a query error occurs.
- */
 async function hasUserPurchasedProduct(userId, productId) {
-  const order = await Order.findOne({
-    where: {
-      userId: userId,
-      productId: productId,
-      status: "delivered",
-    },
-  });
-  return !!order;
+  try {
+    const match = await Order.findOne({
+      where: {
+        customer_id: userId,
+        order_status: "processing",  // Ensure the order is delivered
+      },
+      include: [
+        {
+          model: Product,
+          where: { product_id: productId }, // Ensure the product matches
+          required: true, // Ensure this product must be part of the order
+        },
+      ],
+    });
+
+    return !!match;  // If a matching order exists, return true
+  } catch (error) {
+    console.error("Error checking user purchase:", error);
+    throw error;
+  }
 }
+
+
 
 module.exports = {
   placeOrder,

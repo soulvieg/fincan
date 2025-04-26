@@ -120,28 +120,19 @@ INSERT INTO Shipments (shipment_id, customer_id, shipment_date, address, city, s
 (10, 3, '2023-10-12 21:00:00', '919 Macchiato Mn', 'Theircity', 'PA', 'USA', '33445');
 
 -- Seed the Orders table
-INSERT INTO Orders (order_id, customer_id, order_date, order_status, total_amount) VALUES
-(1, 1, '2023-10-01 10:00:00', 'Shipped', 51.98),
-(2, 2, '2023-10-02 11:00:00', 'Processing', 22.99),
-(3, 3, '2023-10-03 12:00:00', 'Delivered', 59.97),
-(4, 4, '2023-10-04 13:00:00', 'Shipped', 12.99),
-(5, 5, '2023-10-05 14:00:00', 'Processing', 49.98),
-(6, 6, '2023-10-06 15:00:00', 'Delivered', 29.99),
-(7, 7, '2023-10-07 16:00:00', 'Shipped', 34.99),
-(8, 1, '2023-10-08 17:00:00', 'Processing', 49.99),
-(9, 2, '2023-10-09 18:00:00', 'Delivered', 19.99),
-(10, 3, '2023-10-10 19:00:00', 'Shipped', 45.98);
+IINSERT INTO Orders (
+  order_id, customer_id, product_id, quantity, 
+  order_date, order_status, total_amount
+) VALUES
+(1, 1, 1, 2, '2023-10-01 10:00:00', 'Shipped', 51.98),
+(2, 2, 2, 1, '2023-10-02 11:00:00', 'Processing', 22.99),
+(3, 3, 3, 3, '2023-10-03 12:00:00', 'Delivered', 59.97),
+(4, 4, 4, 1, '2023-10-04 13:00:00', 'Shipped', 12.99),
+(5, 5, 5, 2, '2023-10-05 14:00:00', 'Processing', 49.98),
+(6, 6, 6, 1, '2023-10-06 15:00:00', 'Delivered', 29.99),
+(7, 7, 7, 1, '2023-10-07 16:00:00', 'Shipped', 34.99),
+(8, 1, 8, 1, '2023-10-08 17:00:00', 'Processing', 49.99),
+(9, 2, 9, 1, '2023-10-09 18:00:00', 'Delivered', 19.99),
+(10, 3, 10, 2, '2023-10-10 19:00:00', 'Shipped', 45.98);
 
--- Seed the Order_items table
-INSERT INTO Order_items (order_item_id, order_id, product_id, quantity) VALUES
-(1, 1, 1, 2),
-(2, 2, 2, 1),
-(3, 3, 3, 3),
-(4, 4, 4, 1),
-(5, 5, 5, 2),
-(6, 6, 6, 1),
-(7, 7, 7, 1),
-(8, 8, 8, 1),
-(9, 9, 9, 1),
-(10, 10, 10, 2);
 

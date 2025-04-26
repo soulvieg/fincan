@@ -17,6 +17,15 @@ const authRoutes = require("./routes/authRoutes");
 
 const sequelize = require("./config/db"); // Import the Sequelize instance
 
+// Import models
+require("./models/User");
+require("./models/Order");
+require("./models/Product");
+
+// Import associations (important that this comes after models are loaded)
+require("./models/associations");
+
+
 const app = express();
 const PORT = process.env.PORT || 5000;
 
