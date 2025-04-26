@@ -1,27 +1,28 @@
-// routes/userRoutes.js
+// backend/routes/userRoutes.js
 const express = require("express");
 const authenticate = require("../middlewares/authenticate");
 const {
   signupController,
   loginController,
+  getMeController,
   getUserProfileController,
   updateUserProfileController,
 } = require("../controllers/userController");
 
 const router = express.Router();
 
-// POST /api/users/signup
+// Public routes
 router.post("/signup", signupController);
-
-// POST /api/users/login
 router.post("/login", loginController);
 
+// Everything below requires a valid JWT
 router.use(authenticate);
 
-// GET /api/users/:id/profile
-router.get("/:id/profile", getUserProfileController);
+// “Who am I?” endpoint
+router.get("/me", getMeController);
 
-// PUT /api/users/:id/profile
+// Profile by ID
+router.get("/:id/profile", getUserProfileController);
 router.put("/:id/profile", updateUserProfileController);
 
 module.exports = router;

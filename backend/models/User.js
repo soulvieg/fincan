@@ -1,4 +1,4 @@
-// models/User.js
+// backend/models/User.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
 
@@ -9,7 +9,7 @@ const User = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      field: "customer_id",  // "id" in code => "customer_id" in DB
+      field: "customer_id",
     },
     firstName: {
       type: DataTypes.STRING(255),
@@ -33,7 +33,7 @@ const User = sequelize.define(
     homeAddress: {
       type: DataTypes.STRING(255),
       allowNull: false,
-      field: "address", // "homeAddress" => "address" in DB
+      field: "address",
     },
     phoneNumber: {
       type: DataTypes.STRING(255),
