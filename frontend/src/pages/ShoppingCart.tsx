@@ -10,6 +10,7 @@ const ShoppingCart: React.FC = () => {
   const { user } = useUser();
   const { addOrder } = useOrders();
   const [message, setMessage] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<any | null>(null);
 
   // Init EmailJS once
   useEffect(() => {
@@ -60,6 +61,87 @@ const ShoppingCart: React.FC = () => {
     }
     return true;
   };
+  const showReceiptPopup = (receiptData: any) => {
+    const popup = window.open("", "Receipt", "width=600,height=800");
+    if (popup) {
+      popup.document.write(`
+        <html>
+          <head>
+            <title>Receipt</title>
+            <style>
+              body {
+                font-family: Arial, sans-serif;
+                margin: 20px;
+                background-color: #f8f9fa;
+                color: #333;
+              }
+              h2, h3 {
+                text-align: center;
+                color: #444;
+              }
+              ul {
+                list-style: none;
+                padding: 0;
+              }
+              li {
+                display: flex;
+                align-items: center;
+                margin-bottom: 10px;
+                padding: 10px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+              }
+              img {
+                margin-right: 10px;
+                border-radius: 4px;
+              }
+              .cost-summary {
+                margin-top: 20px;
+                padding: 15px;
+                background: #fff;
+                border-radius: 8px;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+              }
+              .total {
+                font-size: 1.5rem;
+                font-weight: bold;
+                text-align: center;
+                margin-top: 20px;
+              }
+            </style>
+          </head>
+          <body>
+            <h2>Receipt</h2>
+            <p>Order ID: ${receiptData.order_id}</p>
+            <p>Email: ${receiptData.email}</p>
+            <h3>Items:</h3>
+            <ul>
+              ${receiptData.orders
+                .map(
+                  (item: any) => `
+                <li>
+                  <img src="${item.image_url}" width="50" height="50" />
+                  ${item.name} - ${item.units} x $${item.price}
+                </li>
+              `
+                )
+                .join("")}
+            </ul>
+            <div class="cost-summary">
+              <p>Shipping: $${receiptData.cost.shipping}</p>
+              <p>Tax: $${receiptData.cost.tax}</p>
+            </div>
+            <div class="total">
+              Total: $${receiptData.cost.total}
+            </div>
+          </body>
+        </html>
+      `);
+
+      popup.document.close();
+    }
+  };
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
@@ -95,20 +177,23 @@ const ShoppingCart: React.FC = () => {
         },
       };
 
-      const result = await emailjs.send(
-        "service_icp8vi6",
-        "template_gb3xppt",
-        templateParams,
-        "sLZQwIIbpMOy-EVnm"
-      );
+      //const result = await emailjs.send(
+      // "service_icp8vi6",
+      //"template_gb3xppt",
+      //templateParams,
+      //"sLZQwIIbpMOy-EVnm"
+      //);
 
-      console.log("[Checkout] Email sent:", result.status, result.text);
+      //console.log("[Checkout] Email sent:", result.status, result.text);
 
       addOrder({
         date: new Date().toLocaleString(),
         items: cart,
         total: calculateTotal(),
       });
+      setReceipt(templateParams); // Store the receipt data in state
+      setReceipt(templateParams);
+      showReceiptPopup(templateParams);
 
       setMessage("Thank you for your purchase! Confirmation email sent.");
       setTimeout(() => clearCart(), 3000);
