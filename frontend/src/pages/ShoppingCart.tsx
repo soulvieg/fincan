@@ -177,12 +177,12 @@ const ShoppingCart: React.FC = () => {
         },
       };
 
-      //const result = await emailjs.send(
-      // "service_icp8vi6",
-      //"template_gb3xppt",
-      //templateParams,
-      //"sLZQwIIbpMOy-EVnm"
-      //);
+      const result = await emailjs.send(
+        "service_icp8vi6",
+        "template_gb3xppt",
+        templateParams,
+        "sLZQwIIbpMOy-EVnm"
+      );
 
       //console.log("[Checkout] Email sent:", result.status, result.text);
 
