@@ -120,7 +120,7 @@ INSERT INTO Shipments (shipment_id, customer_id, shipment_date, address, city, s
 (10, 3, '2023-10-12 21:00:00', '919 Macchiato Mn', 'Theircity', 'PA', 'USA', '33445');
 
 -- Seed the Orders table
-IINSERT INTO Orders (
+INSERT INTO Orders (
   order_id, customer_id, product_id, quantity, 
   order_date, order_status, total_amount
 ) VALUES
