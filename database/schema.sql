@@ -68,15 +68,14 @@ CREATE TABLE Comments (
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 );
 
-CREATE TABLE Carts (
-    cart_id     INT NOT NULL AUTO_INCREMENT,
-    customer_id INT NOT NULL,
-    product_id  INT NOT NULL,
-    quantity    INT,
-    session_id  VARCHAR(255),
-    PRIMARY KEY (cart_id),
-    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
-    FOREIGN KEY (product_id)  REFERENCES Products(product_id)
+CREATE TABLE Cards (
+    card_id        INT             NOT NULL AUTO_INCREMENT,
+    customer_id    INT             NOT NULL,
+    card_number    VARCHAR(255)    NOT NULL,
+    expiration_date DATE           NOT NULL,
+    card_name      VARCHAR(64)     NOT NULL,
+    PRIMARY KEY (card_id),
+    FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 );
 
 CREATE TABLE Wishlists (

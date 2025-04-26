@@ -1,6 +1,5 @@
 // src/components/LoginUser.tsx
 import React, { useState } from "react";
-import axios from "axios";
 import {
   Container,
   Box,
@@ -14,38 +13,29 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate } from "react-router-dom";
-
-const API_BASE = "http://localhost:5001";
+import { useUser } from "../contexts/UserContext";
 
 const LoginUser = () => {
-  const [email, setEmail]           = useState("");
-  const [password, setPassword]     = useState("");
+  const [email, setEmail]               = useState("");
+  const [password, setPassword]         = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError]           = useState<string | null>(null);
+  const [error, setError]               = useState<string | null>(null);
+
   const navigate = useNavigate();
+  const { login } = useUser();
 
   const handleUserLogin = async () => {
     setError(null);
     try {
-      const response = await axios.post(
-        `${API_BASE}/api/users/login`,
-        { email, password },
-        { withCredentials: true }
-      );
-
-      if (response.status === 200 && response.data) {
-        // Login successful
-        navigate("/");
+      const success = await login(email, password);
+      if (success) {
+        navigate("/");  // or wherever you want to go on success
       } else {
-        setError("Login failed. Please try again.");
+        setError("Login failed. Please check your credentials.");
       }
     } catch (err: any) {
-      console.error("Login error:", err.response || err);
-      const msg =
-        err.response?.data?.message ||
-        err.response?.data?.error ||
-        "Login failed. Please check your credentials.";
-      setError(msg);
+      console.error("Login error:", err);
+      setError(err.message || "An unexpected error occurred.");
     }
   };
 

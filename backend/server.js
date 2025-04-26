@@ -1,49 +1,37 @@
 // server.js
-require('dotenv').config(); 
+require('dotenv').config();
 
 const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 
-const productRoutes = require("./routes/productRoutes");
-const userRoutes = require("./routes/userRoutes"); 
-const adminRoutes = require("./routes/adminRoutes"); 
-const reviewRoutes = require("./routes/reviewRoutes");
-const orderRoutes = require("./routes/orderRoutes");
-const cartRoutes = require("./routes/cartRoutes");
-const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
-const wishlistRoutes = require("./routes/wishlistRoutes");
-const authRoutes = require("./routes/authRoutes");
+const productRoutes            = require("./routes/productRoutes");
+const reviewRoutes             = require("./routes/reviewRoutes");
+const userRoutes               = require("./routes/userRoutes");
+const adminRoutes              = require("./routes/adminRoutes");
+const overseeingAdminRoutes    = require("./routes/overseeingAdminRoutes");
+const orderRoutes              = require("./routes/orderRoutes");
+const cartRoutes               = require("./routes/cartRoutes");
+const wishlistRoutes           = require("./routes/wishlistRoutes");
 
-const sequelize = require("./config/db"); // Import the Sequelize instance
+const sequelize = require("./config/db"); // Sequelize instance
 
 // Import models
 require("./models/User");
 require("./models/Order");
 require("./models/Product");
+require("./models/Card");           // ← make sure Card model is loaded
 
-// Import associations (important that this comes after models are loaded)
+// Import associations (after all models)
 require("./models/associations");
-
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Session middleware configuration
-app.use(
-  session({
-    secret: "TesterKey", // Secret key used for signing the session ID cookie
-    resave: false, // Don't save session if unmodified
-    saveUninitialized: false, // Don't create session until something is stored
-    cookie: {
-      secure: false, // Set to true if using https (not needed in development with http)
-      httpOnly: true, // Prevent client-side JavaScript from accessing session cookie
-      maxAge: 1000 * 60 * 60 * 24, // Set cookie expiration (1 day here)
-    },
-  })
-);
-
+// Body parser
 app.use(express.json());
+
+// CORS
 app.use(
   cors({
     origin: ["http://localhost", "http://localhost:3000"],
@@ -51,39 +39,45 @@ app.use(
   })
 );
 
-app.use("/api/auth", authRoutes);
+// Session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "TesterKey",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      secure: false,
+      httpOnly: true,
+      maxAge: 1000 * 60 * 60 * 24,
+    },
+  })
+);
 
-// Product Routes
-app.use("/api/products", productRoutes);
+// Routes
 
-// Review Routes
-app.use("/api/products", reviewRoutes);
-
-// User Routes
+// Auth (signup/login) now live under userRoutes
 app.use("/api/users", userRoutes);
 
-// Admin Routes
-app.use("/api/admins", adminRoutes);
+// Products & reviews
+app.use("/api/products", productRoutes);
+app.use("/api/products", reviewRoutes);
 
+// Admin
+app.use("/api/admins", adminRoutes);
 app.use("/api/admins/overseeing", overseeingAdminRoutes);
 
-// Order Routes
+// Orders, Cart, Wishlist
 app.use("/api/orders", orderRoutes);
-
-// Cart Routes
 app.use("/api/cart", cartRoutes);
-
-// Wishlist routes
 app.use("/api/wishlist", wishlistRoutes);
 
-// Synchronize models and then start the server
-// DB Sync and Auto-increment setup
+// Sync DB & start server
 sequelize
   .sync()
   .then(async () => {
-    // Set starting ID for Users table
+    // Seed starting ID
     await sequelize.query("ALTER TABLE Customers AUTO_INCREMENT = 1000;");
-    console.log("Database synced and User ID auto-increment set to 1000");
+    console.log("Database synced; Customer ID auto-increment set to 1000");
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
