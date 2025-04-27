@@ -41,8 +41,10 @@ if (!process.env.SESSION_SECRET) {
 app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost:3000"],
-    credentials: true,
+     origin: [
+      "http://localhost",       // allow plain localhost
+      "http://localhost:3000",  // allow React dev server
+    ],    credentials: true,
   })
 );
 
