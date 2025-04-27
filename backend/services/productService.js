@@ -1,4 +1,4 @@
-// services/productService.js
+// backend/services/productService.js
 const { Op, fn, col, literal } = require("sequelize");
 const Product                  = require("../models/Product");
 const Rating                   = require("../models/Rating");
@@ -26,9 +26,13 @@ async function addProduct(data) {
 /**
  * Fetch products with optional category filter, sorting,
  * and include average approved rating.
+ *
+ * Returns each product with `price` as a Number and `rating` as a Number|null.
  */
 async function getProducts({ categoryFilter = "All", sortMethod = "default" }) {
   const where = {};
+
+  // filtering
   if (categoryFilter !== "All") {
     if (categoryFilter === "Best Sellers") {
       where.is_best_seller = true;
@@ -37,7 +41,7 @@ async function getProducts({ categoryFilter = "All", sortMethod = "default" }) {
     }
   }
 
-  // build ORDER clause
+  // sorting
   const order = [];
   switch (sortMethod) {
     case "priceAsc":
@@ -53,34 +57,33 @@ async function getProducts({ categoryFilter = "All", sortMethod = "default" }) {
       order.push(["product_id", "DESC"]);
   }
 
-  const products = await Product.findAll({
+  // pull in avg rating
+  const rows = await Product.findAll({
     where,
     attributes: {
       include: [
-        // average of only approved Ratings.score
-        [fn("AVG", col("Ratings.score")), "rating"],
+        [fn("AVG", col("Ratings.score")), "rating"]
       ],
     },
     include: [
       {
         model:      Rating,
-        attributes: [],
+        attributes: [],            // we only want the aggregate
         where:      { approval: true },
-        required:   false, // still include products with zero reviews
+        required:   false,         // still include products w/o ratings
       },
     ],
     group: ["Product.product_id"],
     order,
   });
 
-  return products.map(p => {
-    const plain = p.get({ plain: true });
+  // map to plain objects, coercing DECIMAL/string fields to numbers
+  return rows.map(r => {
+    const p = r.get({ plain: true });
     return {
-      ...plain,
-      // coerce to JS numbers
-      rating:            plain.rating !== null ? parseFloat(plain.rating) : null,
-      price:             parseFloat(plain.price),
-      quantity_in_stock: Number(plain.quantity_in_stock),
+      ...p,
+      price:   parseFloat(p.price),               // DECIMAL -> number
+      rating:  p.rating !== null ? parseFloat(p.rating) : null,
     };
   });
 }
@@ -117,14 +120,23 @@ async function decrementStock(productId) {
  * Search products by name or description (case-insensitive)
  */
 async function searchProducts(query) {
-  const likePattern = `%${query}%`;
-  return await Product.findAll({
+  const pattern = `%${query}%`;
+  const rows = await Product.findAll({
     where: {
       [Op.or]: [
-        { name:        { [Op.iLike]: likePattern } },
-        { description: { [Op.iLike]: likePattern } },
+        { name:        { [Op.like]: pattern } },
+        { description: { [Op.like]: pattern } },
       ],
     },
+  });
+
+  // also coerce price here
+  return rows.map(r => {
+    const p = r.get({ plain: true });
+    return {
+      ...p,
+      price: parseFloat(p.price),
+    };
   });
 }
 
@@ -141,8 +153,8 @@ module.exports = {
   addProduct,
   getProducts,
   updateProductQuantity,
-  deleteProduct,
   incrementStock,
   decrementStock,
   searchProducts,
+  deleteProduct,
 };
