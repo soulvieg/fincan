@@ -9,7 +9,8 @@ const userRoutes      = require("./routes/userRoutes");
 const categoryRoutes  = require("./routes/categoryRoutes");
 const productRoutes   = require("./routes/productRoutes");
 const reviewRoutes    = require("./routes/reviewRoutes");
-// ... import your other routes here ...
+const orderRoutes     = require("./routes/orderRoutes");       // ← import order routes
+// … import your other routes here …
 
 const sequelize = require("./config/db");
 
@@ -22,6 +23,7 @@ require("./models/Order");
 require("./models/cartItem");
 require("./models/Rating");
 require("./models/Comment");
+// …any other models…
 
 // Wire up associations
 require("./models/associations");
@@ -63,7 +65,8 @@ app.use("/api/users",      userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products",   productRoutes);
 app.use("/api/products",   reviewRoutes);
-// ... etc for the rest of your routes ...
+app.use("/api/orders",     orderRoutes);          // ← mount order routes
+// … and the rest of your routes …
 
 // ---- Sync & start ----
 sequelize
