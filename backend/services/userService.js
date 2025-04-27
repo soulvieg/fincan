@@ -1,16 +1,26 @@
 // backend/services/userService.js
+
 const bcrypt = require("bcryptjs");
 const User   = require("../models/User");
 const Card   = require("../models/Card");
 
 /**
  * Register a new user.
+ * Hashes the password before storing.
  */
 async function registerUser({ firstName, lastName, email, homeAddress, password, userType }) {
   const existing = await User.findOne({ where: { email } });
   if (existing) throw new Error("User with this email already exists.");
+
   const hashed = await bcrypt.hash(password, 10);
-  return User.create({ firstName, lastName, email, homeAddress, password: hashed, userType });
+  return User.create({
+    firstName,
+    lastName,
+    email,
+    homeAddress,
+    password: hashed,
+    userType,
+  });
 }
 
 /**
@@ -19,20 +29,23 @@ async function registerUser({ firstName, lastName, email, homeAddress, password,
 async function loginUser({ email, password }) {
   const user = await User.findOne({ where: { email } });
   if (!user) throw new Error("Invalid email or password.");
+
   const ok = await bcrypt.compare(password, user.password);
   if (!ok) throw new Error("Invalid email or password.");
+
   return {
-    id: user.id,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    email: user.email,
+    id:          user.id,
+    firstName:   user.firstName,
+    lastName:    user.lastName,
+    email:       user.email,
     homeAddress: user.homeAddress,
-    userType: user.userType,
+    userType:    user.userType,
   };
 }
 
 /**
  * Fetch a user by ID, including their saved card.
+ * Formats the expirationDate for client consumption.
  */
 async function getUserById(userId) {
   const user = await User.findByPk(userId, {
@@ -40,18 +53,29 @@ async function getUserById(userId) {
     include:    [{ model: Card, as: "card" }],
   });
   if (!user) throw new Error("User not found.");
+
   const plain = user.get({ plain: true });
   const c     = plain.card;
   delete plain.card;
+
+  let creditCard = null;
+  if (c) {
+    // Ensure expirationDate is a JS Date
+    const rawExp = c.expirationDate;
+    const expDate = rawExp instanceof Date
+      ? rawExp
+      : new Date(rawExp);
+
+    creditCard = {
+      cardNumber:     c.cardNumber,  // still hashed
+      expirationDate: `${String(expDate.getMonth() + 1).padStart(2, "0")}/${String(expDate.getFullYear()).slice(-2)}`,
+      cardholderName: c.cardName,
+    };
+  }
+
   return {
     ...plain,
-    creditCard: c
-      ? {
-          cardNumber:     c.cardNumber,  // hashed
-          expirationDate: `${String(c.expirationDate.getMonth()+1).padStart(2,'0')}/${String(c.expirationDate.getFullYear()).slice(-2)}`,
-          cardholderName: c.cardName,
-        }
-      : null,
+    creditCard,
   };
 }
 
@@ -63,11 +87,13 @@ async function updateUserProfile(userId, updates) {
   const user = await User.findByPk(userId);
   if (!user) throw new Error("User not found.");
 
+  // Email uniqueness check
   if (email && email !== user.email) {
     const ex = await User.findOne({ where: { email } });
     if (ex) throw new Error("This email is already in use.");
   }
 
+  // Update user fields
   if (firstName   !== undefined) user.firstName   = firstName;
   if (lastName    !== undefined) user.lastName    = lastName;
   if (email       !== undefined) user.email       = email;
@@ -75,10 +101,14 @@ async function updateUserProfile(userId, updates) {
   if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
   await user.save();
 
+  // Handle creditCard upsert
   if (creditCard) {
+    // Parse expiration MM/YY
     const [mm, yy] = creditCard.expirationDate.split("/");
     const expDate  = new Date(2000 + Number(yy), Number(mm) - 1);
-    const hashNum  = await bcrypt.hash(creditCard.cardNumber, 12);
+
+    // Hash card number
+    const hashNum = await bcrypt.hash(creditCard.cardNumber, 12);
 
     let card = await Card.findOne({ where: { customer_id: userId } });
     if (card) {

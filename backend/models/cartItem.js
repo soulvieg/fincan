@@ -10,19 +10,20 @@ const CartItem = sequelize.define("CartItem", {
   },
   customer_id: {
     type: DataTypes.INTEGER,
-    allowNull: false,
+    allowNull: true,    // allow NULL for guest carts
+  },
+  session_id: {
+    type: DataTypes.STRING,
+    allowNull: true,    // track guest sessions
   },
   product_id: {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  session_id: {                     
-    type: DataTypes.STRING,
-    allowNull: true,
-  },
   quantity: {
     type: DataTypes.INTEGER,
-    allowNull: true,
+    allowNull: false,
+    defaultValue: 1,
   },
 }, {
   tableName: "Carts",
