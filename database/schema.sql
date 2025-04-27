@@ -87,7 +87,7 @@ CREATE TABLE Comments (
     text        VARCHAR(512) NULL,
     approval    BOOL         NULL,
     manager_id  INT          NULL,
-    PRIMARY KEY (commnt_id),
+    PRIMARY KEY (comment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
