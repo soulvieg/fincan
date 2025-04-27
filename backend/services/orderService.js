@@ -28,7 +28,11 @@ async function placeOrder({ customer_id, products, paymentInfo }) {
   for (const { productId, quantity } of products) {
     const product = await Product.findByPk(productId);
     if (!product) throw new Error(`Product ${productId} not found.`);
+    if (product.stock < quantity) throw new Error(`Product ${productId} doesn't have enough quantity for this order.`);
 
+    // Decrease the products from the store:
+    product.stock = product.stock - quantity;
+    await product.save();
     totalAmount += Number(product.price) * quantity;
 
     itemsToInsert.push({
