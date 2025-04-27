@@ -12,7 +12,7 @@ INSERT INTO Categories (category_id, name) VALUES
 (10, 'Filters');
 
 -- Seed the Products table to match frontend products
--- Seed Products with full fields
+
 INSERT INTO Products (
   product_id,
   category_id,

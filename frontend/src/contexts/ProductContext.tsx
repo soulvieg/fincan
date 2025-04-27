@@ -25,42 +25,59 @@ export type Product = {
   rating:            number | null;
 };
 
-type ProductContextType = {
-  products:        Product[];
-  categories:      string[];
-  getBestSellers:  () => Product[];
-  updateRating:    (id: number, newRating: number) => void;
+type Category = {
+  category_id: number;
+  name:        string;
 };
 
-const ProductContext = createContext<ProductContextType | undefined>(
-  undefined
-);
+interface ProductContextType {
+  products:   Product[];
+  categories: string[];
+  loading:    boolean;
+  error:      string | null;
+  getBestSellers: () => Product[];
+  updateRating:   (id: number, newRating: number) => void;
+  checkStock:     (id: number) => Promise<number>;
+  updateStockAfterPurchase: (id: number, quantity: number) => Promise<boolean>;
+}
+
+const ProductContext = createContext<ProductContextType | undefined>(undefined);
 
 export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [products, setProducts]     = useState<Product[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
+  const [loading, setLoading]       = useState<boolean>(true);
+  const [error, setError]           = useState<string | null>(null);
+
+  // configure axios once
+  axios.defaults.baseURL = "http://localhost:5001";
+  axios.defaults.withCredentials = true;
 
   useEffect(() => {
-    // 1) Fetch categories list
-    axios
-      .get<{ category_id: number; name: string }[]>("/api/categories")
-      .then((res) => {
-        const names = res.data.map((c) => c.name);
+    async function fetchData() {
+      setLoading(true);
+      try {
+        // 1) categories
+        const catRes = await axios.get<Category[]>("/api/categories");
+        const names = catRes.data.map((c) => c.name);
         setCategories(["All", "Best Sellers", ...names]);
-      })
-      .catch(console.error);
 
-    // 2) Fetch products (with rating)
-    axios
-      .get<Product[]>("/api/products")
-      .then((res) => setProducts(res.data))
-      .catch(console.error);
+        // 2) products (with avg rating)
+        const prodRes = await axios.get<Product[]>("/api/products");
+        setProducts(prodRes.data);
+      } catch (err: any) {
+        console.error("ProductContext fetch error:", err);
+        setError(err.message || "Failed to load products/categories");
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchData();
   }, []);
 
-  const getBestSellers = () =>
-    products.filter((p) => p.is_best_seller);
+  const getBestSellers = () => products.filter((p) => p.is_best_seller);
 
   const updateRating = (id: number, newRating: number) => {
     setProducts((prev) =>
@@ -70,20 +87,75 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     );
   };
 
+  const checkStock = async (id: number): Promise<number> => {
+    try {
+      const res = await axios.get<{ quantity_in_stock: number }>(
+        `/api/products/${id}`
+      );
+      const stock = res.data.quantity_in_stock;
+      // update local state
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.product_id === id ? { ...p, quantity_in_stock: stock } : p
+        )
+      );
+      return stock;
+    } catch (err) {
+      console.error(`Error checking stock for ${id}:`, err);
+      return 0;
+    }
+  };
+
+  const updateStockAfterPurchase = async (
+    id: number,
+    quantity: number
+  ): Promise<boolean> => {
+    const existing = products.find((p) => p.product_id === id);
+    if (!existing || existing.quantity_in_stock < quantity) return false;
+
+    const newStock = existing.quantity_in_stock - quantity;
+    try {
+      await axios.put(`/api/products/${id}/quantity`, {
+        newQuantity: newStock,
+      });
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.product_id === id
+            ? { ...p, quantity_in_stock: newStock }
+            : p
+        )
+      );
+      return true;
+    } catch (err) {
+      console.error(`Error updating stock for ${id}:`, err);
+      return false;
+    }
+  };
+
   return (
     <ProductContext.Provider
-      value={{ products, categories, getBestSellers, updateRating }}
+      value={{
+        products,
+        categories,
+        loading,
+        error,
+        getBestSellers,
+        updateRating,
+        checkStock,
+        updateStockAfterPurchase,
+      }}
     >
       {children}
     </ProductContext.Provider>
   );
 };
 
-export const useProductContext = () => {
+export const useProductContext = (): ProductContextType => {
   const ctx = useContext(ProductContext);
-  if (!ctx)
+  if (!ctx) {
     throw new Error(
       "useProductContext must be used within a ProductProvider"
     );
+  }
   return ctx;
 };

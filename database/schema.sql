@@ -81,7 +81,7 @@ CREATE TABLE Ratings (
 
 -- Comments
 CREATE TABLE Comments (
-    commnt_id   INT NOT NULL AUTO_INCREMENT,
+    comment_id   INT NOT NULL AUTO_INCREMENT,
     customer_id INT NOT NULL,
     product_id  INT NOT NULL,
     text        VARCHAR(512) NULL,

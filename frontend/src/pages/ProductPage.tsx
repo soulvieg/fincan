@@ -4,15 +4,16 @@ import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
+import CircularProgress from "@mui/material/CircularProgress";
 import "./ProductPage.css";
 
 const ProductPage: React.FC = () => {
-  const { products, categories } = useProductContext();
+  const { products, categories, loading, error } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Read category from URL, default to "All"
+  // Read category query-param
   const params = new URLSearchParams(location.search);
   const initialCategory = params.get("category") ?? "All";
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
@@ -20,22 +21,32 @@ const ProductPage: React.FC = () => {
   // Sorting state
   const [sortMethod, setSortMethod] = useState<"default" | "priceAsc" | "priceDesc" | "ratingDesc">("default");
 
-  // Sync category when URL changes
+  // Keep selectedCategory in sync with URL
   useEffect(() => {
     const q = params.get("category");
-    if (q && categories.includes(q)) {
-      setSelectedCategory(q);
-    }
+    if (q && categories.includes(q)) setSelectedCategory(q);
   }, [location.search, categories]);
 
-  // Filter products by category
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <CircularProgress />
+        <p>Loading products…</p>
+      </div>
+    );
+  }
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
+
+  // Filter by category
   const filtered = products.filter((p) => {
     if (selectedCategory === "All") return true;
     if (selectedCategory === "Best Sellers") return p.is_best_seller;
     return p.category === selectedCategory;
   });
 
-  // Sort the filtered products
+  // Sort filtered
   const sorted = [...filtered].sort((a, b) => {
     switch (sortMethod) {
       case "priceAsc":
@@ -49,10 +60,9 @@ const ProductPage: React.FC = () => {
     }
   });
 
-  // Add to cart handler
   const handleAdd = (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    if (product.quantity_in_stock === 0) return; // Prevent adding out-of-stock
+    if (product.quantity_in_stock === 0) return;
     addToCart({
       id:       product.product_id,
       name:     product.name,
@@ -60,10 +70,20 @@ const ProductPage: React.FC = () => {
       quantity: 1,
       image:    product.image_url,
     });
-    // …notification UI…
+    // notification UI
+    const note = document.createElement("div");
+    note.className = "add-to-cart-notification";
+    note.textContent = `${product.name} added to cart!`;
+    document.body.appendChild(note);
+    setTimeout(() => {
+      note.classList.add("show");
+      setTimeout(() => {
+        note.classList.remove("show");
+        setTimeout(() => document.body.removeChild(note), 300);
+      }, 2000);
+    }, 10);
   };
 
-  // Change category and update URL
   const changeCategory = (cat: string) => {
     setSelectedCategory(cat);
     navigate(`/products?category=${encodeURIComponent(cat)}`, { replace: true });
@@ -72,6 +92,7 @@ const ProductPage: React.FC = () => {
   return (
     <div className="product-page">
       <div className="filter-bar">
+        {/* Categories */}
         <section className="categories">
           <h2>Categories</h2>
           <div className="category-buttons">
@@ -87,6 +108,7 @@ const ProductPage: React.FC = () => {
           </div>
         </section>
 
+        {/* Sort dropdown */}
         <div className="sort-dropdown">
           <label htmlFor="sort">Sort by:</label>
           <select
@@ -102,6 +124,7 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
+      {/* Product grid */}
       <section className="product-list">
         {sorted.map((product) => (
           <div
@@ -109,14 +132,10 @@ const ProductPage: React.FC = () => {
             className={`product-card ${product.is_best_seller ? "best-seller-card" : ""}`}
             onClick={() => navigate(`/product/${product.product_id}`)}
           >
-            {product.is_best_seller && (
-              <div className="best-seller-badge">Best Seller</div>
-            )}
+            {product.is_best_seller && <div className="best-seller-badge">Best Seller</div>}
 
             <div className="product-rating">
-              <span>
-                {product.rating !== null ? product.rating.toFixed(1) : "N/A"}
-              </span>
+              <span>{product.rating !== null ? product.rating.toFixed(1) : "N/A"}</span>
               <StarIcon fontSize="small" />
             </div>
 

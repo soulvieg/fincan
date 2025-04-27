@@ -19,7 +19,7 @@ const Rating = sequelize.define("Rating", {
     type: DataTypes.INTEGER,
     allowNull: false,
   },
-  rating: {
+  score: {
     type: DataTypes.INTEGER,
     allowNull: true,
     field: "score",
