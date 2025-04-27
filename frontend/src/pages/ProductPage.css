@@ -227,20 +227,35 @@
   opacity: 1;
   transform: translateY(0);
 }
-.add-to-cart-button.disabled {
-  background-color: #cccccc;
-  color: #666666;
-  cursor: not-allowed;
+
+/* Add this to ProductPage.css */
+
+.filter-bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
 }
 
-.add-to-cart-button.disabled:hover {
-  background-color: #cccccc;
-}
-.loading-container {
+.sort-dropdown {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  justify-content: center;
-  height: 300px;
-  width: 100%;
+  gap: 8px;
+}
+
+.sort-dropdown label {
+  font-weight: bold;
+  color: #4a4a4a;
+}
+
+.sort-dropdown select {
+  padding: 6px 10px;
+  border-radius: 4px;
+  border: 1px solid #ccc;
+}
+
+.add-to-cart-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
 }

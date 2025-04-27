@@ -6,6 +6,7 @@ DROP TABLE IF EXISTS Wishlists;
 DROP TABLE IF EXISTS Cards;
 DROP TABLE IF EXISTS Comments;
 DROP TABLE IF EXISTS Ratings;
+DROP TABLE IF EXISTS Carts;
 DROP TABLE IF EXISTS Products;
 DROP TABLE IF EXISTS Admins;
 DROP TABLE IF EXISTS Customers;
@@ -16,7 +17,7 @@ CREATE TABLE Categories (
     category_id INT NOT NULL AUTO_INCREMENT,
     name        VARCHAR(255),
     PRIMARY KEY (category_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Customers
 CREATE TABLE Customers (
@@ -29,7 +30,7 @@ CREATE TABLE Customers (
     phone_number VARCHAR(255),
     type         VARCHAR(255),
     PRIMARY KEY (customer_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Admins
 CREATE TABLE Admins (
@@ -39,73 +40,83 @@ CREATE TABLE Admins (
     password VARCHAR(255) NOT NULL,
     role     VARCHAR(255) NOT NULL,
     PRIMARY KEY (id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Products
 CREATE TABLE Products (
-    product_id   INT NOT NULL AUTO_INCREMENT,
-    category_id  INT NOT NULL,
-    sku          VARCHAR(10),
-    name         VARCHAR(255),
-    description  VARCHAR(255),
-    price        DECIMAL(10, 2),
-    stock        INT,
+    product_id        INT             NOT NULL AUTO_INCREMENT,
+    category_id       INT             NULL,
+    sku               VARCHAR(50)     NULL,
+    name              VARCHAR(255)    NOT NULL,
+    model             VARCHAR(255)    NULL,
+    serial_number     VARCHAR(255)    NULL,
+    description       TEXT            NULL,
+    quantity_in_stock INT             NOT NULL DEFAULT 0 CHECK (quantity_in_stock >= 0),
+    price             DECIMAL(10,2)   NOT NULL,
+    warranty_status   VARCHAR(100)    NULL,
+    distributor_info  VARCHAR(512)    NULL,
+    image_url         VARCHAR(512)    NULL,
+    is_best_seller    BOOLEAN         NOT NULL DEFAULT FALSE,
     PRIMARY KEY (product_id),
-    FOREIGN KEY (category_id) REFERENCES Categories(category_id)
-);
+    FOREIGN KEY (category_id)
+      REFERENCES Categories(category_id)
+      ON DELETE SET NULL
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Ratings
 CREATE TABLE Ratings (
     review_id   INT NOT NULL AUTO_INCREMENT,
     customer_id INT NOT NULL,
-    manager_id  INT,
+    manager_id  INT     NULL,
     product_id  INT NOT NULL,
-    score       INT,
-    approval    BOOL,
+    score       INT     NULL,
+    approval    BOOL    NULL,
     PRIMARY KEY (review_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (manager_id)  REFERENCES Customers(customer_id),
-    FOREIGN KEY (product_id)  REFERENCES Products(product_id)
-);
+    FOREIGN KEY (product_id)  REFERENCES Products(product_id) ON DELETE CASCADE
+      ON UPDATE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Comments
 CREATE TABLE Comments (
     comment_id   INT NOT NULL AUTO_INCREMENT,
     customer_id INT NOT NULL,
     product_id  INT NOT NULL,
-    text        VARCHAR(512),
-    approval    BOOL,
-    manager_id  INT,
+    text        VARCHAR(512) NULL,
+    approval    BOOL         NULL,
+    manager_id  INT          NULL,
     PRIMARY KEY (commnt_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-DROP TABLE IF EXISTS Cards;
+-- Cards
 CREATE TABLE Cards (
-    card_id        INT             NOT NULL AUTO_INCREMENT,
-    customer_id    INT             NOT NULL,
-    card_number    VARCHAR(255)    NOT NULL,  -- will hold the bcrypt‐hash of the *first* 12 digits
-    card_last4     CHAR(4)         NOT NULL,  -- stores the last 4 digits in plaintext
-    expiration_date DATE           NOT NULL,
-    card_name      VARCHAR(64)     NOT NULL,
+    card_id        INT          NOT NULL AUTO_INCREMENT,
+    customer_id    INT          NOT NULL,
+    card_number    VARCHAR(255) NOT NULL,  -- bcrypt-hash of the first 12 digits
+    card_last4     CHAR(4)      NOT NULL,  -- last 4 plaintext digits
+    expiration_date DATE        NOT NULL,
+    card_name      VARCHAR(64)  NOT NULL,
     PRIMARY KEY (card_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Carts
 CREATE TABLE Carts (
-    cart_id       INT             NOT NULL AUTO_INCREMENT,
-    customer_id   INT             NULL,
-    product_id    INT             NOT NULL,
-    quantity      INT,
-    session_id    VARCHAR(255),
+    cart_id       INT          NOT NULL AUTO_INCREMENT,
+    customer_id   INT          NULL,
+    product_id    INT          NOT NULL,
+    quantity      INT          NULL,
+    session_id    VARCHAR(255) NULL,
     PRIMARY KEY (cart_id),
     FOREIGN KEY (customer_id)
-        REFERENCES Customers(customer_id)
-        ON DELETE SET NULL,
+      REFERENCES Customers(customer_id)
+      ON DELETE SET NULL,
     FOREIGN KEY (product_id)
-        REFERENCES Products(product_id)
+      REFERENCES Products(product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Wishlists
@@ -116,43 +127,43 @@ CREATE TABLE Wishlists (
     PRIMARY KEY (wishlist_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Payments
 CREATE TABLE Payments (
     payment_id     INT          NOT NULL AUTO_INCREMENT,
     customer_id    INT          NOT NULL,
-    payment_date   DATETIME,
-    payment_method VARCHAR(255),
-    amount         DECIMAL(10, 2),
+    payment_date   DATETIME     NULL,
+    payment_method VARCHAR(255) NULL,
+    amount         DECIMAL(10,2) NULL,
     PRIMARY KEY (payment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Shipments
 CREATE TABLE Shipments (
     shipment_id   INT          NOT NULL AUTO_INCREMENT,
     customer_id   INT          NOT NULL,
-    shipment_date DATETIME,
-    address       VARCHAR(255),
-    city          VARCHAR(255),
-    state         VARCHAR(30),
-    country       VARCHAR(50),
-    zip_code      VARCHAR(10),
+    shipment_date DATETIME     NULL,
+    address       VARCHAR(255) NULL,
+    city          VARCHAR(255) NULL,
+    state         VARCHAR(30)  NULL,
+    country       VARCHAR(50)  NULL,
+    zip_code      VARCHAR(10)  NULL,
     PRIMARY KEY (shipment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Orders
 CREATE TABLE Orders (
     order_id      INT       NOT NULL,
     customer_id   INT       NOT NULL,
     product_id    INT       NOT NULL,
-    quantity      INT,
-    order_date    DATETIME,
-    order_status  VARCHAR(20),
-    total_amount  DECIMAL(10,2),
+    quantity      INT       NULL,
+    order_date    DATETIME  NULL,
+    order_status  VARCHAR(20) NULL,
+    total_amount  DECIMAL(10,2) NULL,
     PRIMARY KEY (order_id, product_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

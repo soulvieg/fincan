@@ -1,3 +1,4 @@
+// src/pages/ProductDetailPage.tsx
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
@@ -8,131 +9,114 @@ import {
   Box,
   Grid,
   Button,
+  IconButton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  List,
+  ListItem,
+  ListItemText,
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import StarIcon from "@mui/icons-material/Star";
 import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
 import StarComponent from "../components/StarComponent";
 import CommentComponent from "../components/CommentComponent";
-import StarIcon from "@mui/icons-material/Star";
 import "./ProductPage.css";
 
 const ProductDetailPage: React.FC = () => {
+  const [quantity, setQuantity]       = useState<number>(1);
+  const [comments, setComments]       = useState<{ user: string; text: string }[]>([]);
+  const [infoOpen, setInfoOpen]       = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   const { id } = useParams<{ id: string }>();
-  const { products, updateRating, updateStockAfterPurchase } =
-    useProductContext();
+  const {
+    products,
+    updateRating,
+    updateStockAfterPurchase,
+  } = useProductContext();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
   const navigate = useNavigate();
 
   const product = products.find(
-    (p) => p.id === parseInt(id || "0", 10) || String(p.id) === id
+    (p) => p.product_id === Number(id)
   );
-
-  const [quantity, setQuantity] = useState<number>(1);
-  const [comments, setComments] = useState([
-    { user: "Alice", text: "Great coffee, loved the aroma!" },
-    { user: "Bob", text: "A bit too strong for my taste, but still good." },
-  ]);
 
   const handleAddToCart = async () => {
     if (!product) return;
-    if (!product.stock || product.stock <= 0) {
-      return; // Don't add to cart if out of stock
-    }
-    if (quantity > product.stock) {
-      setErrorMessage(`Exceeding stocks. Only ${product.stock} available.`);
+    const stock = product.quantity_in_stock;
+    if (stock === 0) return;
+
+    if (quantity > stock) {
+      setErrorMessage(`Only ${stock} in stock.`);
       setTimeout(() => setErrorMessage(null), 3000);
       return;
     }
 
-    const success = await updateStockAfterPurchase(product.id, quantity);
-
-    if (!success) {
-      setErrorMessage("Could not update stock. Please try again.");
+    const ok = await updateStockAfterPurchase(product.product_id, quantity);
+    if (!ok) {
+      setErrorMessage("Could not update stock. Try again.");
       setTimeout(() => setErrorMessage(null), 3000);
       return;
     }
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
+
+    addToCart({
+      id:       product.product_id,
+      name:     product.name,
+      price:    product.price,
       quantity: quantity,
-      image: product.image,
-    };
+      image:    product.image_url,
+    });
 
-    addToCart(cartItem);
-
-    const notification = document.createElement("div");
-    notification.className = "add-to-cart-notification";
-    notification.textContent = `${quantity} × ${product.name} added to cart!`;
-    document.body.appendChild(notification);
-
+    const note = document.createElement("div");
+    note.className = "add-to-cart-notification";
+    note.textContent = `${quantity} × ${product.name} added to cart!`;
+    document.body.appendChild(note);
     setTimeout(() => {
-      notification.classList.add("show");
+      note.classList.add("show");
       setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
+        note.classList.remove("show");
+        setTimeout(() => document.body.removeChild(note), 300);
       }, 2000);
     }, 10);
   };
 
-  const handleAddComment = (comment: string) => {
-    setComments([...comments, { user: "Anonymous", text: comment }]);
-  };
-
   const handleRatingChange = (newRating: number) => {
-    if (product) {
-      updateRating(product.id, newRating);
-    }
+    if (product) updateRating(product.product_id, newRating);
   };
 
-  const handleGoBack = () => {
-    navigate(-1);
-  };
+  const handleAddComment = (text: string) =>
+    setComments((prev) => [...prev, { user: "Anonymous", text }]);
 
   const handleWishlistToggle = () => {
     if (!product) return;
-
-    const wishlistItem = {
-      productId: product.id,
-      name: product.name,
-      price: product.price,
-      image: product.image,
-    };
-
-    if (isInWishlist(product.id)) {
-      removeFromWishlist(product.id);
-    } else {
-      addToWishlist(wishlistItem);
-    }
+    const pid = product.product_id;
+    if (isInWishlist(pid)) removeFromWishlist(pid);
+    else
+      addToWishlist({
+        productId: pid,
+        name:      product.name,
+        price:     product.price,
+        image:     product.image_url,
+      });
   };
 
   if (!product) {
     return (
-      <Container maxWidth="lg" sx={{ mt: 4 }}>
-        <Box sx={{ textAlign: "center", py: 4 }}>
-          <Typography variant="h5" gutterBottom>
-            Product not found
-          </Typography>
-          <Typography variant="body1" sx={{ mb: 3 }}>
-            The product you're looking for doesn't exist or has been removed.
-          </Typography>
-          <Button
-            variant="contained"
-            onClick={handleGoBack}
-            sx={{ bgcolor: "#4A756E", ":hover": { bgcolor: "#3A655E" } }}
-          >
-            ← Back to Products
-          </Button>
-        </Box>
+      <Container maxWidth="lg" sx={{ mt: 4, textAlign: "center" }}>
+        <Typography variant="h5" gutterBottom>
+          Product not found
+        </Typography>
+        <Button variant="contained" onClick={() => navigate(-1)}>
+          ← Back to Products
+        </Button>
       </Container>
     );
   }
@@ -141,233 +125,196 @@ const ProductDetailPage: React.FC = () => {
     <Container maxWidth="lg" sx={{ mt: 4 }}>
       <Button
         variant="contained"
-        onClick={handleGoBack}
         sx={{ mb: 2, bgcolor: "#4A756E", ":hover": { bgcolor: "#3A655E" } }}
+        onClick={() => navigate(-1)}
       >
         ← Back
       </Button>
 
       <Grid container spacing={4}>
+        {/* Image + Rating */}
         <Grid item xs={12} md={6}>
           <Box sx={{ position: "relative" }}>
-            <Card
-              sx={{
-                boxShadow: 3,
-                borderRadius: "10px",
-                backgroundColor: "#f5f0e6",
-              }}
-            >
+            <Card sx={{ borderRadius: 2, boxShadow: 3, bgcolor: "#f5f0e6" }}>
               <CardMedia
                 component="img"
                 height="400"
-                image={product.image}
+                image={product.image_url}
                 alt={product.name}
                 sx={{
-                  borderRadius: "10px",
                   objectFit: "contain",
                   maxWidth: "90%",
-                  margin: "0 auto",
+                  mx: "auto",
+                  my: 2,
                 }}
               />
-              <Box
-                sx={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  backgroundColor: "rgba(0, 0, 0, 0.5)",
-                  color: "#fff",
-                  padding: "4px 8px",
-                  borderRadius: "5px",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                }}
-              >
-                <Typography>{product.rating?.toFixed(1) || "N/A"}</Typography>
-                <StarIcon sx={{ color: "#ffc107" }} />
-              </Box>
             </Card>
+            <Box
+              sx={{
+                position: "absolute",
+                top: 16,
+                right: 16,
+                bgcolor: "rgba(0,0,0,0.5)",
+                color: "#fff",
+                p: 1,
+                borderRadius: 1,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+              }}
+            >
+              <Typography>{product.rating?.toFixed(1) ?? "N/A"}</Typography>
+              <StarIcon sx={{ color: "#ffc107" }} />
+            </Box>
           </Box>
         </Grid>
 
+        {/* Details & Actions */}
         <Grid item xs={12} md={6}>
           <Box
             sx={{
-              backgroundColor: "#4A756E",
+              position: "relative",
+              bgcolor: "#4A756E",
               color: "#fff",
               p: 4,
-              borderRadius: "15px",
-              boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-              marginTop: "20px",
+              borderRadius: 2,
             }}
           >
-            <Typography
-              variant="h4"
-              sx={{ fontWeight: "bold", color: "#ffcc80" }}
+            <IconButton
+              onClick={() => setInfoOpen(true)}
+              sx={{ position: "absolute", top: 12, right: 12, color: "#ffcc80" }}
             >
-              {product.name ?? "Unknown Product"}
+              <InfoOutlinedIcon fontSize="large" />
+            </IconButton>
+
+            <Typography variant="h4" sx={{ color: "#ffcc80", mb: 1 }}>
+              {product.name}
             </Typography>
-            {product.isBestSeller && (
+            {product.is_best_seller && (
               <Box
                 sx={{
                   display: "inline-block",
-                  backgroundColor: "#ffcc80",
+                  bgcolor: "#ffcc80",
                   color: "#4e342e",
-                  padding: "4px 10px",
-                  borderRadius: "15px",
-                  fontSize: "0.8rem",
-                  fontWeight: "bold",
-                  ml: 2,
-                  verticalAlign: "middle",
+                  px: 1,
+                  borderRadius: 1,
+                  mb: 2,
                 }}
               >
                 Best Seller
               </Box>
             )}
-            <Typography sx={{ mt: 2, fontSize: "16px", color: "#fff" }}>
-              {product.description ?? "No description available."}
+            <Typography sx={{ mt: 2, color: "#fff" }}>
+              {product.description}
             </Typography>
             <Typography
               variant="h3"
-              sx={{ fontWeight: "bold", color: "#ffcc80", mt: 4 }}
+              sx={{ mt: 3, color: "#ffcc80", fontWeight: "bold" }}
             >
-              ${product.price?.toFixed(2) ?? "0.00"}
+              ${product.price.toFixed(2)}
             </Typography>
-            <Box sx={{ display: "flex", gap: 2, mt: 4, alignItems: "center" }}>
+
+            <Box sx={{ display: "flex", alignItems: "center", gap: 2, mt: 4 }}>
               {errorMessage && (
                 <Box
                   sx={{
-                    backgroundColor: "#f44336",
-                    color: "white",
-                    padding: "8px 16px",
-                    borderRadius: "4px",
                     position: "absolute",
-                    top: "100%",
-                    left: "50%",
-                    transform: "translateX(-50%)",
-                    zIndex: 1000,
-                    marginTop: "10px",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.2)",
+                    top: "-3rem",
+                    bgcolor: "#f44336",
+                    color: "#fff",
+                    p: 1,
+                    borderRadius: 1,
                   }}
                 >
                   {errorMessage}
                 </Box>
               )}
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 1,
-                  backgroundColor: "#ffcc80",
-                  borderRadius: "5px",
-                  padding: "5px 10px",
-                }}
-              >
+
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
                 <Button
                   variant="outlined"
                   sx={{
                     minWidth: "30px",
-                    padding: "5px",
-                    fontSize: "1rem",
+                    bgcolor: "#ffcc80",
                     color: "#4e342e",
                     borderColor: "#ffcc80",
-                    backgroundColor: "#ffcc80",
-                    ":hover": {
-                      backgroundColor: "#ffb74d",
-                    },
+                    ":hover": { bgcolor: "#ffb74d" },
                   }}
-                  onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
+                  onClick={() =>
+                    setQuantity((q) => Math.max(q - 1, 1))
+                  }
                 >
-                  -
+                  –
                 </Button>
-                <Typography
-                  sx={{
-                    fontWeight: "bold",
-                    fontSize: "1rem",
-                    color: "#4e342e",
-                  }}
-                >
+                <Typography sx={{ color: "#fff", fontWeight: "bold" }}>
                   {quantity}
                 </Typography>
                 <Button
                   variant="outlined"
                   sx={{
                     minWidth: "30px",
-                    padding: "5px",
-                    fontSize: "1rem",
+                    bgcolor: "#ffcc80",
                     color: "#4e342e",
                     borderColor: "#ffcc80",
-                    backgroundColor: "#ffcc80",
-                    ":hover": {
-                      backgroundColor: "#ffb74d",
-                    },
+                    ":hover": { bgcolor: "#ffb74d" },
                   }}
-                  onClick={() => {
-                    if (product && product.stock && quantity < product.stock) {
-                      setQuantity((prev) => prev + 1);
-                    } else if (product && product.stock) {
-                      setErrorMessage(
-                        `Exceeding stocks. Only ${product.stock} available.`
-                      );
-                      setTimeout(() => setErrorMessage(null), 3000);
-                    }
-                  }}
+                  onClick={() =>
+                    setQuantity((q) =>
+                      q < product.quantity_in_stock ? q + 1 : q
+                    )
+                  }
                 >
                   +
                 </Button>
               </Box>
+
               <Box sx={{ display: "flex", gap: 1 }}>
                 <Button
                   variant="contained"
                   startIcon={<ShoppingCartIcon />}
+                  disabled={product.quantity_in_stock === 0}
+                  onClick={handleAddToCart}
                   sx={{
                     bgcolor:
-                      !product.stock || product.stock <= 0
-                        ? "#cccccc"
-                        : "#ffcc80",
+                      product.quantity_in_stock === 0 ? "#ccc" : "#ffcc80",
                     color: "#4e342e",
                     ":hover": {
                       bgcolor:
-                        !product.stock || product.stock <= 0
-                          ? "#cccccc"
+                        product.quantity_in_stock === 0
+                          ? "#ccc"
                           : "#ffb74d",
                     },
-                    fontSize: "14px",
-                    px: 2,
-                    py: 1,
-                    minWidth: "auto",
                   }}
-                  onClick={handleAddToCart}
-                  disabled={!product.stock || product.stock <= 0}
                 >
-                  {!product.stock || product.stock <= 0
+                  {product.quantity_in_stock === 0
                     ? "Out of Stock"
                     : "Add to Cart"}
                 </Button>
-
                 <Button
                   variant="contained"
                   startIcon={
-                    isInWishlist(product.id) ? (
+                    isInWishlist(product.product_id) ? (
                       <FavoriteIcon />
                     ) : (
                       <FavoriteBorderIcon />
                     )
                   }
+                  onClick={handleWishlistToggle}
                   sx={{
-                    bgcolor: isInWishlist(product.id) ? "#ff4081" : "#ffcc80",
+                    bgcolor: isInWishlist(product.product_id)
+                      ? "#ff4081"
+                      : "#ffcc80",
                     color: "#4e342e",
                     ":hover": {
-                      bgcolor: isInWishlist(product.id) ? "#f50057" : "#ffb74d",
+                      bgcolor: isInWishlist(product.product_id)
+                        ? "#f50057"
+                        : "#ffb74d",
                     },
-                    fontSize: "14px",
-                    px: 2,
-                    py: 1,
-                    minWidth: "auto",
                   }}
-                  onClick={handleWishlistToggle}
                 >
-                  {isInWishlist(product.id) ? "In Wishlist" : "Add to Wishlist"}
+                  {isInWishlist(product.product_id)
+                    ? "In Wishlist"
+                    : "Add to Wishlist"}
                 </Button>
               </Box>
             </Box>
@@ -375,22 +322,67 @@ const ProductDetailPage: React.FC = () => {
         </Grid>
       </Grid>
 
+      {/* Info dialog */}
+      <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Product Information</DialogTitle>
+        <DialogContent>
+          <List>
+            <ListItem>
+              <ListItemText
+                primary="Model"
+                secondary={product.model || "N/A"}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Serial Number"
+                secondary={product.serial_number || "N/A"}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Stock"
+                secondary={
+                  product.quantity_in_stock > 0
+                    ? product.quantity_in_stock
+                    : "Out of Stock"
+                }
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Warranty"
+                secondary={product.warranty_status || "N/A"}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Distributor"
+                secondary={product.distributor_info || "N/A"}
+              />
+            </ListItem>
+          </List>
+        </DialogContent>
+      </Dialog>
+
       <Box sx={{ mt: 4 }} id="comments-section">
         <Box
           sx={{
-            backgroundColor: "#4A756E",
+            bgcolor: "#4A756E",
             p: 3,
-            borderRadius: "10px",
-            boxShadow: "0px 4px 10px rgba(0, 0, 0, 0.2)",
-            mb: 4,
+            borderRadius: 2,
+            mb: 2,
           }}
         >
-          <Typography variant="h6" sx={{ color: "#ffcc80", mb: 2 }}>
+          <Typography variant="h6" sx={{ color: "#ffcc80" }}>
             Rate this product:
           </Typography>
           <StarComponent onRatingChange={handleRatingChange} />
         </Box>
-        <CommentComponent comments={comments} onAddComment={handleAddComment} />
+        <CommentComponent
+          comments={comments}
+          onAddComment={handleAddComment}
+        />
       </Box>
     </Container>
   );
