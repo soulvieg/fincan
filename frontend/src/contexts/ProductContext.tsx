@@ -1,4 +1,10 @@
-import React, { createContext, useState, useContext, useEffect } from "react";
+import React, {
+  createContext,
+  useState,
+  useContext,
+  useEffect,
+  ReactNode,
+} from "react";
 import axios from "axios";
 
 export type Product = {
@@ -16,18 +22,21 @@ export type Product = {
   distributor_info:  string;
   image_url:         string;
   is_best_seller:    boolean;
-  rating:            number | null;    // ⬅️ new
+  rating:            number | null;
 };
 
 type ProductContextType = {
-  products:   Product[];
-  categories: string[];
-  getBestSellers: () => Product[];
+  products:        Product[];
+  categories:      string[];
+  getBestSellers:  () => Product[];
+  updateRating:    (id: number, newRating: number) => void;
 };
 
-const ProductContext = createContext<ProductContextType | undefined>(undefined);
+const ProductContext = createContext<ProductContextType | undefined>(
+  undefined
+);
 
-export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({
+export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [products, setProducts]     = useState<Product[]>([]);
@@ -43,18 +52,27 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({
       })
       .catch(console.error);
 
-    // 2) Fetch products (with rating included by backend)
+    // 2) Fetch products (with rating)
     axios
       .get<Product[]>("/api/products")
       .then((res) => setProducts(res.data))
       .catch(console.error);
   }, []);
 
-  const getBestSellers = () => products.filter((p) => p.is_best_seller);
+  const getBestSellers = () =>
+    products.filter((p) => p.is_best_seller);
+
+  const updateRating = (id: number, newRating: number) => {
+    setProducts((prev) =>
+      prev.map((p) =>
+        p.product_id === id ? { ...p, rating: newRating } : p
+      )
+    );
+  };
 
   return (
     <ProductContext.Provider
-      value={{ products, categories, getBestSellers }}
+      value={{ products, categories, getBestSellers, updateRating }}
     >
       {children}
     </ProductContext.Provider>

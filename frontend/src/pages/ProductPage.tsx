@@ -7,35 +7,52 @@ import StarIcon from "@mui/icons-material/Star";
 import "./ProductPage.css";
 
 const ProductPage: React.FC = () => {
-  const { products } = useProductContext();
+  const { products, categories } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const categories = [
-    "All",
-    "Best Sellers",
-    ...Array.from(new Set(products.map((p) => p.category))),
-  ];
-
+  // Read category from URL, default to "All"
   const params = new URLSearchParams(location.search);
-  const initial = params.get("category") ?? "All";
-  const [selectedCategory, setSelectedCategory] = useState(initial);
+  const initialCategory = params.get("category") ?? "All";
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
 
+  // Sorting state
+  const [sortMethod, setSortMethod] = useState<"default" | "priceAsc" | "priceDesc" | "ratingDesc">("default");
+
+  // Sync category when URL changes
   useEffect(() => {
     const q = params.get("category");
-    if (q && categories.includes(q)) setSelectedCategory(q);
+    if (q && categories.includes(q)) {
+      setSelectedCategory(q);
+    }
   }, [location.search, categories]);
 
-  const filtered =
-    selectedCategory === "All"
-      ? products
-      : selectedCategory === "Best Sellers"
-      ? products.filter((p) => p.is_best_seller)
-      : products.filter((p) => p.category === selectedCategory);
+  // Filter products by category
+  const filtered = products.filter((p) => {
+    if (selectedCategory === "All") return true;
+    if (selectedCategory === "Best Sellers") return p.is_best_seller;
+    return p.category === selectedCategory;
+  });
 
+  // Sort the filtered products
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortMethod) {
+      case "priceAsc":
+        return a.price - b.price;
+      case "priceDesc":
+        return b.price - a.price;
+      case "ratingDesc":
+        return (b.rating || 0) - (a.rating || 0);
+      default:
+        return 0;
+    }
+  });
+
+  // Add to cart handler
   const handleAdd = (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (product.quantity_in_stock === 0) return; // Prevent adding out-of-stock
     addToCart({
       id:       product.product_id,
       name:     product.name,
@@ -43,40 +60,53 @@ const ProductPage: React.FC = () => {
       quantity: 1,
       image:    product.image_url,
     });
-    // …your notification UI…
+    // …notification UI…
+  };
+
+  // Change category and update URL
+  const changeCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    navigate(`/products?category=${encodeURIComponent(cat)}`, { replace: true });
   };
 
   return (
     <div className="product-page">
-      <section className="categories">
-        <h2>Categories</h2>
-        <div className="category-buttons">
-          {categories.map((cat) => (
-            <button
-              key={cat}
-              className={`category-button ${
-                selectedCategory === cat ? "active" : ""
-              }`}
-              onClick={() => {
-                setSelectedCategory(cat);
-                navigate(`/products?category=${encodeURIComponent(cat)}`, {
-                  replace: true,
-                });
-              }}
-            >
-              {cat}
-            </button>
-          ))}
+      <div className="filter-bar">
+        <section className="categories">
+          <h2>Categories</h2>
+          <div className="category-buttons">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                className={`category-button ${selectedCategory === cat ? "active" : ""}`}
+                onClick={() => changeCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        <div className="sort-dropdown">
+          <label htmlFor="sort">Sort by:</label>
+          <select
+            id="sort"
+            value={sortMethod}
+            onChange={(e) => setSortMethod(e.target.value as any)}
+          >
+            <option value="default">Default</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="ratingDesc">Rating: High to Low</option>
+          </select>
         </div>
-      </section>
+      </div>
 
       <section className="product-list">
-        {filtered.map((product) => (
+        {sorted.map((product) => (
           <div
             key={product.product_id}
-            className={`product-card ${
-              product.is_best_seller ? "best-seller-card" : ""
-            }`}
+            className={`product-card ${product.is_best_seller ? "best-seller-card" : ""}`}
             onClick={() => navigate(`/product/${product.product_id}`)}
           >
             {product.is_best_seller && (
@@ -85,9 +115,7 @@ const ProductPage: React.FC = () => {
 
             <div className="product-rating">
               <span>
-                {product.rating !== null
-                  ? product.rating.toFixed(1)
-                  : "N/A"}
+                {product.rating !== null ? product.rating.toFixed(1) : "N/A"}
               </span>
               <StarIcon fontSize="small" />
             </div>
@@ -96,11 +124,13 @@ const ProductPage: React.FC = () => {
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p className="product-price">${product.price.toFixed(2)}</p>
+
             <button
               className="add-to-cart-button"
+              disabled={product.quantity_in_stock === 0}
               onClick={(e) => handleAdd(product, e)}
             >
-              Add to Cart
+              {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
         ))}
