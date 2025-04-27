@@ -4,15 +4,16 @@ const bcrypt = require("bcryptjs");
 const User   = require("../models/User");
 const Card   = require("../models/Card");
 
+const SALT_ROUNDS = 12;
+
 /**
  * Register a new user.
- * Hashes the password before storing.
  */
 async function registerUser({ firstName, lastName, email, homeAddress, password, userType }) {
   const existing = await User.findOne({ where: { email } });
   if (existing) throw new Error("User with this email already exists.");
 
-  const hashed = await bcrypt.hash(password, 10);
+  const hashed = await bcrypt.hash(password, SALT_ROUNDS);
   return User.create({
     firstName,
     lastName,
@@ -45,7 +46,7 @@ async function loginUser({ email, password }) {
 
 /**
  * Fetch a user by ID, including their saved card.
- * Formats the expirationDate for client consumption.
+ * Returns the card number masked as "**** **** **** 1234".
  */
 async function getUserById(userId) {
   const user = await User.findByPk(userId, {
@@ -58,29 +59,30 @@ async function getUserById(userId) {
   const c     = plain.card;
   delete plain.card;
 
-  let creditCard = null;
+  let creditCard;
   if (c) {
-    // Ensure expirationDate is a JS Date
-    const rawExp = c.expirationDate;
-    const expDate = rawExp instanceof Date
-      ? rawExp
-      : new Date(rawExp);
+    // Build masked number
+    const last4 = c.card_last4;
+    const masked = `**** **** **** ${last4}`;
+
+    // Format expiration date MM/YY
+    const exp = new Date(c.expiration_date);
+    const mm  = String(exp.getMonth() + 1).padStart(2, "0");
+    const yy  = String(exp.getFullYear()).slice(-2);
 
     creditCard = {
-      cardNumber:     c.cardNumber,  // still hashed
-      expirationDate: `${String(expDate.getMonth() + 1).padStart(2, "0")}/${String(expDate.getFullYear()).slice(-2)}`,
-      cardholderName: c.cardName,
+      cardNumber:     masked,
+      expirationDate: `${mm}/${yy}`,
+      cardholderName: c.card_name,
     };
   }
 
-  return {
-    ...plain,
-    creditCard,
-  };
+  return { ...plain, creditCard };
 }
 
 /**
- * Update user profile and upsert hashed credit card.
+ * Update user profile and upsert a partially-hashed credit card.
+ * Stores bcrypt(prefix) in `card_number` and plaintext last 4 in `card_last4`.
  */
 async function updateUserProfile(userId, updates) {
   const { firstName, lastName, email, homeAddress, phoneNumber, creditCard } = updates;
@@ -93,7 +95,7 @@ async function updateUserProfile(userId, updates) {
     if (ex) throw new Error("This email is already in use.");
   }
 
-  // Update user fields
+  // Update fields
   if (firstName   !== undefined) user.firstName   = firstName;
   if (lastName    !== undefined) user.lastName    = lastName;
   if (email       !== undefined) user.email       = email;
@@ -103,25 +105,32 @@ async function updateUserProfile(userId, updates) {
 
   // Handle creditCard upsert
   if (creditCard) {
-    // Parse expiration MM/YY
-    const [mm, yy] = creditCard.expirationDate.split("/");
-    const expDate  = new Date(2000 + Number(yy), Number(mm) - 1);
+    // Normalize digits
+    const digits = creditCard.cardNumber.replace(/\D/g, "");
+    const last4  = digits.slice(-4);
+    const prefix = digits.slice(0, -4);
 
-    // Hash card number
-    const hashNum = await bcrypt.hash(creditCard.cardNumber, 12);
+    // Hash the first 12 digits
+    const hashedPrefix = await bcrypt.hash(prefix, SALT_ROUNDS);
+
+    // Parse expiration MM/YY to Date
+    const [mm, yy] = creditCard.expirationDate.split("/");
+    const expDate  = new Date(2000 + Number(yy), Number(mm) - 1, 1);
 
     let card = await Card.findOne({ where: { customer_id: userId } });
     if (card) {
-      card.cardNumber     = hashNum;
-      card.expirationDate = expDate;
-      card.cardName       = creditCard.cardholderName;
+      card.card_number     = hashedPrefix;
+      card.card_last4      = last4;
+      card.expiration_date = expDate;
+      card.card_name       = creditCard.cardholderName;
       await card.save();
     } else {
       await Card.create({
         customer_id:     userId,
-        cardNumber:      hashNum,
-        expirationDate:  expDate,
-        cardName:        creditCard.cardholderName,
+        card_number:     hashedPrefix,
+        card_last4:      last4,
+        expiration_date: expDate,
+        card_name:       creditCard.cardholderName,
       });
     }
   }

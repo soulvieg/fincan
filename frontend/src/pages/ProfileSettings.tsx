@@ -1,3 +1,4 @@
+// src/pages/ProfileSettings.tsx
 import React, { useState, useEffect } from "react";
 import { useUser } from "../contexts/UserContext";
 import axios from "axios";
@@ -10,6 +11,8 @@ interface CreditCard {
   expirationDate: string;
   cardholderName: string;
 }
+
+const MASKED_REGEX = /^(\*{4}\s){3}\d{4}$/;
 
 const ProfileSettings: React.FC = () => {
   const { user, updateUser, deleteCreditCard } = useUser();
@@ -30,7 +33,6 @@ const ProfileSettings: React.FC = () => {
     } as CreditCard,
   });
 
-  // Load background image
   useEffect(() => {
     document.body.style.backgroundImage = "url('/img/background1.jpg')";
     document.body.style.backgroundSize = "cover";
@@ -48,7 +50,6 @@ const ProfileSettings: React.FC = () => {
     };
   }, []);
 
-  // Populate form when user loads
   useEffect(() => {
     if (user) {
       setFormData({
@@ -84,23 +85,33 @@ const ProfileSettings: React.FC = () => {
     }
   };
 
-  const validateCreditCard = (): boolean => {
+  function validateCreditCard(): boolean {
     const newErrors: { [key: string]: string } = {};
-    const { creditCard } = formData;
+    const cc = formData.creditCard.cardNumber.trim();
+    // Only validate if in edit mode and if they've actually touched cardNumber
     if (editing) {
-      if (!creditCard.cardNumber || creditCard.cardNumber.length !== 16) {
-        newErrors["creditCard.cardNumber"] = "Card number must be 16 digits";
+      if (cc) {
+        const isMasked = MASKED_REGEX.test(cc);
+        if (!isMasked) {
+          // must be 16 digits if not masked
+          if (!/^\d{16}$/.test(cc)) {
+            newErrors["creditCard.cardNumber"] =
+              "Enter 16 digits or leave as **** **** **** 1234";
+          }
+        }
       }
-      if (!creditCard.expirationDate) {
-        newErrors["creditCard.expirationDate"] = "Expiration date cannot be empty";
+      if (!formData.creditCard.expirationDate) {
+        newErrors["creditCard.expirationDate"] =
+          "Expiration date cannot be empty";
       }
-      if (!creditCard.cardholderName) {
-        newErrors["creditCard.cardholderName"] = "Cardholder name cannot be empty";
+      if (!formData.creditCard.cardholderName) {
+        newErrors["creditCard.cardholderName"] =
+          "Cardholder name cannot be empty";
       }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }
 
   const handleSave = async () => {
     setServerError(null);
@@ -108,31 +119,47 @@ const ProfileSettings: React.FC = () => {
     if (!validateCreditCard()) return;
 
     try {
-      const payload = {
+      const payload: any = {
         firstName:   formData.first_name,
         lastName:    formData.last_name,
         email:       formData.email,
         homeAddress: formData.address,
         phoneNumber: formData.phone_number,
-        creditCard:  formData.creditCard,
       };
+
+      // only send creditCard if user entered a new full number
+      const ccnum = formData.creditCard.cardNumber.trim();
+      const isMasked = MASKED_REGEX.test(ccnum);
+      if (editing && ccnum && !isMasked) {
+        payload.creditCard = formData.creditCard;
+      }
+
       const response = await axios.put(
         `/api/users/${user?.id}/profile`,
         payload
       );
       const updated = response.data.user;
+
       updateUser({
-        email:       updated.email,
+        email:        updated.email,
         phone_number: updated.phone_number || updated.phone,
-        address:     updated.homeAddress || updated.address,
-        creditCard:  formData.creditCard,
+        address:      updated.homeAddress || updated.address,
+        // if we didn’t send a new card, keep old masked one
+        creditCard:
+          payload.creditCard != null
+            ? formData.creditCard
+            : user?.creditCard,
       });
+
       setServerSuccess("Profile updated successfully.");
       setEditing(false);
       setErrors({});
+      window.location.reload();
     } catch (err: any) {
       console.error("Update error:", err.response || err);
-      setServerError(err.response?.data?.message || "Failed to update profile.");
+      setServerError(
+        err.response?.data?.message || "Failed to update profile."
+      );
     }
   };
 
@@ -152,7 +179,6 @@ const ProfileSettings: React.FC = () => {
           {serverError && <div className="alert alert-danger">{serverError}</div>}
           {serverSuccess && <div className="alert alert-success">{serverSuccess}</div>}
 
-          {/* First/Last Name (read-only) */}
           <div className="mb-3">
             <label className="form-label">First Name:</label>
             <input
@@ -172,7 +198,6 @@ const ProfileSettings: React.FC = () => {
             />
           </div>
 
-          {/* Editable fields */}
           <div className="mb-3">
             <label className="form-label">Email:</label>
             <input
@@ -207,7 +232,6 @@ const ProfileSettings: React.FC = () => {
             />
           </div>
 
-          {/* Credit Card Section */}
           <div className="credit-card-section mt-4">
             <h3>Payment Information</h3>
             <div className="mb-3">
@@ -219,10 +243,12 @@ const ProfileSettings: React.FC = () => {
                 value={formData.creditCard.cardNumber}
                 onChange={handleChange}
                 readOnly={!editing}
-                maxLength={16}
+                maxLength={19}
               />
               {errors["creditCard.cardNumber"] && (
-                <div className="error-message">{errors["creditCard.cardNumber"]}</div>
+                <div className="error-message">
+                  {errors["creditCard.cardNumber"]}
+                </div>
               )}
             </div>
             <div className="mb-3">
@@ -237,7 +263,9 @@ const ProfileSettings: React.FC = () => {
                 maxLength={5}
               />
               {errors["creditCard.expirationDate"] && (
-                <div className="error-message">{errors["creditCard.expirationDate"]}</div>
+                <div className="error-message">
+                  {errors["creditCard.expirationDate"]}
+                </div>
               )}
             </div>
             <div className="mb-3">
@@ -251,11 +279,16 @@ const ProfileSettings: React.FC = () => {
                 readOnly={!editing}
               />
               {errors["creditCard.cardholderName"] && (
-                <div className="error-message">{errors["creditCard.cardholderName"]}</div>
+                <div className="error-message">
+                  {errors["creditCard.cardholderName"]}
+                </div>
               )}
             </div>
             {!editing && formData.creditCard.cardNumber && (
-              <button className="btn btn-danger mt-2" onClick={handleDeleteCard}>
+              <button
+                className="btn btn-danger mt-2"
+                onClick={handleDeleteCard}
+              >
                 Delete Card Information
               </button>
             )}
@@ -267,7 +300,11 @@ const ProfileSettings: React.FC = () => {
                 Save Changes
               </button>
             ) : (
-              <Button variant="warning" size="sm" onClick={() => setEditing(true)}>
+              <Button
+                variant="warning"
+                size="sm"
+                onClick={() => setEditing(true)}
+              >
                 <MdOutlineModeEdit size={22} />
               </Button>
             )}

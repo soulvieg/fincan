@@ -26,10 +26,17 @@ const LoginUser = () => {
 
   const handleUserLogin = async () => {
     setError(null);
+
+    // Frontend-only validation
+    if (!email || !password) {
+      setError("Email and password are required.");
+      return;
+    }
+
     try {
       const success = await login(email, password);
       if (success) {
-        navigate("/");  // or wherever you want to go on success
+        navigate("/");
       } else {
         setError("Login failed. Please check your credentials.");
       }
@@ -87,6 +94,7 @@ const LoginUser = () => {
 
           <TextField
             fullWidth
+            required
             label="Email"
             type="email"
             value={email}
@@ -97,6 +105,7 @@ const LoginUser = () => {
           />
           <TextField
             fullWidth
+            required
             label="Password"
             type={showPassword ? "text" : "password"}
             value={password}

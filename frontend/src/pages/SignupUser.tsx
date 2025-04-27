@@ -27,8 +27,24 @@ const SignupUser = () => {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
 
+  const validateEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
   const handleUserSignup = async () => {
     setError(null);
+
+    // Frontend-only validation
+    if (!name || !email || !homeAddress || !phone || !password) {
+      setError("All fields are required.");
+      return;
+    }
+    if (!validateEmail(email)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    if (password.length < 6) {
+      setError("Password must be at least 6 characters long.");
+      return;
+    }
 
     const parts = name.trim().split(" ");
     const firstName = parts[0];
@@ -48,7 +64,7 @@ const SignupUser = () => {
         },
         { withCredentials: true }
       );
-      if (response.status === 201 || response.data) {
+      if (response.status === 201) {
         navigate("/login-user");
       } else {
         setError("Registration failed. Please try again.");
@@ -57,7 +73,6 @@ const SignupUser = () => {
       console.error("Signup error:", err.response || err);
       const msg =
         err.response?.data?.message ||
-        err.response?.data?.error ||
         "Registration failed. Please check your inputs.";
       setError(msg);
     }
@@ -111,6 +126,7 @@ const SignupUser = () => {
 
           <TextField
             fullWidth
+            required
             label="Full Name"
             value={name}
             onChange={(e) => setName(e.target.value)}
@@ -119,6 +135,7 @@ const SignupUser = () => {
           />
           <TextField
             fullWidth
+            required
             label="Email"
             type="email"
             value={email}
@@ -128,6 +145,7 @@ const SignupUser = () => {
           />
           <TextField
             fullWidth
+            required
             label="Home Address"
             value={homeAddress}
             onChange={(e) => setHomeAddress(e.target.value)}
@@ -136,6 +154,7 @@ const SignupUser = () => {
           />
           <TextField
             fullWidth
+            required
             label="Phone Number"
             type="tel"
             value={phone}
@@ -145,6 +164,7 @@ const SignupUser = () => {
           />
           <TextField
             fullWidth
+            required
             label="Password"
             type={showPassword ? "text" : "password"}
             value={password}

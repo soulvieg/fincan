@@ -9,27 +9,26 @@ const Card = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
-      field: "card_id",
     },
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "customer_id",
     },
-    cardNumber: {
-      type: DataTypes.STRING(255),    // store bcrypt hash
+    card_number: {
+      type: DataTypes.STRING(255),
       allowNull: false,
-      field: "card_number",
     },
-    expirationDate: {
+    card_last4: {
+      type: DataTypes.CHAR(4),
+      allowNull: false,
+    },
+    expiration_date: {
       type: DataTypes.DATE,
       allowNull: false,
-      field: "expiration_date",
     },
-    cardName: {
+    card_name: {
       type: DataTypes.STRING(64),
       allowNull: false,
-      field: "card_name",
     },
   },
   {
