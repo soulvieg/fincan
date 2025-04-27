@@ -81,13 +81,13 @@ CREATE TABLE Ratings (
 
 -- Comments
 CREATE TABLE Comments (
-    comment_id   INT NOT NULL AUTO_INCREMENT,
-    customer_id INT NOT NULL,
-    product_id  INT NOT NULL,
-    text        VARCHAR(512) NULL,
-    approval    BOOL         NULL,
-    manager_id  INT          NULL,
-    PRIMARY KEY (commnt_id),
+    comment_id   INT           NOT NULL AUTO_INCREMENT,
+    customer_id  INT           NOT NULL,
+    product_id   INT           NOT NULL,
+    text         VARCHAR(512),
+    approval     BOOL,
+    manager_id   INT,
+    PRIMARY KEY (comment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
