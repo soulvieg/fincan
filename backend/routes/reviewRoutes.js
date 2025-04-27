@@ -3,6 +3,8 @@ const express = require("express");
 const {
   addCommentController,
   addRatingController,
+  reviewCommentController,
+  getApprovedCommentsController,
 } = require("../controllers/reviewController");
 const authenticate = require("../middlewares/authenticate");
 
@@ -13,5 +15,11 @@ router.post("/:productId/comment",authenticate,addCommentController);
 
 // POST /api/products/:productId/rating
 router.post("/:productId/rating",authenticate,addRatingController);
+
+// PATCH /api/comments/:commentId/review
+router.patch("/comments/:commentId/review", authenticate, reviewCommentController);
+
+// GET /api/products/:productId/comments
+router.get("/:productId/comments", getApprovedCommentsController);
 
 module.exports = router;
