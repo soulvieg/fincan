@@ -81,12 +81,12 @@ CREATE TABLE Ratings (
 
 -- Comments
 CREATE TABLE Comments (
-    comment_id   INT NOT NULL AUTO_INCREMENT,
-    customer_id INT NOT NULL,
-    product_id  INT NOT NULL,
-    text        VARCHAR(512) NULL,
-    approval    BOOL         NULL,
-    manager_id  INT          NULL,
+    comment_id   INT          NOT NULL AUTO_INCREMENT,
+    customer_id  INT          NOT NULL,
+    product_id   INT          NOT NULL,
+    text         VARCHAR(512) NULL,
+    approval     BOOL         NULL,
+    manager_id   INT          NULL,
     PRIMARY KEY (comment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
@@ -96,8 +96,8 @@ CREATE TABLE Comments (
 CREATE TABLE Cards (
     card_id        INT          NOT NULL AUTO_INCREMENT,
     customer_id    INT          NOT NULL,
-    card_number    VARCHAR(255) NOT NULL,  -- bcrypt-hash of the first 12 digits
-    card_last4     CHAR(4)      NOT NULL,  -- last 4 plaintext digits
+    card_number    VARCHAR(255) NOT NULL,
+    card_last4     CHAR(4)      NOT NULL,
     expiration_date DATE        NOT NULL,
     card_name      VARCHAR(64)  NOT NULL,
     PRIMARY KEY (card_id),
