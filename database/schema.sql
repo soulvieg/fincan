@@ -58,7 +58,7 @@ CREATE TABLE Products (
 CREATE TABLE Ratings (
     review_id   INT NOT NULL AUTO_INCREMENT,
     customer_id INT NOT NULL,
-    manager_id  INT NOT NULL,
+    manager_id  INT,
     product_id  INT NOT NULL,
     score       INT,
     approval    BOOL,
@@ -75,7 +75,7 @@ CREATE TABLE Comments (
     product_id  INT NOT NULL,
     text        VARCHAR(512),
     approval    BOOL,
-    manager_id  INT NOT NULL,
+    manager_id  INT,
     PRIMARY KEY (commnt_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)

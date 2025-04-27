@@ -1,4 +1,5 @@
-const Review = require("../models/Reviews");
+const Rating = require("../models/Rating");
+const Comment = require("../models/Comment");
 const Product = require("../models/Product");
 const { hasUserPurchasedProduct } = require("../services/orderService");
 
@@ -7,11 +8,12 @@ const { hasUserPurchasedProduct } = require("../services/orderService");
  * This function first verifies if the user purchased the product.
  * @param {number} productId
  * @param {number} userId
- * @param {string} comment
- * @returns {object} - The created or updated review.
+ * @param {string} commentText
+ * @returns {object} - The created or updated comment.(Not approved at initial point.)
  * @throws {Error} - If product not found or user hasn't purchased the product.
  */
-async function addCommentToProduct(productId, userId, comment) {
+async function addCommentToProduct(productId, userId, commentText) {
+    try {
     // Verify the product exists.
     const product = await Product.findByPk(productId);
     if (!product) {
@@ -24,32 +26,40 @@ async function addCommentToProduct(productId, userId, comment) {
     throw new Error("User has not purchased this product and cannot leave a comment.");
   }
 
-  // Find existing review or create a new one.
-  let review = await Review.findOne({ where: { productId, userId } });
-  if (!review) {
-    review = await Review.create({
-      productId,
-      userId,
-      comment,
+  // Find existing comment
+  let comment = await Comment.findOne({ where: { product_id: productId, customer_id: userId } });
+
+  if (!comment) {
+    comment = await Comment.create({
+      product_id: productId,
+      manager_id: null, // Manager not assigned initially
+      customer_id: userId,
+      text: commentText,
+      approval: false, // New comments need approval
     });
   } else {
-    review.comment = comment;
-    await review.save();
+    comment.text = commentText;
+    comment.approval = false; // Reapproval needed after edit
+    await comment.save();
   }
 
-  return review;
+  return comment;
+} catch (error) {
+  console.error("Error adding comment:", error);
+  throw error;
+}
 }
 
 /**
  * Add or update a rating (1-5) for a product.
- * This function first verifies if the user purchased the product.
+ * Rating is immediately visible (no approval required).
  * @param {number} productId
  * @param {number} userId
- * @param {number} rating
+ * @param {number} ratingVal
  * @returns {object} - The created or updated review.
  * @throws {Error} - If product not found, rating out of range, or user hasn't purchased the product.
  */
-async function addRatingToProduct(productId, userId, rating) {
+async function addRatingToProduct(productId, userId, ratingVal) {
     // Verify the product exists.
     const product = await Product.findByPk(productId);
     if (!product) {
@@ -63,27 +73,70 @@ async function addRatingToProduct(productId, userId, rating) {
   }
 
   // Validate the rating value.
-  if (rating < 1 || rating > 5) {
+  if (ratingVal < 1 || ratingVal > 5) {
     throw new Error("Rating must be between 1 and 5");
   }
-
+  
   // Find existing review or create a new one.
-  let review = await Review.findOne({ where: { productId, userId } });
-  if (!review) {
-    review = await Review.create({
-      productId,
-      userId,
-      rating,
+  let rating = await Rating.findOne({ where: { customer_id: userId, product_id: productId } });
+  if (!rating) {
+    rating = await Rating.create({
+      customer_id: userId,
+      manager_id: null, // No approval needed
+      product_id: productId,
+      score: ratingVal,
+      approval: true,   // Always immediately approved
     });
   } else {
-    review.rating = rating;
-    await review.save();
+    rating.score = ratingVal;
+    await rating.save();
   }
 
-  return review;
+  return rating;
 }
+
+/**
+ * Approve or decline a comment.
+ * Only managers/admins can call this.
+ * @param {number} commentId
+ * @param {number} managerId
+ * @param {boolean} approve
+ * @returns {object} - Updated comment
+ * @throws {Error}
+ */
+async function reviewComment(commentId, managerId, approve) {
+  const comment = await Comment.findByPk(commentId);
+  if (!comment) {
+    throw new Error("Comment not found");
+  }
+
+  comment.approval = approve;
+  comment.manager_id = managerId;
+  await comment.save();
+
+  return comment;
+}
+
+/**
+ * Fetch approved comments for a product.
+ * (For homepage / product page display)
+ * @param {number} productId
+ * @returns {array} - List of approved comments
+ */
+async function getApprovedCommentsForProduct(productId) {
+  return Comment.findAll({
+    where: {
+      product_id: productId,
+      approval: true,
+    },
+  });
+}
+
+
 
 module.exports = {
   addCommentToProduct,
   addRatingToProduct,
+  getApprovedCommentsForProduct,
+  reviewComment,
 };

@@ -21,6 +21,8 @@ require("./models/User");
 require("./models/Order");
 require("./models/Product");
 require("./models/Card");           // ← make sure Card model is loaded
+require("./models/Rating");
+require("./models/Comment");
 
 // Import associations (after all models)
 require("./models/associations");
@@ -70,6 +72,9 @@ app.use("/api/admins/overseeing", overseeingAdminRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/cart", cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
+
+
+
 
 // Sync DB & start server
 sequelize
