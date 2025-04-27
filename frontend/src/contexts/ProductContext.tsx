@@ -10,7 +10,6 @@ import axios from "axios";
 export type Product = {
   product_id:        number;
   category_id:       number;
-  category:          string;
   sku:               string;
   name:              string;
   model:             string;
@@ -25,19 +24,19 @@ export type Product = {
   rating:            number | null;
 };
 
-type Category = {
+export type Category = {
   category_id: number;
   name:        string;
 };
 
 interface ProductContextType {
-  products:   Product[];
-  categories: string[];
-  loading:    boolean;
-  error:      string | null;
-  getBestSellers: () => Product[];
-  updateRating:   (id: number, newRating: number) => void;
-  checkStock:     (id: number) => Promise<number>;
+  products:                 Product[];
+  categories:               Category[];                   // now Category[]
+  loading:                  boolean;
+  error:                    string | null;
+  getBestSellers:           () => Product[];
+  updateRating:             (id: number, newRating: number) => void;
+  checkStock:               (id: number) => Promise<number>;
   updateStockAfterPurchase: (id: number, quantity: number) => Promise<boolean>;
 }
 
@@ -47,7 +46,7 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const [products, setProducts]     = useState<Product[]>([]);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading]       = useState<boolean>(true);
   const [error, setError]           = useState<string | null>(null);
 
@@ -59,12 +58,16 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
     async function fetchData() {
       setLoading(true);
       try {
-        // 1) categories
+        // 1) fetch categories
         const catRes = await axios.get<Category[]>("/api/categories");
-        const names = catRes.data.map((c) => c.name);
-        setCategories(["All", "Best Sellers", ...names]);
+        // prepend "All" as id=0, "Best Sellers" as id=-1
+        setCategories([
+          { category_id: 0,  name: "All" },
+          { category_id: -1, name: "Best Sellers" },
+          ...catRes.data,
+        ]);
 
-        // 2) products (with avg rating)
+        // 2) fetch products (with avg rating)
         const prodRes = await axios.get<Product[]>("/api/products");
         setProducts(prodRes.data);
       } catch (err: any) {
@@ -93,7 +96,6 @@ export const ProductProvider: React.FC<{ children: ReactNode }> = ({
         `/api/products/${id}`
       );
       const stock = res.data.quantity_in_stock;
-      // update local state
       setProducts((prev) =>
         prev.map((p) =>
           p.product_id === id ? { ...p, quantity_in_stock: stock } : p
