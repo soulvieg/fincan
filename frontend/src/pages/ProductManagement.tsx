@@ -211,20 +211,39 @@ const ProductManagement: React.FC = () => {
   // Handler for canceling an order
   const handleCancelDelivery = (deliveryId: number) => {
     console.log("Cancel delivery with ID:", deliveryId);
-    // Implement cancel delivery logic here
   };
 
-  // Handlers for comment approval/rejection
-  const handleApproveComment = (commentId: number) => {
-    console.log("Approve comment ID:", commentId);
-    // Implement comment approval logic here
+  // Handlers for approving/rejecting comments
+  const handleApproveComment = async (commentId: number) => {
+    try {
+      const res = await fetch(`/api/products/comments/${commentId}/approve`, {
+        method: "PUT",
+      });
+      if (!res.ok) throw new Error("Failed to approve comment");
+      const { comment: updatedComment } = await res.json();
+      setComments(prev =>
+        prev.map(c => (c.id === commentId ? updatedComment : c))
+      );
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  const handleRejectComment = async (commentId: number) => {
+    try {
+      const res = await fetch(`/api/products/comments/${commentId}/reject`, {
+        method: "PUT",
+      });
+      if (!res.ok) throw new Error("Failed to reject comment");
+      const { comment: updatedComment } = await res.json();
+      setComments(prev =>
+        prev.map(c => (c.id === commentId ? updatedComment : c))
+      );
+    } catch (err) {
+      console.error(err);
+    }
   };
 
-  const handleRejectComment = (commentId: number) => {
-    console.log("Reject comment ID:", commentId);
-    // Implement comment rejection logic here
-  };
-
+  
   return (
     <Container>
       <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
