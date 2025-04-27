@@ -1,6 +1,5 @@
-// src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
-import { useProductContext } from "../contexts/ProductContext";
+import { useProductContext, Category } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
@@ -13,27 +12,34 @@ const ProductPage: React.FC = () => {
     categories,
     loading,
     error,
-    updateStockAfterPurchase,   // ← grab this from context
+    updateStockAfterPurchase,
   } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // category filter from URL
+  // parse categoryId from URL (0 = All, -1 = Best Sellers, >0 real category_id)
   const params = new URLSearchParams(location.search);
-  const initialCategory = params.get("category") ?? "All";
-  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+  const initialCatParam = params.get("category");
+  // find matching category_id by name, else default = 0
+  const initialCategoryId = (() => {
+    if (!initialCatParam) return 0;
+    const found = categories.find((c) => c.name === initialCatParam);
+    return found ? found.category_id : 0;
+  })();
 
-  // sort state
+  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
+    initialCategoryId
+  );
   const [sortMethod, setSortMethod] = useState<
     "default" | "priceAsc" | "priceDesc" | "ratingDesc"
   >("default");
 
+  // sync URL→state
   useEffect(() => {
-    const q = params.get("category");
-    if (q && categories.includes(q)) {
-      setSelectedCategory(q);
-    }
+    const catName = params.get("category");
+    const found = categories.find((c) => c.name === catName);
+    setSelectedCategoryId(found ? found.category_id : 0);
   }, [location.search, categories]);
 
   if (loading) {
@@ -48,12 +54,14 @@ const ProductPage: React.FC = () => {
     return <div className="error-message">{error}</div>;
   }
 
-  // filter & sort
+  // filter by selectedCategoryId
   const filtered = products.filter((p) => {
-    if (selectedCategory === "All") return true;
-    if (selectedCategory === "Best Sellers") return p.is_best_seller;
-    return p.category === selectedCategory;
+    if (selectedCategoryId === 0) return true;              // All
+    if (selectedCategoryId === -1) return p.is_best_seller; // Best Sellers
+    return p.category_id === selectedCategoryId;            // real category
   });
+
+  // then sort
   const sorted = [...filtered].sort((a, b) => {
     switch (sortMethod) {
       case "priceAsc":
@@ -67,17 +75,13 @@ const ProductPage: React.FC = () => {
     }
   });
 
-  // new: async handler that decrements stock before adding to cart
+  // clicking "Add to Cart"
   const handleAdd = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (product.quantity_in_stock === 0) return;
 
-    // try to decrement on the backend + update context
     const ok = await updateStockAfterPurchase(product.product_id, 1);
-    if (!ok) {
-      // you could show a toast here
-      return;
-    }
+    if (!ok) return;
 
     addToCart({
       id:       product.product_id,
@@ -87,7 +91,6 @@ const ProductPage: React.FC = () => {
       image:    product.image_url,
     });
 
-    // notification UI
     const note = document.createElement("div");
     note.className = "add-to-cart-notification";
     note.textContent = `${product.name} added to cart!`;
@@ -101,9 +104,11 @@ const ProductPage: React.FC = () => {
     }, 10);
   };
 
-  const changeCategory = (cat: string) => {
-    setSelectedCategory(cat);
-    navigate(`/products?category=${encodeURIComponent(cat)}`, { replace: true });
+  const changeCategory = (cat: Category) => {
+    setSelectedCategoryId(cat.category_id);
+    navigate(`/products?category=${encodeURIComponent(cat.name)}`, {
+      replace: true,
+    });
   };
 
   return (
@@ -114,11 +119,13 @@ const ProductPage: React.FC = () => {
           <div className="category-buttons">
             {categories.map((cat) => (
               <button
-                key={cat}
-                className={`category-button ${selectedCategory === cat ? "active" : ""}`}
+                key={cat.category_id}
+                className={`category-button ${
+                  selectedCategoryId === cat.category_id ? "active" : ""
+                }`}
                 onClick={() => changeCategory(cat)}
               >
-                {cat}
+                {cat.name}
               </button>
             ))}
           </div>
@@ -128,7 +135,9 @@ const ProductPage: React.FC = () => {
           <select
             id="sort"
             value={sortMethod}
-            onChange={(e) => setSortMethod(e.target.value as any)}
+            onChange={(e) =>
+              setSortMethod(e.target.value as any)
+            }
           >
             <option value="default">Default</option>
             <option value="priceAsc">Price: Low to High</option>
@@ -145,27 +154,43 @@ const ProductPage: React.FC = () => {
             className={`product-card ${
               product.is_best_seller ? "best-seller-card" : ""
             }`}
-            onClick={() => navigate(`/product/${product.product_id}`)}
+            onClick={() =>
+              navigate(`/product/${product.product_id}`)
+            }
           >
             {product.is_best_seller && (
-              <div className="best-seller-badge">Best Seller</div>
+              <div className="best-seller-badge">
+                Best Seller
+              </div>
             )}
+
             <div className="product-rating">
               <span>
-                {product.rating !== null ? product.rating.toFixed(1) : "N/A"}
+                {product.rating !== null
+                  ? product.rating.toFixed(1)
+                  : "N/A"}
               </span>
               <StarIcon fontSize="small" />
             </div>
-            <img src={product.image_url} alt={product.name} />
+
+            <img
+              src={product.image_url}
+              alt={product.name}
+            />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <p className="product-price">${product.price.toFixed(2)}</p>
+            <p className="product-price">
+              ${product.price.toFixed(2)}
+            </p>
+
             <button
               className="add-to-cart-button"
               disabled={product.quantity_in_stock === 0}
               onClick={(e) => handleAdd(product, e)}
             >
-              {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
+              {product.quantity_in_stock === 0
+                ? "Out of Stock"
+                : "Add to Cart"}
             </button>
           </div>
         ))}
