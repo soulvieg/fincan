@@ -1,7 +1,5 @@
-// models/OrderCombined.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-
 
 const Order = sequelize.define(
   "Order",
@@ -9,18 +7,17 @@ const Order = sequelize.define(
     order_id: {
       type: DataTypes.INTEGER,
       primaryKey: true,
-      autoIncrement: true,
-      field: "order_id",  // "order_id" in DB
+      field: "order_id",
+    },
+    product_id: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      field: "product_id",
     },
     customer_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
       field: "customer_id",
-    },
-    product_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: "product_id",
     },
     quantity: {
       type: DataTypes.INTEGER,
@@ -43,7 +40,7 @@ const Order = sequelize.define(
     },
   },
   {
-    tableName: "Orders",  // The name of your table in the DB
+    tableName: "Orders",
     timestamps: false,
   }
 );
