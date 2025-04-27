@@ -22,6 +22,8 @@ require("./models/Product");
 require("./models/Card");
 require("./models/Order");  // ← load your new Order model
 require("./models/cartItem");       // ← if you have a separate Cart model
+require("./models/Rating");
+require("./models/Comment");
 // …any other models…
 
 // Import associations (after all models)
