@@ -5,22 +5,24 @@ const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 
-const productRoutes            = require("./routes/productRoutes");
-const reviewRoutes             = require("./routes/reviewRoutes");
-const userRoutes               = require("./routes/userRoutes");
-const adminRoutes              = require("./routes/adminRoutes");
-const overseeingAdminRoutes    = require("./routes/overseeingAdminRoutes");
-const orderRoutes              = require("./routes/orderRoutes");
-const cartRoutes               = require("./routes/cartRoutes");
-const wishlistRoutes           = require("./routes/wishlistRoutes");
+const productRoutes         = require("./routes/productRoutes");
+const reviewRoutes          = require("./routes/reviewRoutes");
+const userRoutes            = require("./routes/userRoutes");
+const adminRoutes           = require("./routes/adminRoutes");
+const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
+const orderRoutes           = require("./routes/orderRoutes");
+const cartRoutes            = require("./routes/cartRoutes");
+const wishlistRoutes        = require("./routes/wishlistRoutes");
 
-const sequelize = require("./config/db"); // Sequelize instance
+const sequelize = require("./config/db");
 
 // Import models
 require("./models/User");
-require("./models/Order");
 require("./models/Product");
-require("./models/Card");           // ← make sure Card model is loaded
+require("./models/Card");
+require("./models/Order");  // ← load your new Order model
+require("./models/cartItem");       // ← if you have a separate Cart model
+// …any other models…
 
 // Import associations (after all models)
 require("./models/associations");
@@ -54,28 +56,19 @@ app.use(
 );
 
 // Routes
-
-// Auth (signup/login) now live under userRoutes
-app.use("/api/users", userRoutes);
-
-// Products & reviews
+app.use("/api/users",    userRoutes);
 app.use("/api/products", productRoutes);
 app.use("/api/products", reviewRoutes);
-
-// Admin
-app.use("/api/admins", adminRoutes);
+app.use("/api/admins",   adminRoutes);
 app.use("/api/admins/overseeing", overseeingAdminRoutes);
-
-// Orders, Cart, Wishlist
-app.use("/api/orders", orderRoutes);
-app.use("/api/cart", cartRoutes);
+app.use("/api/orders",   orderRoutes);
+app.use("/api/cart",     cartRoutes);
 app.use("/api/wishlist", wishlistRoutes);
 
 // Sync DB & start server
 sequelize
   .sync()
   .then(async () => {
-    // Seed starting ID
     await sequelize.query("ALTER TABLE Customers AUTO_INCREMENT = 1000;");
     console.log("Database synced; Customer ID auto-increment set to 1000");
 

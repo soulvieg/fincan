@@ -1,129 +1,66 @@
-const Order = require("../models/Order");
-const User = require("../models/User");
+// backend/services/orderService.js
+const Order   = require("../models/Order");
+const User    = require("../models/User");
 const Product = require("../models/Product");
 
-
 /**
- * Place a new order if the user is "logged in"
+ * Place a new order (group) for logged-in user.
+ * @param {{ customer_id: number, products: { productId: number, quantity: number }[], paymentInfo: any }} orderData
  */
-function isValidCard(cardInfo) {
-  const { cardNumber, cardHolder, expiry, cvv } = cardInfo;
-
-  // Check all fields are present
-  if (!cardNumber || !cardHolder || !expiry || !cvv) {
-    return { valid: false, message: "Missing card information." };
-  }
-
-  // Validate card number (16-digit numeric)
-  const cardNumberStr = cardNumber.toString().replace(/\s+/g, '');
-  if (!/^\d{16}$/.test(cardNumberStr)) {
-    return { valid: false, message: "Invalid card number. Must be 16 digits." };
-  }
-
-  // Validate CVV (3 or 4 digits)
-  if (!/^\d{3,4}$/.test(cvv)) {
-    return { valid: false, message: "Invalid CVV. Must be 3 or 4 digits." };
-  }
-
-  // Validate expiry date
-  const [expMonth, expYear] = expiry.split('/').map(s => s.trim());
-  const month = parseInt(expMonth);
-  let year = parseInt(expYear);
-  if (expYear.length === 2) {
-    year += 2000; // Convert YY to YYYY
-  }
-
-  if (isNaN(month) || isNaN(year) || month < 1 || month > 12) {
-    return { valid: false, message: "Invalid expiry date format." };
-  }
-
-  const now = new Date();
-  const expiryDate = new Date(year, month); // first of next month
-  if (expiryDate <= now) {
-    return { valid: false, message: "Card is expired." };
-  }
-
-  return { valid: true };
-}
-
-
-async function placeOrder(orderData) {
-  const { customer_id, products, paymentInfo } = orderData;
-  // products = [{ productId: 3, quantity: 1 }, { productId: 7, quantity: 2 }]
-
-  // Check if user exists
+async function placeOrder({ customer_id, products, paymentInfo }) {
+  // 1) Ensure user exists
   const customer = await User.findByPk(customer_id);
   if (!customer) {
     throw new Error("You must be logged in to place an order.");
   }
 
-  // Validate payment (mock payment for now)
-  const validation = isValidCard(paymentInfo);
-  if (!validation.valid) {
-    throw new Error(`Payment failed: ${validation.message}`);
-  }
+  // 2) (Optional) validate paymentInfo here…
 
-  let totalAmount = 0;
-  const orderDate = new Date();
+  // 3) Compute next order_id
+  const maxOrderId = await Order.max("order_id");
+  const nextOrderId = (maxOrderId || 0) + 1;
 
-  const orderItems = [];
+  // 4) Build items and compute total
+  const orderDate   = new Date();
+  let totalAmount   = 0;
+  const itemsToInsert = [];
 
-  // Loop through the products, validate each, and calculate the total amount
   for (const { productId, quantity } of products) {
     const product = await Product.findByPk(productId);
-    if (!product) {
-      throw new Error(`Product with ID ${productId} does not exist.`);
-    }
+    if (!product) throw new Error(`Product ${productId} not found.`);
 
-    totalAmount += product.price * quantity;
+    totalAmount += Number(product.price) * quantity;
 
-    orderItems.push({
+    itemsToInsert.push({
+      order_id:     nextOrderId,
+      product_id:   productId,
       customer_id,
-      product_id: productId,
       quantity,
-      order_date: orderDate,
-      order_status: "processing", // Initial status for all items
-      total_amount: 0, // Placeholder for the final total amount
+      order_date:   orderDate,
+      order_status: "processing",
+      total_amount: totalAmount,
     });
   }
 
-  // Set the total_amount on each item and insert all items in bulk
-  const finalItems = orderItems.map(item => ({
-    ...item,
-    total_amount: totalAmount,
-  }));
+  // 5) Bulk insert all lines
+  await Order.bulkCreate(itemsToInsert);
 
-  const newOrder = await Order.bulkCreate(finalItems);
-
-  return { order_id: newOrder[0].order_id, total_amount: totalAmount };
+  return { order_id: nextOrderId, total_amount: totalAmount };
 }
 
-
-
+/**
+ * Check if a user has purchased a given product in any order group.
+ */
 async function hasUserPurchasedProduct(userId, productId) {
-  try {
-    const match = await Order.findOne({
-      where: {
-        customer_id: userId,
-        order_status: "processing",  // Ensure the order is delivered
-      },
-      include: [
-        {
-          model: Product,
-          where: { product_id: productId }, // Ensure the product matches
-          required: true, // Ensure this product must be part of the order
-        },
-      ],
-    });
-
-    return !!match;  // If a matching order exists, return true
-  } catch (error) {
-    console.error("Error checking user purchase:", error);
-    throw error;
-  }
+  const match = await Order.findOne({
+    where: {
+      customer_id:  userId,
+      order_status: "processing",
+      product_id:   productId,
+    },
+  });
+  return !!match;
 }
-
-
 
 module.exports = {
   placeOrder,
