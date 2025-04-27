@@ -1,59 +1,83 @@
+// backend/models/Product.js
 const { DataTypes } = require("sequelize");
 const sequelize = require("../config/db");
-const Order = require("./Order");
+
 const Product = sequelize.define(
   "Product",
   {
-    // 'id' in DB => 'id' in model
     product_id: {
       type: DataTypes.INTEGER,
-      allowNull: false,
       primaryKey: true,
-      // If your DB column is actually AUTO_INCREMENT, include this:
       autoIncrement: true,
-      field: "product_id", // <-- the actual DB column name
+      field: "product_id",
     },
-
-    // 'category_id' in DB => 'category_id' in model
     category_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
+      field: "category_id",
     },
-
-    // 'sku' in DB => 'sku' in model
     sku: {
-      type: DataTypes.STRING(10),
-      allowNull: true, // or false, up to you
+      type: DataTypes.STRING(50),
+      allowNull: true,
+      field: "sku",
     },
-
-    // 'name' in DB => 'name' in model
     name: {
       type: DataTypes.STRING(255),
       allowNull: false,
+      field: "name",
     },
-
-    // 'description' in DB => 'description' in model
-    description: {
+    model: {
       type: DataTypes.STRING(255),
       allowNull: true,
+      field: "model",
     },
-
-    // 'price' in DB => 'price' in model
+    serial_number: {
+      type: DataTypes.STRING(255),
+      allowNull: true,
+      field: "serial_number",
+    },
+    description: {
+      type: DataTypes.TEXT,
+      allowNull: true,
+      field: "description",
+    },
+    quantity_in_stock: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      defaultValue: 0,
+      field: "quantity_in_stock",
+    },
     price: {
       type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
+      field: "price",
     },
-
-    // 'stock' in DB => 'stock' in model
-    stock: {
-      type: DataTypes.INTEGER,
-      allowNull: true, // or false if you want to require it
+    warranty_status: {
+      type: DataTypes.STRING(100),
+      allowNull: true,
+      field: "warranty_status",
     },
+    distributor_info: {
+      type: DataTypes.STRING(512),
+      allowNull: true,
+      field: "distributor_info",
+    },
+    image_url: {
+      type: DataTypes.STRING(512),
+      allowNull: true,
+      field: "image_url",
+    },
+    is_best_seller: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+      field: "is_best_seller",
+    },
+    // if you later add a rating column, define it here; for now it's computed
   },
   {
-    tableName: "Products", // EXACT table name in DB
+    tableName: "Products",
     timestamps: false,
-    // disable auto-createdAt/updatedAt columns
   }
 );
 

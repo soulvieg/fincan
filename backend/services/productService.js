@@ -1,144 +1,145 @@
-const { Op, fn, col, where } = require("sequelize");
-const Product = require("../models/Product");
+// services/productService.js
+const { Op, fn, col, literal } = require("sequelize");
+const Product                  = require("../models/Product");
+const Rating                   = require("../models/Rating");
 
 /**
  * Add a new product
- * @param {object} productData - The product data to create
- * @returns {object} - The newly created product
- * @throws {Error} - If creation fails
  */
-async function addProduct(productData) {
-  try {
-    const newProduct = await Product.create(productData);
-    return newProduct;
-  } catch (error) {
-    throw new Error("Failed to add product: ${error.message}");
+async function addProduct(data) {
+  return await Product.create({
+    category_id:       data.category_id,
+    sku:               data.sku,
+    name:              data.name,
+    model:             data.model,
+    serial_number:     data.serial_number,
+    description:       data.description,
+    quantity_in_stock: data.quantity_in_stock,
+    price:             data.price,
+    warranty_status:   data.warranty_status,
+    distributor_info:  data.distributor_info,
+    image_url:         data.image_url,
+    is_best_seller:    data.is_best_seller || false,
+  });
+}
+
+/**
+ * Fetch products with optional category filter, sorting,
+ * and include average approved rating.
+ */
+async function getProducts({ categoryFilter = "All", sortMethod = "default" }) {
+  const where = {};
+  if (categoryFilter !== "All") {
+    if (categoryFilter === "Best Sellers") {
+      where.is_best_seller = true;
+    } else {
+      where.category_id = categoryFilter;
+    }
   }
+
+  // build ORDER clause
+  const order = [];
+  switch (sortMethod) {
+    case "priceAsc":
+      order.push(["price", "ASC"]);
+      break;
+    case "priceDesc":
+      order.push(["price", "DESC"]);
+      break;
+    case "ratingDesc":
+      order.push([literal("rating"), "DESC"]);
+      break;
+    default:
+      order.push(["product_id", "DESC"]);
+  }
+
+  const products = await Product.findAll({
+    where,
+    attributes: {
+      include: [
+        // average of only approved Ratings.score
+        [fn("AVG", col("Ratings.score")), "rating"],
+      ],
+    },
+    include: [
+      {
+        model:      Rating,
+        attributes: [],
+        where:      { approval: true },
+        required:   false, // still include products with zero reviews
+      },
+    ],
+    group: ["Product.product_id"],
+    order,
+  });
+
+  return products.map(p => {
+    const plain = p.get({ plain: true });
+    return {
+      ...plain,
+      // coerce to JS numbers
+      rating:            plain.rating !== null ? parseFloat(plain.rating) : null,
+      price:             parseFloat(plain.price),
+      quantity_in_stock: Number(plain.quantity_in_stock),
+    };
+  });
 }
 
 /**
  * Update the quantity in stock of a product
- * @param {number} productId - The product's primary key
- * @param {number} newQuantity - The new quantity value
- * @returns {object} - The updated product
- * @throws {Error} - If product is not found or save fails
  */
 async function updateProductQuantity(productId, newQuantity) {
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("Product not found");
-  }
+  const p = await Product.findByPk(productId);
+  if (!p) throw new Error("Product not found");
+  p.quantity_in_stock = newQuantity;
+  await p.save();
+  return p;
+}
 
-  product.quantityInStock = newQuantity;
-  await product.save();
+async function incrementStock(productId) {
+  const p = await Product.findByPk(productId);
+  if (!p) throw new Error("Product not found");
+  p.quantity_in_stock += 1;
+  await p.save();
+  return p;
+}
 
-  return product;
+async function decrementStock(productId) {
+  const p = await Product.findByPk(productId);
+  if (!p) throw new Error("Product not found");
+  if (p.quantity_in_stock === 0) throw new Error("Stock already at zero");
+  p.quantity_in_stock -= 1;
+  await p.save();
+  return p;
+}
+
+/**
+ * Search products by name or description (case-insensitive)
+ */
+async function searchProducts(query) {
+  const likePattern = `%${query}%`;
+  return await Product.findAll({
+    where: {
+      [Op.or]: [
+        { name:        { [Op.iLike]: likePattern } },
+        { description: { [Op.iLike]: likePattern } },
+      ],
+    },
+  });
 }
 
 /**
  * Delete a product by ID
- * @param {number} productId - The product's primary key
- * @returns {boolean} - True if the product was deleted, false otherwise
- * @throws {Error} - If deletion fails
  */
 async function deleteProduct(productId) {
-  try {
-    const result = await Product.destroy({
-      where: { id: productId },
-    });
-    if (result === 0) {
-      throw new Error("Product not found");
-    }
-    return true;
-  } catch (error) {
-    throw new Error("Failed to delete product: ${error.message}");
-  }
-}
-
-async function incrementStock(productId) {
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-  product.quantityInStock += 1;
-  await product.save();
-  return product;
-}
-
-async function decrementStock(productId) {
-  const product = await Product.findByPk(productId);
-  if (!product) {
-    throw new Error("Product not found");
-  }
-  if (product.quantityInStock > 0) {
-    product.quantityInStock -= 1;
-    await product.save();
-    return product;
-  } else {
-    throw new Error("Cannot decrement below zero");
-  }
-}
-
-/**
- * Search products by name or description
- */
-async function searchProducts(query) {
-  try {
-    const lowerQuery = `%${query.toLowerCase()}%`;
-
-    const products = await Product.findAll({
-      where: {
-        [Op.or]: [
-          where(fn('LOWER', col('name')), {
-            [Op.like]: lowerQuery
-          }),
-          where(fn('LOWER', col('description')), {
-            [Op.like]: lowerQuery
-          })
-        ]
-      }
-    });
-
-    return products;
-  } catch (error) {
-    throw new Error(`Failed to search products: ${error.message}`);
-  }
-}
-
-async function getProducts({ categoryFilter = 'All', sortMethod = 'default' }) {
-  const query = {};
-
-  // Handle category filtering
-  if (categoryFilter && categoryFilter !== 'All') {
-    if (categoryFilter === 'Best Sellers') {
-      query.isBestSeller = true;
-    } else {
-      query.category = categoryFilter;
-    }
-  }
-
-  // Handle sorting
-  const sortOptions = {};
-  switch(sortMethod) {
-    case 'priceAsc':
-      sortOptions.price = 1;
-      break;
-    case 'priceDesc':
-      sortOptions.price = -1;
-      break;
-    case 'ratingDesc':
-      sortOptions.rating = -1;
-      break;
-    default:
-      sortOptions.createdAt = -1;
-  }
-
-  return Product.find(query).sort(sortOptions).exec();
+  const count = await Product.destroy({ where: { product_id: productId } });
+  if (!count) throw new Error("Product not found");
+  return true;
 }
 
 module.exports = {
-  getProducts,
   addProduct,
+  getProducts,
   updateProductQuantity,
   deleteProduct,
   incrementStock,

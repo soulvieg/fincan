@@ -1,3 +1,4 @@
+// src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
 import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
@@ -10,65 +11,39 @@ const ProductPage: React.FC = () => {
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
+
   const categories = [
     "All",
-    "Best Sellers", // Add a Best Sellers category
-    ...Array.from(new Set(products.map((product) => product.category))),
+    "Best Sellers",
+    ...Array.from(new Set(products.map((p) => p.category))),
   ];
-  const queryParams = new URLSearchParams(location.search);
-  const categoryFromQuery = queryParams.get("category");
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    categoryFromQuery && categories.includes(categoryFromQuery)
-      ? categoryFromQuery
-      : "All"
-  );
+
+  const params = new URLSearchParams(location.search);
+  const initial = params.get("category") ?? "All";
+  const [selectedCategory, setSelectedCategory] = useState(initial);
 
   useEffect(() => {
-    if (categoryFromQuery && categories.includes(categoryFromQuery)) {
-      setSelectedCategory(categoryFromQuery);
-    }
-  }, [location.search, categories, categoryFromQuery]);
+    const q = params.get("category");
+    if (q && categories.includes(q)) setSelectedCategory(q);
+  }, [location.search, categories]);
 
-  const filteredProducts =
+  const filtered =
     selectedCategory === "All"
       ? products
       : selectedCategory === "Best Sellers"
-      ? products.filter((product) => product.isBestSeller)
-      : products.filter((product) => product.category === selectedCategory);
+      ? products.filter((p) => p.is_best_seller)
+      : products.filter((p) => p.category === selectedCategory);
 
-  const handleAddToCart = (
-    product: any,
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
+  const handleAdd = (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
+    addToCart({
+      id:       product.product_id,
+      name:     product.name,
+      price:    product.price,
       quantity: 1,
-      image: product.image,
-    };
-    addToCart(cartItem);
-    const notification = document.createElement("div");
-    notification.className = "add-to-cart-notification";
-    notification.textContent = `${product.name} added to cart!`;
-    document.body.appendChild(notification);
-    setTimeout(() => {
-      notification.classList.add("show");
-      setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
-      }, 2000);
-    }, 10);
-  };
-
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    navigate(`/products?category=${encodeURIComponent(category)}`, {
-      replace: true,
+      image:    product.image_url,
     });
+    // …your notification UI…
   };
 
   return (
@@ -76,44 +51,54 @@ const ProductPage: React.FC = () => {
       <section className="categories">
         <h2>Categories</h2>
         <div className="category-buttons">
-          {categories.map((category) => (
+          {categories.map((cat) => (
             <button
-              key={category}
+              key={cat}
               className={`category-button ${
-                selectedCategory === category ? "active" : ""
+                selectedCategory === cat ? "active" : ""
               }`}
-              onClick={() => handleCategoryChange(category)}
+              onClick={() => {
+                setSelectedCategory(cat);
+                navigate(`/products?category=${encodeURIComponent(cat)}`, {
+                  replace: true,
+                });
+              }}
             >
-              {category}
+              {cat}
             </button>
           ))}
         </div>
       </section>
+
       <section className="product-list">
-        {filteredProducts.map((product) => (
+        {filtered.map((product) => (
           <div
-            key={product.id}
+            key={product.product_id}
             className={`product-card ${
-              product.isBestSeller ? "best-seller-card" : ""
+              product.is_best_seller ? "best-seller-card" : ""
             }`}
-            onClick={() => navigate(`/product/${product.id}`)}
+            onClick={() => navigate(`/product/${product.product_id}`)}
           >
-            {product.isBestSeller && (
+            {product.is_best_seller && (
               <div className="best-seller-badge">Best Seller</div>
             )}
+
             <div className="product-rating">
-              <span>{product.rating?.toFixed(1) || "N/A"}</span>
+              <span>
+                {product.rating !== null
+                  ? product.rating.toFixed(1)
+                  : "N/A"}
+              </span>
               <StarIcon fontSize="small" />
             </div>
-            <img src={product.image} alt={product.name} />
+
+            <img src={product.image_url} alt={product.name} />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <p className="product-price">
-              ${product.price?.toFixed(2) || "0.00"}
-            </p>
+            <p className="product-price">${product.price.toFixed(2)}</p>
             <button
               className="add-to-cart-button"
-              onClick={(e) => handleAddToCart(product, e)}
+              onClick={(e) => handleAdd(product, e)}
             >
               Add to Cart
             </button>
