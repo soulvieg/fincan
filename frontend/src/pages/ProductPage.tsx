@@ -8,23 +8,32 @@ import CircularProgress from "@mui/material/CircularProgress";
 import "./ProductPage.css";
 
 const ProductPage: React.FC = () => {
-  const { products, categories, loading, error } = useProductContext();
+  const {
+    products,
+    categories,
+    loading,
+    error,
+    updateStockAfterPurchase,   // ← grab this from context
+  } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Read category query-param
+  // category filter from URL
   const params = new URLSearchParams(location.search);
   const initialCategory = params.get("category") ?? "All";
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
 
-  // Sorting state
-  const [sortMethod, setSortMethod] = useState<"default" | "priceAsc" | "priceDesc" | "ratingDesc">("default");
+  // sort state
+  const [sortMethod, setSortMethod] = useState<
+    "default" | "priceAsc" | "priceDesc" | "ratingDesc"
+  >("default");
 
-  // Keep selectedCategory in sync with URL
   useEffect(() => {
     const q = params.get("category");
-    if (q && categories.includes(q)) setSelectedCategory(q);
+    if (q && categories.includes(q)) {
+      setSelectedCategory(q);
+    }
   }, [location.search, categories]);
 
   if (loading) {
@@ -39,14 +48,12 @@ const ProductPage: React.FC = () => {
     return <div className="error-message">{error}</div>;
   }
 
-  // Filter by category
+  // filter & sort
   const filtered = products.filter((p) => {
     if (selectedCategory === "All") return true;
     if (selectedCategory === "Best Sellers") return p.is_best_seller;
     return p.category === selectedCategory;
   });
-
-  // Sort filtered
   const sorted = [...filtered].sort((a, b) => {
     switch (sortMethod) {
       case "priceAsc":
@@ -60,9 +67,18 @@ const ProductPage: React.FC = () => {
     }
   });
 
-  const handleAdd = (product: any, e: React.MouseEvent) => {
+  // new: async handler that decrements stock before adding to cart
+  const handleAdd = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (product.quantity_in_stock === 0) return;
+
+    // try to decrement on the backend + update context
+    const ok = await updateStockAfterPurchase(product.product_id, 1);
+    if (!ok) {
+      // you could show a toast here
+      return;
+    }
+
     addToCart({
       id:       product.product_id,
       name:     product.name,
@@ -70,6 +86,7 @@ const ProductPage: React.FC = () => {
       quantity: 1,
       image:    product.image_url,
     });
+
     // notification UI
     const note = document.createElement("div");
     note.className = "add-to-cart-notification";
@@ -92,7 +109,6 @@ const ProductPage: React.FC = () => {
   return (
     <div className="product-page">
       <div className="filter-bar">
-        {/* Categories */}
         <section className="categories">
           <h2>Categories</h2>
           <div className="category-buttons">
@@ -107,8 +123,6 @@ const ProductPage: React.FC = () => {
             ))}
           </div>
         </section>
-
-        {/* Sort dropdown */}
         <div className="sort-dropdown">
           <label htmlFor="sort">Sort by:</label>
           <select
@@ -124,26 +138,28 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Product grid */}
       <section className="product-list">
         {sorted.map((product) => (
           <div
             key={product.product_id}
-            className={`product-card ${product.is_best_seller ? "best-seller-card" : ""}`}
+            className={`product-card ${
+              product.is_best_seller ? "best-seller-card" : ""
+            }`}
             onClick={() => navigate(`/product/${product.product_id}`)}
           >
-            {product.is_best_seller && <div className="best-seller-badge">Best Seller</div>}
-
+            {product.is_best_seller && (
+              <div className="best-seller-badge">Best Seller</div>
+            )}
             <div className="product-rating">
-              <span>{product.rating !== null ? product.rating.toFixed(1) : "N/A"}</span>
+              <span>
+                {product.rating !== null ? product.rating.toFixed(1) : "N/A"}
+              </span>
               <StarIcon fontSize="small" />
             </div>
-
             <img src={product.image_url} alt={product.name} />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p className="product-price">${product.price.toFixed(2)}</p>
-
             <button
               className="add-to-cart-button"
               disabled={product.quantity_in_stock === 0}
