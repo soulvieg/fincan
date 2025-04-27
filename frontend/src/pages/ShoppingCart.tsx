@@ -1,4 +1,6 @@
+// frontend/src/pages/ShoppingCart.tsx
 import React, { useState, useEffect } from "react";
+import axios from "axios";
 import { useCart } from "../contexts/CartContext";
 import { useUser } from "../contexts/UserContext";
 import { useOrders } from "../contexts/OrderContext";
@@ -39,7 +41,7 @@ const ShoppingCart: React.FC = () => {
     if (!user || !user.creditCard) return false;
     const { cardNumber, expirationDate, cardholderName } = user.creditCard;
     if (!cardNumber || !expirationDate || !cardholderName) return false;
-    if (cardNumber.length !== 16) return false;
+    if (!/^\d{16}$/.test(cardNumber)) return false;
 
     const [month, year] = expirationDate.split("/");
     if (!month || !year) return false;
@@ -61,6 +63,7 @@ const ShoppingCart: React.FC = () => {
     }
     return true;
   };
+
   const showReceiptPopup = (receiptData: any) => {
     const popup = window.open("", "Receipt", "width=600,height=800");
     if (popup) {
@@ -113,32 +116,31 @@ const ShoppingCart: React.FC = () => {
           </head>
           <body>
             <h2>Receipt</h2>
-            <p>Order ID: ${receiptData.order_id}</p>
-            <p>Email: ${receiptData.email}</p>
+            <p>Order ID: ${receiptData.order.order_id}</p>
+            <p>Total: $${formatCurrency(receiptData.order.total_amount)}</p>
             <h3>Items:</h3>
             <ul>
-              ${receiptData.orders
+              ${receiptData.orderItems
                 .map(
                   (item: any) => `
                 <li>
-                  <img src="${item.image_url}" width="50" height="50" />
-                  ${item.name} - ${item.units} x $${item.price}
+                  <img src="${item.image}" width="50" height="50" />
+                  ${item.name} - ${item.quantity} x $${formatCurrency(item.price)}
                 </li>
               `
                 )
                 .join("")}
             </ul>
             <div class="cost-summary">
-              <p>Shipping: $${receiptData.cost.shipping}</p>
-              <p>Tax: $${receiptData.cost.tax}</p>
+              <p>Shipping: $0.00</p>
+              <p>Tax: $0.00</p>
             </div>
             <div class="total">
-              Total: $${receiptData.cost.total}
+              Total: $${formatCurrency(receiptData.order.total_amount)}
             </div>
           </body>
         </html>
       `);
-
       popup.document.close();
     }
   };
@@ -155,51 +157,47 @@ const ShoppingCart: React.FC = () => {
     }
 
     try {
-      console.log("[Checkout] Sending EmailJS email...");
-
-      const formattedOrders = cart.map((item) => ({
-        image_url: item.image,
-        name: item.name,
-        units: item.quantity,
-        price: formatCurrency(item.price * item.quantity),
-      }));
-
-      const total = formatCurrency(calculateTotal());
-
-      const templateParams = {
-        order_id: Math.floor(Math.random() * 1000000).toString(), // unique ID
-        email: user.email || "no-reply@example.com",
-        orders: formattedOrders,
-        cost: {
-          shipping: "0.00",
-          tax: "0.00",
-          total,
-        },
+      // 1) Call backend to place order
+      const payload = {
+        products: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
+        paymentInfo: user.creditCard,
       };
+      const response = await axios.post("/api/orders", payload, { withCredentials: true });
 
-      const result = await emailjs.send(
-        "service_icp8vi6",
-        "template_gb3xppt",
-        templateParams,
-        "sLZQwIIbpMOy-EVnm"
-      );
-
-      //console.log("[Checkout] Email sent:", result.status, result.text);
-
+      // 2) On success, update frontend state
+      const { order } = response.data;
       addOrder({
         date: new Date().toLocaleString(),
         items: cart,
         total: calculateTotal(),
       });
-      setReceipt(templateParams); // Store the receipt data in state
-      setReceipt(templateParams);
-      showReceiptPopup(templateParams);
+      setReceipt({ orderItems: cart, order });
+      clearCart();
 
+      // 3) Send EmailJS confirmation
+      const emailParams = {
+        order_id: order.order_id.toString(),
+        email: user.email || "no-reply@example.com",
+        orders: cart.map(item => ({
+          image_url: item.image,
+          name: item.name,
+          units: item.quantity,
+          price: formatCurrency(item.price * item.quantity),
+        })),
+        cost: {
+          shipping: "0.00",
+          tax: "0.00",
+          total: formatCurrency(calculateTotal()),
+        },
+      };
+      await emailjs.send("service_icp8vi6", "template_gb3xppt", emailParams, "sLZQwIIbpMOy-EVnm");
+
+      // 4) Show receipt and success message
+      showReceiptPopup({ orderItems: cart, order });
       setMessage("Thank you for your purchase! Confirmation email sent.");
-      setTimeout(() => clearCart(), 3000);
-    } catch (error) {
-      console.error("[Checkout] Failed to send email:", error);
-      setMessage("Error processing checkout or sending email.");
+    } catch (error: any) {
+      console.error("[Checkout] Error:", error.response || error);
+      setMessage(error.response?.data?.message || "Error processing checkout.");
     }
   };
 
@@ -208,35 +206,27 @@ const ShoppingCart: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className="shopping-cart">
-        <h2>Your Shopping Cart</h2>
-        {cart.length === 0 ? (
-          <p>Your cart is empty.</p>
-        ) : (
-          <>
-            <ul>
-              {cart.map((item) => (
-                <li key={item.productId}>
-                  <img
-                    src={item.image}
-                    alt={item.name}
-                    className="cart-item-img"
-                  />
-                  {item.name} - ${formatCurrency(item.price)} x {item.quantity}
-                  <button onClick={() => removeFromCart(item.productId)}>
-                    Remove
-                  </button>
-                </li>
-              ))}
-            </ul>
-            <h3>Total: ${formatCurrency(calculateTotal())}</h3>
-            <button className="checkout-button" onClick={handleCheckout}>
-              Proceed to Checkout
-            </button>
-          </>
-        )}
-      </div>
+    <div className="shopping-cart">
+      <h2>Your Shopping Cart</h2>
+      {cart.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <>
+          <ul>
+            {cart.map(item => (
+              <li key={item.productId}>
+                <img src={item.image} alt={item.name} className="cart-item-img" />
+                {item.name} - ${formatCurrency(item.price)} x {item.quantity}
+                <button onClick={() => removeFromCart(item.productId)}>Remove</button>
+              </li>
+            ))}
+          </ul>
+          <h3>Total: ${formatCurrency(calculateTotal())}</h3>
+          <button className="checkout-button" onClick={handleCheckout}>
+            Proceed to Checkout
+          </button>
+        </>
+      )}
       {message && <div className="purchase-message">{message}</div>}
     </div>
   );
