@@ -1,23 +1,19 @@
 import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
-  Container,
-  Typography,
-  Card,
-  CardMedia,
-  Box,
-  Grid,
-  Button,
+  Container, Typography, Card, CardMedia, Box, Grid, Button, Divider,
+  IconButton, Dialog, DialogTitle, DialogContent, List, ListItem, ListItemText
 } from "@mui/material";
 import ShoppingCartIcon from "@mui/icons-material/ShoppingCart";
 import FavoriteIcon from "@mui/icons-material/Favorite";
 import FavoriteBorderIcon from "@mui/icons-material/FavoriteBorder";
-import { useProductContext } from "../contexts/ProductContext";
-import { useCart } from "../contexts/CartContext";
-import { useWishlist } from "../contexts/WishlistContext";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import StarComponent from "../components/StarComponent";
 import CommentComponent from "../components/CommentComponent";
 import StarIcon from "@mui/icons-material/Star";
+import { useProductContext } from "../contexts/ProductContext";
+import { useCart } from "../contexts/CartContext";
+import { useWishlist } from "../contexts/WishlistContext";
 import "./ProductPage.css";
 
 const ProductDetailPage: React.FC = () => {
@@ -36,10 +32,10 @@ const ProductDetailPage: React.FC = () => {
     { user: "Alice", text: "Great coffee, loved the aroma!" },
     { user: "Bob", text: "A bit too strong for my taste, but still good." },
   ]);
+  const [infoOpen, setInfoOpen] = useState(false);
 
   const handleAddToCart = () => {
     if (!product) return;
-
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -47,14 +43,12 @@ const ProductDetailPage: React.FC = () => {
       quantity: quantity,
       image: product.image,
     };
-
     addToCart(cartItem);
-
+    // Show notification for added to cart
     const notification = document.createElement("div");
     notification.className = "add-to-cart-notification";
     notification.textContent = `${quantity} × ${product.name} added to cart!`;
     document.body.appendChild(notification);
-
     setTimeout(() => {
       notification.classList.add("show");
       setTimeout(() => {
@@ -82,14 +76,12 @@ const ProductDetailPage: React.FC = () => {
 
   const handleWishlistToggle = () => {
     if (!product) return;
-
     const wishlistItem = {
       productId: product.id,
       name: product.name,
       price: product.price,
       image: product.image,
     };
-
     if (isInWishlist(product.id)) {
       removeFromWishlist(product.id);
     } else {
@@ -121,6 +113,7 @@ const ProductDetailPage: React.FC = () => {
 
   return (
     <Container maxWidth="lg" sx={{ mt: 4 }}>
+      {/* Back button to previous page */}
       <Button
         variant="contained"
         onClick={handleGoBack}
@@ -151,6 +144,7 @@ const ProductDetailPage: React.FC = () => {
                   margin: "0 auto",
                 }}
               />
+              {/* Rating in top right over the image */}
               <Box
                 sx={{
                   position: "absolute",
@@ -175,6 +169,7 @@ const ProductDetailPage: React.FC = () => {
         <Grid item xs={12} md={6}>
           <Box
             sx={{
+              position: "relative",
               backgroundColor: "#4A756E",
               color: "#fff",
               p: 4,
@@ -183,6 +178,15 @@ const ProductDetailPage: React.FC = () => {
               marginTop: "20px",
             }}
           >
+            {/* Info button in corner of details */}
+            <IconButton
+              onClick={() => setInfoOpen(true)}
+              sx={{ position: "absolute", top: 12, right: 12, color: '#ffcc80' }}
+              aria-label="Product info"
+            >
+              <InfoOutlinedIcon fontSize="large" />
+            </IconButton>
+
             <Typography
               variant="h4"
               sx={{ fontWeight: "bold", color: "#ffcc80" }}
@@ -206,15 +210,18 @@ const ProductDetailPage: React.FC = () => {
                 Best Seller
               </Box>
             )}
+
             <Typography sx={{ mt: 2, fontSize: "16px", color: "#fff" }}>
               {product.description ?? "No description available."}
             </Typography>
+
             <Typography
               variant="h3"
               sx={{ fontWeight: "bold", color: "#ffcc80", mt: 4 }}
             >
               ${product.price?.toFixed(2) ?? "0.00"}
             </Typography>
+            {/* Quantity selector and wishlist/cart buttons */}
             <Box sx={{ display: "flex", gap: 2, mt: 4, alignItems: "center" }}>
               <Box
                 sx={{
@@ -235,9 +242,7 @@ const ProductDetailPage: React.FC = () => {
                     color: "#4e342e",
                     borderColor: "#ffcc80",
                     backgroundColor: "#ffcc80",
-                    ":hover": {
-                      backgroundColor: "#ffb74d",
-                    },
+                    ":hover": { backgroundColor: "#ffb74d" },
                   }}
                   onClick={() => setQuantity((prev) => Math.max(prev - 1, 1))}
                 >
@@ -261,9 +266,7 @@ const ProductDetailPage: React.FC = () => {
                     color: "#4e342e",
                     borderColor: "#ffcc80",
                     backgroundColor: "#ffcc80",
-                    ":hover": {
-                      backgroundColor: "#ffb74d",
-                    },
+                    ":hover": { backgroundColor: "#ffb74d" },
                   }}
                   onClick={() => setQuantity((prev) => prev + 1)}
                 >
@@ -309,6 +312,36 @@ const ProductDetailPage: React.FC = () => {
         </Grid>
       </Grid>
 
+      {/* Info modal for detailed product info */}
+      <Dialog open={infoOpen} onClose={() => setInfoOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle sx={{ fontWeight: 'bold', textAlign: 'center' }}>
+          Product Information
+        </DialogTitle>
+        <DialogContent sx={{ bgcolor: '#fafaf7', borderRadius: 2, p: 3 }}>
+          <List>
+            <ListItem>
+              <ListItemText primary="ID" secondary={product.id ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Model" secondary={product.model ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Serial Number" secondary={product.serial_number ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Stock" secondary={product.stock ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Warranty Status" secondary={product.warranty_status ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+            <ListItem>
+              <ListItemText primary="Distributor" secondary={product.distributor_info ?? <span style={{ opacity: 0.6 }}>Not available</span>} />
+            </ListItem>
+          </List>
+        </DialogContent>
+      </Dialog>
+
+      {/* Star rating and comments */}
       <Box sx={{ mt: 4 }} id="comments-section">
         <Box
           sx={{
