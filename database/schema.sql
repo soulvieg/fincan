@@ -81,16 +81,17 @@ CREATE TABLE Comments (
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 );
 
--- Cards (bcrypt-hashed card numbers)
+DROP TABLE IF EXISTS Cards;
 CREATE TABLE Cards (
-    card_id        INT          NOT NULL AUTO_INCREMENT,
-    customer_id    INT          NOT NULL,
-    card_number    VARCHAR(255) NOT NULL,
-    expiration_date DATE        NOT NULL,
-    card_name      VARCHAR(64)  NOT NULL,
+    card_id        INT             NOT NULL AUTO_INCREMENT,
+    customer_id    INT             NOT NULL,
+    card_number    VARCHAR(255)    NOT NULL,  -- will hold the bcrypt‐hash of the *first* 12 digits
+    card_last4     CHAR(4)         NOT NULL,  -- stores the last 4 digits in plaintext
+    expiration_date DATE           NOT NULL,
+    card_name      VARCHAR(64)     NOT NULL,
     PRIMARY KEY (card_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- Carts
 CREATE TABLE Carts (

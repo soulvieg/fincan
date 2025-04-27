@@ -9,7 +9,7 @@ RUN apk add --no-cache bash
 
 # Copy package files and install dependencies
 COPY package*.json ./
-RUN npm install 
+RUN npm install
 #Seperate installation for now
 RUN npm install jsonwebtoken
 RUN npm install dotenv

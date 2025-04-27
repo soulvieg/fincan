@@ -1,4 +1,4 @@
-// backend/routes/userRoutes.js
+// routes/userRoutes.js
 const express = require("express");
 const authenticate = require("../middlewares/authenticate");
 const {
@@ -11,17 +11,13 @@ const {
 
 const router = express.Router();
 
-// Public routes
+// public
 router.post("/signup", signupController);
 router.post("/login", loginController);
 
-// Everything below requires a valid JWT
+// protected
 router.use(authenticate);
-
-// “Who am I?” endpoint
 router.get("/me", getMeController);
-
-// Profile by ID
 router.get("/:id/profile", getUserProfileController);
 router.put("/:id/profile", updateUserProfileController);
 
