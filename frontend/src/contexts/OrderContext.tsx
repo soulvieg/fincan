@@ -36,19 +36,34 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
   const { user } = useUser();
-  const [orders, setOrders] = useState<Order[]>(() => {
+  const [allOrders, setAllOrders] = useState<Order[]>(() => {
     const storedOrders = localStorage.getItem("orders");
     return storedOrders ? JSON.parse(storedOrders) : [];
   });
 
-  useEffect(() => {
-    localStorage.setItem("orders", JSON.stringify(orders));
-  }, [orders]);
+  // Add this filtered orders variable after the state declaration:
+  const orders = user
+    ? allOrders.filter((order) => order.customerId === user.id)
+    : [];
 
-  const getNextOrderId = (currentOrders: Order[]) => {
-    return currentOrders.length > 0
-      ? Math.max(...currentOrders.map((order) => order.id)) + 1
-      : 1;
+  useEffect(() => {
+    localStorage.setItem("orders", JSON.stringify(allOrders));
+  }, [allOrders]);
+
+  // Replace the current getNextOrderId function with this:
+  const getNextOrderId = () => {
+    if (!user) return 1;
+
+    // Filter orders for the current user only
+    const userOrders = allOrders.filter(
+      (order) => order.customerId === user.id
+    );
+
+    // If the user has no orders, start with 1
+    if (userOrders.length === 0) return 1;
+
+    // Otherwise, find the max ID among this user's orders and add 1
+    return Math.max(...userOrders.map((order) => order.id)) + 1;
   };
 
   const addOrder = (
@@ -66,13 +81,13 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
       productId: item.productId,
     }));
 
-    setOrders((prevOrders) => {
-      const nextId = getNextOrderId(prevOrders);
+    setAllOrders((prevOrders) => {
+      const nextId = getNextOrderId();
       const newOrder: Order = {
         ...orderData,
         items: orderItems,
         id: nextId,
-        customerId: user.id || Date.now(),
+        customerId: user.id || 0,
         status: "Processing",
         customer: `${user.first_name} ${user.last_name}`,
         address: user.address || "No address provided",
@@ -82,15 +97,25 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   const updateOrderStatus = (orderId: number, status: Order["status"]) => {
-    setOrders((prevOrders) =>
+    setAllOrders((prevOrders) =>
       prevOrders.map((order) =>
         order.id === orderId ? { ...order, status } : order
       )
     );
   };
 
+  // Replace the cancelOrder function with:
   const cancelOrder = (orderId: number) => {
-    updateOrderStatus(orderId, "Cancelled");
+    // Only allow cancellation if the order belongs to the current user
+    if (user) {
+      const orderToCancel = allOrders.find(
+        (order) => order.id === orderId && order.customerId === user.id
+      );
+
+      if (orderToCancel) {
+        updateOrderStatus(orderId, "Cancelled");
+      }
+    }
   };
 
   return (
