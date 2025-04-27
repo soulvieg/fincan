@@ -29,6 +29,10 @@ services:
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql
+      - ./database/seed_customers.sql:/docker-entrypoint-initdb.d/02_data.sql
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/03_seed.sql
+      
     environment:
       - MYSQL_ROOT_PASSWORD=password
       - MYSQL_DATABASE=fincan

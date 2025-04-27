@@ -41,7 +41,7 @@ INSERT INTO Ratings (review_id, customer_id, manager_id, product_id, score, appr
 (10, 3, 8, 10, 4, TRUE);
 
 -- Seed the Comments table
-INSERT INTO Comments (commnt_id, customer_id, product_id, text, approval, manager_id) VALUES
+INSERT INTO Comments (comment_id, customer_id, product_id, text, approval, manager_id) VALUES
 (1, 1, 1, 'Great coffee beans!', FALSE, 8),
 (2, 2, 2, 'Very robust flavor.', FALSE, 8),
 (3, 3, 3, 'Smooth and aromatic.', TRUE, 9),

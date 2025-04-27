@@ -76,7 +76,7 @@ CREATE TABLE Comments (
     text        VARCHAR(512),
     approval    BOOL,
     manager_id  INT,
-    PRIMARY KEY (commnt_id),
+    PRIMARY KEY (comment_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 );
