@@ -4,9 +4,10 @@ import { useCart } from "../contexts/CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
 import "./ProductPage.css";
+import CircularProgress from "@mui/material/CircularProgress";
 
 const ProductPage: React.FC = () => {
-  const { products } = useProductContext();
+  const { products, loading, error } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
@@ -29,6 +30,15 @@ const ProductPage: React.FC = () => {
     }
   }, [location.search, categories, categoryFromQuery]);
 
+  if (loading) {
+    return (
+      <div className="loading-container">
+        <CircularProgress />
+        <p>Loading product information...</p>
+      </div>
+    );
+  }
+
   const filteredProducts =
     selectedCategory === "All"
       ? products
@@ -41,6 +51,10 @@ const ProductPage: React.FC = () => {
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
     e.stopPropagation();
+    if (!product.stock || product.stock <= 0) {
+      return; // Don't add to cart if out of stock
+    }
+
     const cartItem = {
       id: product.id,
       name: product.name,
@@ -112,10 +126,15 @@ const ProductPage: React.FC = () => {
               ${product.price?.toFixed(2) || "0.00"}
             </p>
             <button
-              className="add-to-cart-button"
+              className={`add-to-cart-button ${
+                !product.stock || product.stock <= 0 ? "disabled" : ""
+              }`}
               onClick={(e) => handleAddToCart(product, e)}
+              disabled={!product.stock || product.stock <= 0}
             >
-              Add to Cart
+              {!product.stock || product.stock <= 0
+                ? "Out of Stock"
+                : "Add to Cart"}
             </button>
           </div>
         ))}

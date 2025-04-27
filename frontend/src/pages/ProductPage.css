@@ -227,3 +227,20 @@
   opacity: 1;
   transform: translateY(0);
 }
+.add-to-cart-button.disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
+.add-to-cart-button.disabled:hover {
+  background-color: #cccccc;
+}
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 300px;
+  width: 100%;
+}

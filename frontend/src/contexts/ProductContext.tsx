@@ -1,4 +1,5 @@
-import React, { createContext, useState, useContext } from "react";
+import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 
 // Define a type for the product
 type Product = {
@@ -10,6 +11,27 @@ type Product = {
   rating: number;
   category: string;
   isBestSeller?: boolean; // Add this flag
+  model?: string;
+  serial_number?: string;
+  stock?: number;
+  warranty_status?: string;
+  distributor_info?: string;
+};
+// Define a type for the backend product
+type BackendProduct = {
+  product_id: number;
+  name?: string;
+  description?: string;
+  image?: string;
+  price?: number;
+  rating?: number;
+  category?: string;
+  stock?: number;
+  isBestSeller?: boolean;
+  model?: string;
+  serial_number?: string;
+  warranty_status?: string;
+  distributor_info?: string;
 };
 
 // Define a type for the context value
@@ -17,6 +39,11 @@ type ProductContextType = {
   products: Product[];
   updateRating: (id: number, newRating: number) => void;
   getBestSellers: () => Product[]; // Add this method
+  checkStock: (id: number) => Promise<number>; // Add this
+  updateStockAfterPurchase: (id: number, quantity: number) => Promise<boolean>; // Add this
+
+  loading: boolean;
+  error: string | null;
 };
 
 // Create the context with a default value
@@ -161,6 +188,116 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({
       isBestSeller: true,
     },
   ]);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateStockAfterPurchase = async (
+    id: number,
+    quantity: number
+  ): Promise<boolean> => {
+    try {
+      // First check current stock
+      const currentProduct = products.find((p) => p.id === id);
+      if (
+        !currentProduct ||
+        !currentProduct.stock ||
+        currentProduct.stock < quantity
+      ) {
+        return false;
+      }
+
+      // Calculate new stock
+      const newStock = currentProduct.stock - quantity;
+
+      // Update backend (assuming your API accepts this format)
+      await axios.put(`/api/products/${id}/quantity`, {
+        newQuantity: newStock,
+      });
+
+      // Update local state
+      setProducts((prev) =>
+        prev.map((product) =>
+          product.id === id ? { ...product, stock: newStock } : product
+        )
+      );
+
+      return true;
+    } catch (error) {
+      console.error(`Failed to update stock for product ${id}:`, error);
+      return false;
+    }
+  };
+
+  const checkStock = async (id: number): Promise<number> => {
+    try {
+      const response = await axios.get(`/api/products/${id}`);
+      if (response.data && typeof response.data.stock === "number") {
+        // Update the local state with the latest stock info
+        setProducts((prev) =>
+          prev.map((product) =>
+            product.id === id
+              ? { ...product, stock: response.data.stock }
+              : product
+          )
+        );
+        return response.data.stock;
+      }
+      return 0;
+    } catch (error) {
+      console.error(`Failed to check stock for product ${id}:`, error);
+      return 0;
+    }
+  };
+
+  // Set up axios defaults
+  axios.defaults.baseURL = "http://localhost:5001";
+  axios.defaults.withCredentials = true;
+  useEffect(() => {
+    const fetchStockInfo = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get("/api/products");
+
+        // If the request succeeds but we get an error message in the response
+        if (response.data.error) {
+          console.error("API Error:", response.data.error);
+          setError(`API Error: ${response.data.error}`);
+          setLoading(false);
+          return;
+        }
+
+        // Check if we have an array of products
+        if (Array.isArray(response.data)) {
+          // Update existing products with stock information from backend
+          setProducts((prevProducts) =>
+            prevProducts.map((product) => {
+              // Find matching product from backend by ID
+              const backendProduct = response.data.find(
+                (bp: BackendProduct) => bp.product_id === product.id
+              );
+
+              // If found, update the stock, otherwise leave as is
+              return backendProduct
+                ? { ...product, stock: backendProduct.stock }
+                : product;
+            })
+          );
+        } else {
+          console.error("Unexpected API response format:", response.data);
+          setError("Received unexpected data format from API");
+        }
+      } catch (err) {
+        console.error("Failed to fetch stock information:", err);
+        setError(
+          "Failed to load stock information. Some products may appear out of stock."
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStockInfo();
+  }, []);
 
   const updateRating = (id: number, newRating: number) => {
     setProducts((prev) =>
@@ -176,7 +313,17 @@ export const ProductProvider: React.FC<{ children: React.ReactNode }> = ({
   };
 
   return (
-    <ProductContext.Provider value={{ products, updateRating, getBestSellers }}>
+    <ProductContext.Provider
+      value={{
+        products,
+        updateRating,
+        getBestSellers,
+        loading,
+        error,
+        checkStock,
+        updateStockAfterPurchase,
+      }}
+    >
       {children}
     </ProductContext.Provider>
   );

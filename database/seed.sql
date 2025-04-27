@@ -14,7 +14,7 @@ INSERT INTO Categories (category_id, name) VALUES
 -- Seed the Products table to match frontend products
 INSERT INTO Products (product_id, category_id, sku, name, description, price, stock) VALUES
 (1, 1, 'CB001', 'Kenya Coffee', 'Rich and smooth', 15.99, 0),
-(2, 1, 'CB002', 'Premium Coffee', 'Local Farming', 12.99, 150),
+(2, 1, 'CB002', 'Premium Coffee', 'Local Farming', 12.99, 1),
 (3, 1, 'CB003', 'Blue Coffee', 'Blue Bottle coffee', 18.99, 75),
 (4, 1, 'CB004', 'Vienese Coffee', 'Rich and smooth', 14.99, 200),
 (5, 1, 'CB005', 'Moroccan Coffee', 'Rich and smooth', 16.99, 150),
