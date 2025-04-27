@@ -5,6 +5,7 @@ const express = require("express");
 const cors    = require("cors");
 const session = require("express-session");
 
+const cartRoutes      = require("./routes/cartRoutes");
 const userRoutes      = require("./routes/userRoutes");
 const categoryRoutes  = require("./routes/categoryRoutes");
 const productRoutes   = require("./routes/productRoutes");
@@ -64,9 +65,9 @@ app.use(
 app.use("/api/users",      userRoutes);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/products",   productRoutes);
+app.use("/api/cart",       cartRoutes);
 app.use("/api/products",   reviewRoutes);
-app.use("/api/orders",     orderRoutes);          // ← mount order routes
-// … and the rest of your routes …
+app.use("/api/orders",     orderRoutes);
 
 // ---- Sync & start ----
 sequelize
