@@ -13,18 +13,19 @@ const BestSeller: React.FC = () => {
       <div className="bs-desc">This month's best sellers:</div>
       <div className="bs-items">
         {bestSellers.map((item) => (
-          <div className="bs-item" key={item.id}>
-            <img src={item.image} alt={item.name} />
-            <p className="bs-caption">
+          <div className="bs-item" key={item.product_id}>
+            <img src={item.image_url} alt={item.name} />
+            <p className="bs-cap
+            tion">
               {item.name} - ${item.price}
             </p>
             <button
               onClick={() =>
                 addToCart({
-                  id: item.id,
+                  id: item.product_id,
                   name: item.name,
                   price: item.price,
-                  image: item.image,
+                  image: item.image_url,
                   quantity: 1,
                 })
               }
