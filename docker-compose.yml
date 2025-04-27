@@ -23,6 +23,8 @@ services:
       DB_USER: root
       DB_PASSWORD: password
       DB_NAME: fincan
+      SESSION_SECRET: "someSuperSecretString"
+      JWT_SECRET: "8D]gj<},-@YZT.dcHo1BQ{y_n2Nr0.At<Wemd._uwTla0WQcmig=slKTno35kkm"
 
   db:
     image: mysql:8.0

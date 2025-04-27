@@ -1,140 +1,155 @@
+// src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
 import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 import { useNavigate, useLocation } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
-import "./ProductPage.css";
 import CircularProgress from "@mui/material/CircularProgress";
+import "./ProductPage.css";
 
 const ProductPage: React.FC = () => {
-  const { products, loading, error } = useProductContext();
+  const { products, categories, loading, error } = useProductContext();
   const { addToCart } = useCart();
   const navigate = useNavigate();
   const location = useLocation();
-  const categories = [
-    "All",
-    "Best Sellers", // Add a Best Sellers category
-    ...Array.from(new Set(products.map((product) => product.category))),
-  ];
-  const queryParams = new URLSearchParams(location.search);
-  const categoryFromQuery = queryParams.get("category");
-  const [selectedCategory, setSelectedCategory] = useState<string>(
-    categoryFromQuery && categories.includes(categoryFromQuery)
-      ? categoryFromQuery
-      : "All"
-  );
 
+  // Read category query-param
+  const params = new URLSearchParams(location.search);
+  const initialCategory = params.get("category") ?? "All";
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
+
+  // Sorting state
+  const [sortMethod, setSortMethod] = useState<"default" | "priceAsc" | "priceDesc" | "ratingDesc">("default");
+
+  // Keep selectedCategory in sync with URL
   useEffect(() => {
-    if (categoryFromQuery && categories.includes(categoryFromQuery)) {
-      setSelectedCategory(categoryFromQuery);
-    }
-  }, [location.search, categories, categoryFromQuery]);
+    const q = params.get("category");
+    if (q && categories.includes(q)) setSelectedCategory(q);
+  }, [location.search, categories]);
 
   if (loading) {
     return (
       <div className="loading-container">
         <CircularProgress />
-        <p>Loading product information...</p>
+        <p>Loading products…</p>
       </div>
     );
   }
+  if (error) {
+    return <div className="error-message">{error}</div>;
+  }
 
-  const filteredProducts =
-    selectedCategory === "All"
-      ? products
-      : selectedCategory === "Best Sellers"
-      ? products.filter((product) => product.isBestSeller)
-      : products.filter((product) => product.category === selectedCategory);
+  // Filter by category
+  const filtered = products.filter((p) => {
+    if (selectedCategory === "All") return true;
+    if (selectedCategory === "Best Sellers") return p.is_best_seller;
+    return p.category === selectedCategory;
+  });
 
-  const handleAddToCart = (
-    product: any,
-    e: React.MouseEvent<HTMLButtonElement>
-  ) => {
-    e.stopPropagation();
-    if (!product.stock || product.stock <= 0) {
-      return; // Don't add to cart if out of stock
+  // Sort filtered
+  const sorted = [...filtered].sort((a, b) => {
+    switch (sortMethod) {
+      case "priceAsc":
+        return a.price - b.price;
+      case "priceDesc":
+        return b.price - a.price;
+      case "ratingDesc":
+        return (b.rating || 0) - (a.rating || 0);
+      default:
+        return 0;
     }
+  });
 
-    const cartItem = {
-      id: product.id,
-      name: product.name,
-      price: product.price,
+  const handleAdd = (product: any, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (product.quantity_in_stock === 0) return;
+    addToCart({
+      id:       product.product_id,
+      name:     product.name,
+      price:    product.price,
       quantity: 1,
-      image: product.image,
-    };
-    addToCart(cartItem);
-    const notification = document.createElement("div");
-    notification.className = "add-to-cart-notification";
-    notification.textContent = `${product.name} added to cart!`;
-    document.body.appendChild(notification);
+      image:    product.image_url,
+    });
+    // notification UI
+    const note = document.createElement("div");
+    note.className = "add-to-cart-notification";
+    note.textContent = `${product.name} added to cart!`;
+    document.body.appendChild(note);
     setTimeout(() => {
-      notification.classList.add("show");
+      note.classList.add("show");
       setTimeout(() => {
-        notification.classList.remove("show");
-        setTimeout(() => {
-          document.body.removeChild(notification);
-        }, 300);
+        note.classList.remove("show");
+        setTimeout(() => document.body.removeChild(note), 300);
       }, 2000);
     }, 10);
   };
 
-  const handleCategoryChange = (category: string) => {
-    setSelectedCategory(category);
-    navigate(`/products?category=${encodeURIComponent(category)}`, {
-      replace: true,
-    });
+  const changeCategory = (cat: string) => {
+    setSelectedCategory(cat);
+    navigate(`/products?category=${encodeURIComponent(cat)}`, { replace: true });
   };
 
   return (
     <div className="product-page">
-      <section className="categories">
-        <h2>Categories</h2>
-        <div className="category-buttons">
-          {categories.map((category) => (
-            <button
-              key={category}
-              className={`category-button ${
-                selectedCategory === category ? "active" : ""
-              }`}
-              onClick={() => handleCategoryChange(category)}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-      </section>
-      <section className="product-list">
-        {filteredProducts.map((product) => (
-          <div
-            key={product.id}
-            className={`product-card ${
-              product.isBestSeller ? "best-seller-card" : ""
-            }`}
-            onClick={() => navigate(`/product/${product.id}`)}
+      <div className="filter-bar">
+        {/* Categories */}
+        <section className="categories">
+          <h2>Categories</h2>
+          <div className="category-buttons">
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                className={`category-button ${selectedCategory === cat ? "active" : ""}`}
+                onClick={() => changeCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Sort dropdown */}
+        <div className="sort-dropdown">
+          <label htmlFor="sort">Sort by:</label>
+          <select
+            id="sort"
+            value={sortMethod}
+            onChange={(e) => setSortMethod(e.target.value as any)}
           >
-            {product.isBestSeller && (
-              <div className="best-seller-badge">Best Seller</div>
-            )}
+            <option value="default">Default</option>
+            <option value="priceAsc">Price: Low to High</option>
+            <option value="priceDesc">Price: High to Low</option>
+            <option value="ratingDesc">Rating: High to Low</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Product grid */}
+      <section className="product-list">
+        {sorted.map((product) => (
+          <div
+            key={product.product_id}
+            className={`product-card ${product.is_best_seller ? "best-seller-card" : ""}`}
+            onClick={() => navigate(`/product/${product.product_id}`)}
+          >
+            {product.is_best_seller && <div className="best-seller-badge">Best Seller</div>}
+
             <div className="product-rating">
-              <span>{product.rating?.toFixed(1) || "N/A"}</span>
+              <span>{product.rating !== null ? product.rating.toFixed(1) : "N/A"}</span>
               <StarIcon fontSize="small" />
             </div>
-            <img src={product.image} alt={product.name} />
+
+            <img src={product.image_url} alt={product.name} />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <p className="product-price">
-              ${product.price?.toFixed(2) || "0.00"}
-            </p>
+            <p className="product-price">${product.price.toFixed(2)}</p>
+
             <button
-              className={`add-to-cart-button ${
-                !product.stock || product.stock <= 0 ? "disabled" : ""
-              }`}
-              onClick={(e) => handleAddToCart(product, e)}
-              disabled={!product.stock || product.stock <= 0}
+              className="add-to-cart-button"
+              disabled={product.quantity_in_stock === 0}
+              onClick={(e) => handleAdd(product, e)}
             >
-              {!product.stock || product.stock <= 0
-                ? "Out of Stock"
-                : "Add to Cart"}
+              {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
         ))}

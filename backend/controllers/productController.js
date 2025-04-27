@@ -1,38 +1,45 @@
-const productService = require("../services/productService");
+// controllers/productController.js
+const {
+  addProduct,
+  updateProductQuantity,
+  deleteProduct,
+  incrementStock,
+  decrementStock,
+  searchProducts,
+  getProducts,
+} = require("../services/productService");
+const { approveComment, rejectComment } = require("../services/commentService");
 
 /**
  * Add a new product
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * POST /api/products
  */
 async function addProductController(req, res) {
   try {
     const productData = req.body;
-    const newProduct = await productService.addProduct(productData);
-    res.status(201).json(newProduct);
+    const newProduct  = await addProduct(productData);
+    return res.status(201).json(newProduct);
   } catch (error) {
-    res.status(400).json({ error: error.message });
+    return res.status(400).json({ error: error.message });
   }
 }
 
 /**
- * Controller to handle quantity updates for a product
- * @route PUT /api/products/:productId/quantity
+ * Update stock quantity
+ * PUT /api/products/:productId/quantity
  */
 async function updateQuantityInStockController(req, res) {
   try {
-    const { productId } = req.params;
+    const { productId }  = req.params;
     const { newQuantity } = req.body;
 
-    // Validate the new quantity is not negative and is a number
     if (typeof newQuantity !== "number" || newQuantity < 0) {
       return res
         .status(400)
-        .json({ message: "Invalid quantity value. Must be a non-negative number." });
+        .json({ message: "Invalid quantity. Must be a non-negative number." });
     }
 
     const updatedProduct = await updateProductQuantity(Number(productId), newQuantity);
-
     return res
       .status(200)
       .json({ message: "Quantity updated successfully", product: updatedProduct });
@@ -43,61 +50,63 @@ async function updateQuantityInStockController(req, res) {
 
 /**
  * Delete a product by ID
- * @param {object} req - Express request object
- * @param {object} res - Express response object
+ * DELETE /api/products/:productId
  */
 async function deleteProductController(req, res) {
   try {
-    const productId = req.params.productId;
-    await productService.deleteProduct(productId);
-    res.status(200).json({ message: "Product deleted successfully" });
-  } catch (error) {
-    res.status(404).json({ error: error.message });
-  }
-}
-
-// controllers/productController.js
-const { incrementStock, decrementStock } = require("../services/productService");
-
-async function incrementStockController(req, res) {
-  try {
     const { productId } = req.params;
-    const updatedProduct = await incrementStock(productId);
-    return res.status(200).json({
-      message: "Quantity incremented successfully",
-      product: updatedProduct
-    });
+    await deleteProduct(productId);
+    return res.status(200).json({ message: "Product deleted successfully" });
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res.status(404).json({ error: error.message });
   }
 }
-
-async function decrementStockController(req, res) {
-  try {
-    const { productId } = req.params;
-    const updatedProduct = await decrementStock(productId);
-    return res.status(200).json({
-      message: "Quantity decremented successfully",
-      product: updatedProduct
-    });
-  } catch (error) {
-    return res.status(400).json({ message: error.message });
-  }
-}
-
-const { approveComment, rejectComment } = require("../services/commentService");
 
 /**
- * Approve a user comment
- * @route PUT /api/comments/:commentId/approve
+ * Increment stock by 1
+ * PATCH /api/products/:productId/increment
+ */
+async function incrementStockController(req, res) {
+  try {
+    const { productId }     = req.params;
+    const updatedProduct    = await incrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity incremented successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Decrement stock by 1
+ * PATCH /api/products/:productId/decrement
+ */
+async function decrementStockController(req, res) {
+  try {
+    const { productId }     = req.params;
+    const updatedProduct    = await decrementStock(productId);
+    return res.status(200).json({
+      message: "Quantity decremented successfully",
+      product: updatedProduct,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+/**
+ * Approve a comment
+ * PUT /api/comments/:commentId/approve
  */
 async function approveCommentController(req, res) {
   try {
-    const { commentId } = req.params;
-    const updatedComment = await approveComment(commentId);
+    const { commentId }      = req.params;
+    const updatedComment     = await approveComment(commentId);
     return res.status(200).json({
       message: "Comment approved successfully",
-      comment: updatedComment
+      comment: updatedComment,
     });
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -105,16 +114,16 @@ async function approveCommentController(req, res) {
 }
 
 /**
- * Reject a user comment
- * @route PUT /api/comments/:commentId/reject
+ * Reject a comment
+ * PUT /api/comments/:commentId/reject
  */
 async function rejectCommentController(req, res) {
   try {
-    const { commentId } = req.params;
-    const updatedComment = await rejectComment(commentId);
+    const { commentId }      = req.params;
+    const updatedComment     = await rejectComment(commentId);
     return res.status(200).json({
       message: "Comment rejected successfully",
-      comment: updatedComment
+      comment: updatedComment,
     });
   } catch (error) {
     return res.status(400).json({ message: error.message });
@@ -122,9 +131,8 @@ async function rejectCommentController(req, res) {
 }
 
 /**
- * Controller to search products by name or description.
- * Expects a query parameter "query".
- * @route GET /api/products/search?query=searchTerm
+ * Search products by name or description
+ * GET /api/products/search?query=...
  */
 async function searchProductsController(req, res) {
   try {
@@ -132,32 +140,32 @@ async function searchProductsController(req, res) {
     if (!query) {
       return res.status(400).json({ message: "Query parameter is required." });
     }
-    const products = await productService.searchProducts(query);
-
-    // return a 404 if no results
-    if (!products || products.length === 0) {
-      return res.status(404).json({ message: "No products found for your query." });
+    const results = await searchProducts(query);
+    if (!results.length) {
+      return res.status(404).json({ message: "No products found." });
     }
-
-    return res.status(200).json({ message: "Products retrieved successfully", products });
+    return res
+      .status(200)
+      .json({ message: "Products retrieved successfully", products: results });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 }
 
+/**
+ * Get all products (with optional category & sort)
+ * GET /api/products?category=...&sort=...
+ */
 async function getProductsController(req, res) {
   try {
     const { category, sort } = req.query;
-
-    // Get products through service layer
-    const products = await productService.getProducts({
+    const products = await getProducts({
       categoryFilter: category,
-      sortMethod: sort
+      sortMethod:     sort,
     });
-
-    res.status(200).json(products);
+    return res.status(200).json(products);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    return res.status(500).json({ error: error.message });
   }
 }
 
@@ -170,5 +178,5 @@ module.exports = {
   approveCommentController,
   rejectCommentController,
   searchProductsController,
-  getProductsController
+  getProductsController,
 };

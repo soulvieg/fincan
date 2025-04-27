@@ -41,7 +41,13 @@ const ShoppingCart: React.FC = () => {
     if (!user || !user.creditCard) return false;
     const { cardNumber, expirationDate, cardholderName } = user.creditCard;
     if (!cardNumber || !expirationDate || !cardholderName) return false;
-    if (!/^\d{16}$/.test(cardNumber)) return false;
+
+    // Allow either 16 digits straight, or the masked form "**** **** **** 1234"
+    const plain16  = /^\d{16}$/;
+    const masked16 = /^(\*{4}\s){3}\d{4}$/;
+    if (!(plain16.test(cardNumber) || masked16.test(cardNumber))) {
+      return false;
+    }
 
     const [month, year] = expirationDate.split("/");
     if (!month || !year) return false;
@@ -49,7 +55,7 @@ const ShoppingCart: React.FC = () => {
     const currentYear = currentDate.getFullYear() % 100;
     const currentMonth = currentDate.getMonth() + 1;
     const expMonth = parseInt(month, 10);
-    const expYear = parseInt(year, 10);
+    const expYear  = parseInt(year, 10);
 
     if (
       isNaN(expMonth) ||
@@ -61,6 +67,7 @@ const ShoppingCart: React.FC = () => {
     ) {
       return false;
     }
+
     return true;
   };
 

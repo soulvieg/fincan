@@ -1,86 +1,81 @@
 // server.js
-require('dotenv').config();
+require("dotenv").config();
 
 const express = require("express");
+const cors    = require("cors");
 const session = require("express-session");
-const cors = require("cors");
 
-const productRoutes         = require("./routes/productRoutes");
-const reviewRoutes          = require("./routes/reviewRoutes");
-const userRoutes            = require("./routes/userRoutes");
-const adminRoutes           = require("./routes/adminRoutes");
-const overseeingAdminRoutes = require("./routes/overseeingAdminRoutes");
-const orderRoutes           = require("./routes/orderRoutes");
-const cartRoutes            = require("./routes/cartRoutes");
-const wishlistRoutes        = require("./routes/wishlistRoutes");
+const cartRoutes      = require("./routes/cartRoutes");
+const userRoutes      = require("./routes/userRoutes");
+const categoryRoutes  = require("./routes/categoryRoutes");
+const productRoutes   = require("./routes/productRoutes");
+const reviewRoutes    = require("./routes/reviewRoutes");
+const orderRoutes     = require("./routes/orderRoutes");       // ← import order routes
+// … import your other routes here …
 
 const sequelize = require("./config/db");
 
-// Import models
+// Load all of your models so associations get registered
 require("./models/User");
+require("./models/Category");
 require("./models/Product");
 require("./models/Card");
-require("./models/Order");  // ← load your new Order model
-require("./models/cartItem");       // ← if you have a separate Cart model
+require("./models/Order");
+require("./models/cartItem");
 require("./models/Rating");
 require("./models/Comment");
 // …any other models…
 
-// Import associations (after all models)
+// Wire up associations
 require("./models/associations");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Body parser
-app.use(express.json());
+// ---- Fail fast if SESSION_SECRET missing ----
+if (!process.env.SESSION_SECRET) {
+  console.error("❌  SESSION_SECRET is not defined. Add it to your .env");
+  process.exit(1);
+}
 
-// CORS
+app.use(express.json());
 app.use(
   cors({
-    origin: ["http://localhost", "http://localhost:3000"],
+    origin: ["http://localhost:3000"],
     credentials: true,
   })
 );
 
-// Session middleware
+// ---- Session middleware (needs a secret) ----
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || "TesterKey",
+    secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: false,
     cookie: {
-      secure: false,
+      secure: process.env.NODE_ENV === "production", // HTTPS-only in prod
       httpOnly: true,
-      maxAge: 1000 * 60 * 60 * 24,
+      sameSite: "lax",
+      maxAge: 1000 * 60 * 60 * 24, // 1 day
     },
   })
 );
 
-// Routes
-app.use("/api/users",    userRoutes);
-app.use("/api/products", productRoutes);
-app.use("/api/products", reviewRoutes);
-app.use("/api/admins",   adminRoutes);
-app.use("/api/admins/overseeing", overseeingAdminRoutes);
-app.use("/api/orders",   orderRoutes);
-app.use("/api/cart",     cartRoutes);
-app.use("/api/wishlist", wishlistRoutes);
+// ---- Mount your routes ----
+app.use("/api/users",      userRoutes);
+app.use("/api/categories", categoryRoutes);
+app.use("/api/products",   productRoutes);
+app.use("/api/cart",       cartRoutes);
+app.use("/api/products",   reviewRoutes);
+app.use("/api/orders",     orderRoutes);
 
-
-
-
-// Sync DB & start server
+// ---- Sync & start ----
 sequelize
   .sync()
-  .then(async () => {
-    await sequelize.query("ALTER TABLE Customers AUTO_INCREMENT = 1000;");
-    console.log("Database synced; Customer ID auto-increment set to 1000");
-
-    app.listen(PORT, () => {
-      console.log(`Server running on port ${PORT}`);
-    });
+  .then(() => {
+    console.log("✔️  Database synced");
+    app.listen(PORT, () => console.log(`🚀  Listening on port ${PORT}`));
   })
   .catch((err) => {
-    console.error("Database sync error:", err);
+    console.error("❌  Database sync error:", err);
   });
