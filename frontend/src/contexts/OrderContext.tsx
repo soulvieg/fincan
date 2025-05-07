@@ -19,6 +19,9 @@ export interface Order {
   status: "Processing" | "In-Transit" | "Delivered" | "Cancelled";
   address: string;
   customer: string;
+  refundStatus?: "Waiting for Refund" | "Refunded" | "Refund Denied" | null;
+  deliveryDate?: string;
+  daysLeft?: number;
 }
 
 interface OrderContextType {
@@ -28,6 +31,9 @@ interface OrderContextType {
   ) => void;
   updateOrderStatus: (orderId: number, status: Order["status"]) => void;
   cancelOrder: (orderId: number) => void;
+  requestRefund: (orderId: number) => void;
+  updateRefundStatus: (orderId: number, status: Order["refundStatus"]) => void;
+  calculateDaysLeft: (order: Order) => number;
 }
 
 const OrderContext = createContext<OrderContextType | undefined>(undefined);
@@ -98,9 +104,19 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const updateOrderStatus = (orderId: number, status: Order["status"]) => {
     setAllOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, status } : order
-      )
+      prevOrders.map((order) => {
+        if (order.id === orderId) {
+          const updatedOrder = { ...order, status };
+
+          // If status is changing to Delivered, set the delivery date
+          if (status === "Delivered" && order.status !== "Delivered") {
+            updatedOrder.deliveryDate = new Date().toISOString();
+          }
+
+          return updatedOrder;
+        }
+        return order;
+      })
     );
   };
 
@@ -113,14 +129,64 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
       );
 
       if (orderToCancel) {
-        updateOrderStatus(orderId, "Cancelled");
+        setAllOrders((prevOrders) =>
+          prevOrders.map((order) =>
+            order.id === orderId
+              ? {
+                  ...order,
+                  status: "Cancelled",
+                  refundStatus: "Waiting for Refund",
+                }
+              : order
+          )
+        );
       }
     }
+  };
+  const requestRefund = (orderId: number) => {
+    setAllOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.id === orderId
+          ? { ...order, refundStatus: "Waiting for Refund" }
+          : order
+      )
+    );
+  };
+
+  const updateRefundStatus = (
+    orderId: number,
+    status: Order["refundStatus"]
+  ) => {
+    setAllOrders((prevOrders) =>
+      prevOrders.map((order) =>
+        order.id === orderId ? { ...order, refundStatus: status } : order
+      )
+    );
+  };
+
+  const calculateDaysLeft = (order: Order) => {
+    if (!order.deliveryDate) return 0;
+
+    const deliveryDate = new Date(order.deliveryDate);
+    const currentDate = new Date();
+    const timeDiff =
+      deliveryDate.getTime() + 30 * 24 * 60 * 60 * 1000 - currentDate.getTime();
+    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
+
+    return Math.max(0, daysLeft);
   };
 
   return (
     <OrderContext.Provider
-      value={{ orders, addOrder, updateOrderStatus, cancelOrder }}
+      value={{
+        orders,
+        addOrder,
+        updateOrderStatus,
+        cancelOrder,
+        requestRefund,
+        updateRefundStatus,
+        calculateDaysLeft,
+      }}
     >
       {children}
     </OrderContext.Provider>
