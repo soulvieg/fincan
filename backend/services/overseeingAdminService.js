@@ -133,6 +133,39 @@ async function listAllOverseeingAdmins() {
   }
 }
 
+/* category search for role*/
+
+const { Op } = require("sequelize");
+const User = require("../models/User");
+const Admin = require("../models/Admin");
+
+async function findEntitiesByRole(role) {
+  switch (role) {
+    case "customer":
+      // all users
+      return await User.findAll({
+        attributes: [ "id", "firstName", "lastName", "email", "homeAddress", "userType" ]
+      });
+
+    case "salesManager":
+    case "productManager":
+    case "overseeingAdmin":
+      // only admins with exactly that role
+      return await Admin.findAll({ where: { role } });
+
+    case "admin":
+      // shorthand for both salesManager + productManager (if you want)
+      return await Admin.findAll({
+        where: { role: { [Op.in]: ["salesManager", "productManager"] } }
+      });
+
+    default:
+      throw new Error(`Unknown role: ${role}`);
+  }
+}
+
+
+
 module.exports = {
   promoteUserToAdmin,
   demoteAdminToUser,
@@ -142,6 +175,6 @@ module.exports = {
   listAllUsers,
   listAllAdmins,
   listAllOverseeingAdmins,
-  
+  findEntitiesByRole,
 };
 

@@ -155,6 +155,34 @@ async function demoteOverseeingAdminController(req, res) {
   }
 }
 
+// controllers/overseeingAdminController.js
+const {
+  // … other service functions …,
+  findEntitiesByRole,
+} = require("../services/overseeingAdminService");
+
+/**
+ * GET /api/overseeing-admins/search?role=<role>
+ * → returns all customers or admins matching that role
+ */
+async function searchByRoleController(req, res) {
+  try {
+    const { role } = req.query;
+    if (!role) {
+      return res
+        .status(400)
+        .json({ message: "Please specify a `role` query parameter." });
+    }
+
+    const results = await findEntitiesByRole(role);
+    return res.status(200).json(results);
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+}
+
+
+
 module.exports = {
   promoteUserController,
   demoteAdminToUserController,
@@ -164,5 +192,6 @@ module.exports = {
   getAllUsersController,
   getAllOverseeingAdminsController,
   demoteOverseeingAdminController,
+  searchByRoleController,
 };
 
