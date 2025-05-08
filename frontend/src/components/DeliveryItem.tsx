@@ -94,7 +94,7 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
               border: '1.4px solid #000',
               borderLeft: 'none',
               display: 'flex',
-              gap: '0.2rem',
+              gap: '0.1rem',
               alignItems: 'center',
               boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
             }}
