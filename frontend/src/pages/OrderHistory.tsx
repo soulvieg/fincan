@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { useOrders, Order } from "../contexts/OrderContext";
 import { Button, Card, Table, Badge } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
@@ -6,13 +6,13 @@ import StarIcon from "@mui/icons-material/Star";
 import "../styles/ShoppingCart.css"; // Use the existing CSS file
 
 const OrderHistory: React.FC = () => {
-  const { orders, cancelOrder } = useOrders();
+  const { orders, cancelOrder, requestRefund } = useOrders();
   const navigate = useNavigate();
-  // Add this before the return statement in OrderHistory.tsx
   console.log(
     "Orders before sorting:",
     orders.map((o) => ({ id: o.id, date: o.date }))
   );
+
   const sortedOrders = [...orders].sort(
     (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
   );
@@ -20,6 +20,19 @@ const OrderHistory: React.FC = () => {
     "Orders after sorting:",
     sortedOrders.map((o) => ({ id: o.id, date: o.date }))
   );
+  const handleRefundRequest = (orderId: number) => {
+    requestRefund(orderId);
+  };
+  const getRefundButtonText = (order: Order) => {
+    if (order.refundStatus === "Waiting for Refund")
+      return "Waiting for Refund";
+    if (order.refundStatus === "Refunded") return "Refunded";
+    if (order.refundStatus === "Refund Denied") return "Refund Denied";
+    return "Ask for Refund";
+  };
+  const isRefundButtonDisabled = (order: Order) => {
+    return order.refundStatus !== null && order.refundStatus !== undefined;
+  };
 
   const getStatusBadge = (status: Order["status"]) => {
     let className = "";
@@ -120,6 +133,21 @@ const OrderHistory: React.FC = () => {
                     onClick={() => cancelOrder(order.id)}
                   >
                     Cancel Order
+                  </button>
+                )}
+                {(order.status === "Delivered" ||
+                  order.status === "Cancelled") && (
+                  <button
+                    className="clear-order-history-button"
+                    style={{
+                      margin: "0 0 0 10px",
+                      padding: "5px 10px",
+                      opacity: isRefundButtonDisabled(order) ? 0.7 : 1,
+                    }}
+                    onClick={() => handleRefundRequest(order.id)}
+                    disabled={isRefundButtonDisabled(order)}
+                  >
+                    {getRefundButtonText(order)}
                   </button>
                 )}
               </div>

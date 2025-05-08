@@ -1,11 +1,15 @@
-import React from 'react';
+import React from "react";
+import RefundTable from "../components/RefundTable";
 
 const SalesManagement: React.FC = () => {
-    return (
-        <div style={{display: 'flex', justifyContent: 'center',alignItems: 'center'}}>
-            <h3>Nothing to see here (yet)!</h3>
-        </div>
-    );
+  return (
+    <div style={{ padding: "20px" }}>
+      <h2 style={{ marginBottom: "20px", color: "#6b3503" }}>
+        Sales Management
+      </h2>
+      <RefundTable />
+    </div>
+  );
 };
 
 export default SalesManagement;
