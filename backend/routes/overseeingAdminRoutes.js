@@ -9,6 +9,7 @@ const {
   getAllUsersController,
   getAllOverseeingAdminsController,
   demoteOverseeingAdminController,
+  searchByRoleController,
 } = require("../controllers/overseeingAdminController");
 
 const router = express.Router();
@@ -39,6 +40,9 @@ router.get("/", getAllOverseeingAdminsController);
 
 // Demote an overseeing admin
 router.post("/demote", demoteOverseeingAdminController);
+
+// Search for role
+router.get("/search", searchByRoleController);
 
 module.exports = router;
 
