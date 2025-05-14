@@ -43,7 +43,7 @@ const ShoppingCart: React.FC = () => {
     if (!cardNumber || !expirationDate || !cardholderName) return false;
 
     // Allow either 16 digits straight, or the masked form "**** **** **** 1234"
-    const plain16  = /^\d{16}$/;
+    const plain16 = /^\d{16}$/;
     const masked16 = /^(\*{4}\s){3}\d{4}$/;
     if (!(plain16.test(cardNumber) || masked16.test(cardNumber))) {
       return false;
@@ -55,7 +55,7 @@ const ShoppingCart: React.FC = () => {
     const currentYear = currentDate.getFullYear() % 100;
     const currentMonth = currentDate.getMonth() + 1;
     const expMonth = parseInt(month, 10);
-    const expYear  = parseInt(year, 10);
+    const expYear = parseInt(year, 10);
 
     if (
       isNaN(expMonth) ||
@@ -79,60 +79,90 @@ const ShoppingCart: React.FC = () => {
           <head>
             <title>Receipt</title>
             <style>
+              @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
+              
               body {
                 font-family: Arial, sans-serif;
                 margin: 20px;
-                background-color: #f8f9fa;
-                color: #333;
+                background-color: #6d4c41;
+                color: #f5f0e6;
               }
-              h2, h3 {
+              
+              .brand {
+                font-family: "The Seasons", "Playfair Display", serif;
+                color: #f5f0e6;
+                font-size: 2rem;
+                margin-bottom: 20px;
+              }
+              
+              h2 {
                 text-align: center;
-                color: #444;
+                color: #f5f0e6;
               }
+              
+              h3 {
+                text-align: left;
+                color: #f5f0e6;
+                margin-top: 30px;
+                margin-bottom: 15px;
+              }
+              
               ul {
                 list-style: none;
                 padding: 0;
               }
+              
               li {
                 display: flex;
                 align-items: center;
                 margin-bottom: 10px;
                 padding: 10px;
-                background: #fff;
+                background: #7d5c51;
                 border-radius: 8px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
               }
+              
               img {
-                margin-right: 10px;
+                margin-right: 15px;
                 border-radius: 4px;
               }
+              
               .cost-summary {
                 margin-top: 20px;
                 padding: 15px;
-                background: #fff;
+                background: #7d5c51;
                 border-radius: 8px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
               }
+              
               .total {
-                font-size: 1.5rem;
+                font-size: 2rem;
                 font-weight: bold;
                 text-align: center;
-                margin-top: 20px;
+                margin-top: 40px;
+                margin-bottom: 30px;
+                color: #f5f0e6;
+              }
+              
+              p {
+                color: #f5f0e6;
               }
             </style>
           </head>
           <body>
+            <div class="brand">Fincan</div>
             <h2>Receipt</h2>
             <p>Order ID: ${receiptData.order.order_id}</p>
-            <p>Total: $${formatCurrency(receiptData.order.total_amount)}</p>
             <h3>Items:</h3>
             <ul>
               ${receiptData.orderItems
                 .map(
                   (item: any) => `
                 <li>
-                  <img src="${item.image}" width="50" height="50" />
-                  ${item.name} - ${item.quantity} x $${formatCurrency(item.price)}
+                  <img src="${item.image}" width="80" height="80" />
+                  ${item.name} - ${item.quantity} x $${formatCurrency(
+                    item.price
+                  )}
                 </li>
               `
                 )
@@ -166,10 +196,15 @@ const ShoppingCart: React.FC = () => {
     try {
       // 1) Call backend to place order
       const payload = {
-        products: cart.map(item => ({ productId: item.productId, quantity: item.quantity })),
+        products: cart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
         paymentInfo: user.creditCard,
       };
-      const response = await axios.post("/api/orders", payload, { withCredentials: true });
+      const response = await axios.post("/api/orders", payload, {
+        withCredentials: true,
+      });
 
       // 2) On success, update frontend state
       const { order } = response.data;
@@ -181,6 +216,7 @@ const ShoppingCart: React.FC = () => {
       setReceipt({ orderItems: cart, order });
       clearCart();
 
+      /*
       // 3) Send EmailJS confirmation
       const emailParams = {
         order_id: order.order_id.toString(),
@@ -198,7 +234,7 @@ const ShoppingCart: React.FC = () => {
         },
       };
       await emailjs.send("service_icp8vi6", "template_gb3xppt", emailParams, "sLZQwIIbpMOy-EVnm");
-
+*/
       // 4) Show receipt and success message
       showReceiptPopup({ orderItems: cart, order });
       setMessage("Thank you for your purchase! Confirmation email sent.");
@@ -220,11 +256,17 @@ const ShoppingCart: React.FC = () => {
       ) : (
         <>
           <ul>
-            {cart.map(item => (
+            {cart.map((item) => (
               <li key={item.productId}>
-                <img src={item.image} alt={item.name} className="cart-item-img" />
+                <img
+                  src={item.image}
+                  alt={item.name}
+                  className="cart-item-img"
+                />
                 {item.name} - ${formatCurrency(item.price)} x {item.quantity}
-                <button onClick={() => removeFromCart(item.productId)}>Remove</button>
+                <button onClick={() => removeFromCart(item.productId)}>
+                  Remove
+                </button>
               </li>
             ))}
           </ul>
