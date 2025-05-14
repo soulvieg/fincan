@@ -245,132 +245,150 @@ const ProductManagement: React.FC = () => {
 
   
   return (
-    <Container>
-      <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
-        <Card.Body>
-          <Card.Text
-            style={{
-              fontSize: "30px",
-              textAlign: "center",
-              marginTop: "40px",
-              marginBottom: "60px",
-            }}
-          >
-            What would you like to do?
-          </Card.Text>
-          {/* Navigation Buttons */}
-          <div
-            className="d-flex gap-3 mt-3 justify-content-center"
-            style={{ marginBottom: "240px" }}
-          >
-            <Button
-              variant="primary"
-              onClick={() => scrollToSection(stocksElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
-            >
-              <div
+    <>
+      {/* Full-page background */}
+      <div
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          width: "100vw",
+          height: "100vh",
+          background: "#e8dace",
+          zIndex: -1,
+          pointerEvents: "none",
+        }}
+      />
+      {/* Main content */}
+      <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
+        <Container>
+          <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
+            <Card.Body>
+              <Card.Text
                 style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
+                  fontSize: "30px",
+                  textAlign: "center",
+                  marginTop: "40px",
+                  marginBottom: "60px",
                 }}
               >
-                <FaBoxOpen style={{ fontSize: "100px" }} />
-              </div>
-              Manage Stocks
-            </Button>
-            <Button
-              variant="outline-primary"
-              onClick={() => scrollToSection(deliveriesElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
-            >
+                What would you like to do?
+              </Card.Text>
+              {/* Navigation Buttons */}
               <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
+                className="d-flex gap-3 mt-3 justify-content-center"
+                style={{ marginBottom: "240px" }}
               >
-                <TbTruckDelivery style={{ fontSize: "100px" }} />
+                <Button
+                  variant="primary"
+                  onClick={() => scrollToSection(stocksElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <FaBoxOpen style={{ fontSize: "100px" }} />
+                  </div>
+                  Manage Stocks
+                </Button>
+                <Button
+                  variant="outline-primary"
+                  onClick={() => scrollToSection(deliveriesElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <TbTruckDelivery style={{ fontSize: "100px" }} />
+                  </div>
+                  Manage Deliveries
+                </Button>
+                <Button
+                  variant="primary"
+                  onClick={() => scrollToSection(commentsElement)}
+                  style={{
+                    width: "250px",
+                    height: "280px",
+                    backgroundColor: "#fff0e2",
+                    color: "black",
+                    borderColor: "black",
+                    borderRadius: "38px",
+                    fontSize: "24px",
+                    fontWeight: "semibold",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      marginBottom: "10px",
+                    }}
+                  >
+                    <VscCommentDiscussion style={{ fontSize: "100px" }} />
+                  </div>
+                  Manage Comments
+                </Button>
               </div>
-              Manage Deliveries
-            </Button>
-            <Button
-              variant="primary"
-              onClick={() => scrollToSection(commentsElement)}
-              style={{
-                width: "250px",
-                height: "280px",
-                backgroundColor: "#fff0e2",
-                color: "black",
-                borderColor: "black",
-                borderRadius: "38px",
-                fontSize: "24px",
-                fontWeight: "semibold",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "center",
-                  marginBottom: "10px",
-                }}
-              >
-                <VscCommentDiscussion style={{ fontSize: "100px" }} />
-              </div>
-              Manage Comments
-            </Button>
+            </Card.Body>
+          </Card>
+
+          <div ref={setStocksElement} className="mb-5">
+            <ProductInventoryTable
+              products={products}
+              categories={[]}
+              onEdit={handleEditProduct}
+              onDelete={handleDeleteProduct}
+              onAddProduct={handleAddProduct}
+              onAddCategory={handleAddCategory}
+            />
           </div>
-        </Card.Body>
-      </Card>
 
-      <div ref={setStocksElement} className="mb-5">
-        <ProductInventoryTable
-          products={products}
-          categories={[]}
-          onEdit={handleEditProduct}
-          onDelete={handleDeleteProduct}
-          onAddProduct={handleAddProduct}
-          onAddCategory={handleAddCategory}
-        />
-      </div>
+          {/* Deliveries Section */}
+          <div ref={setDeliveriesElement} className="mb-5">
+            <DeliveryTable
+              deliveries={deliveries}
+              onUpdateStatus={handleUpdateDeliveryStatus}
+              onCancel={handleCancelDelivery}
+            />
+          </div>
 
-      {/* Deliveries Section */}
-      <div ref={setDeliveriesElement} className="mb-5">
-        <DeliveryTable
-          deliveries={deliveries}
-          onUpdateStatus={handleUpdateDeliveryStatus}
-          onCancel={handleCancelDelivery}
-        />
+          {/* Comments Section */}
+          <div ref={setCommentsElement} className="mb-5">
+            <CommentTable
+              comments={comments}
+              onApprove={handleApproveComment}
+              onReject={handleRejectComment}
+            />
+          </div>
+        </Container>
       </div>
-
-      {/* Comments Section */}
-      <div ref={setCommentsElement} className="mb-5">
-        <CommentTable
-          comments={comments}
-          onApprove={handleApproveComment}
-          onReject={handleRejectComment}
-        />
-      </div>
-    </Container>
+    </>
   );
 };
 

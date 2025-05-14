@@ -15,6 +15,7 @@ import ShoppingCart from "./pages/ShoppingCart";
 import ProfileSettings from "./pages/ProfileSettings";
 import ProductsPage from "./pages/ProductPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
+import AboutUs from "./components/AboutUs";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -106,6 +107,7 @@ const App: React.FC = () => {
                       <Route path="/" element={<MainStore />} />
                       <Route path="/login-user" element={<LoginUser />} />
                       <Route path="/signup-user" element={<SignupUser />} />
+                      <Route path="/about" element={<AboutUs />} />
                       <Route
                         path="/profile-settings"
                         element={<ProfileSettings />}

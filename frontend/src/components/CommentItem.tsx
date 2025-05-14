@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Button } from 'react-bootstrap';
-import { IoCheckmarkCircleOutline } from "react-icons/io5";
-import { IoCloseCircleOutline } from "react-icons/io5";
+import { FaCheck } from "react-icons/fa";
+import { FaTimes } from "react-icons/fa";
 
 interface CommentItemProps {
   comment: {
@@ -74,16 +74,16 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject 
             className={`action-buttons ${isHovering ? 'visible' : 'invisible'}`}
             style={{
               position: 'absolute',
-              left: '95%',
+              left: '88%',
               top: '50%',
               transform: 'translateY(-50%)',
               backgroundColor: '#f9f9f9',
-              padding: '0.20rem',
-              height: '44px',
+              padding: '0.25rem',
+              height: '42px',
               border: '1.4px solid #000',
               borderLeft: 'none',
               display: 'flex',
-              gap: '0.2rem',
+              gap: '0.5rem',
               alignItems: 'center',
               boxShadow: '0 4px 8px rgba(0,0,0,0.1)'
             }}
@@ -92,15 +92,17 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject 
               variant="outline-success"
               size="sm"
               onClick={() => onApprove(comment.id)}
+              style={{ width: '32px', height: '32px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <IoCheckmarkCircleOutline size={16}/>
+              <FaCheck size={14}/>
             </Button>
             <Button
               variant="outline-danger"
               size="sm"
               onClick={() => onReject(comment.id)}
+              style={{ width: '32px', height: '32px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              <IoCloseCircleOutline size={16}/>
+              <FaTimes size={14}/>
             </Button>
           </div>
         )}
