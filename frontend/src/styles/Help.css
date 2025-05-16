@@ -1,0 +1,175 @@
+.help-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem;
+  background-color: #f5f0e6;
+  min-height: calc(100vh - 200px);
+}
+
+.help-container h1 {
+  text-align: center;
+  color: #6d4c41;
+  margin-bottom: 1rem;
+  font-size: 2.5rem;
+  font-family: '"The Seasons", serif';
+}
+
+.help-intro {
+  text-align: center;
+  color: #666;
+  margin-bottom: 2rem;
+  font-size: 1.1rem;
+}
+
+.help-sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 3rem;
+}
+
+.help-section {
+  background-color: #fff0e2;
+  border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #6d4c41;
+  overflow: hidden;
+}
+
+.help-section-header {
+  width: 100%;
+  padding: 1.5rem;
+  background: none;
+  border: none;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.help-section-header:hover {
+  background-color: rgba(109, 76, 65, 0.05);
+}
+
+.help-section-header.active {
+  background-color: rgba(109, 76, 65, 0.1);
+}
+
+.section-icon {
+  font-size: 1.5rem;
+  color: #6d4c41;
+}
+
+.help-section-header h2 {
+  margin: 0;
+  color: #6d4c41;
+  font-size: 1.3rem;
+  font-family: '"The Seasons", serif';
+}
+
+.help-section-content {
+  padding: 1.5rem;
+  border-top: 1px solid #6d4c41;
+  color: #666;
+}
+
+.help-section-content h3 {
+  color: #6d4c41;
+  margin: 1.5rem 0 1rem;
+  font-size: 1.2rem;
+}
+
+.help-section-content h3:first-child {
+  margin-top: 0;
+}
+
+.help-section-content p {
+  line-height: 1.6;
+  margin-bottom: 1rem;
+}
+
+.help-section-content ul,
+.help-section-content ol {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.5rem;
+}
+
+.help-section-content li {
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+.faq-item {
+  margin-bottom: 1.5rem;
+}
+
+.faq-item h4 {
+  color: #6d4c41;
+  margin-bottom: 0.5rem;
+  font-size: 1.1rem;
+}
+
+.contact-support {
+  background-color: #fff0e2;
+  padding: 2rem;
+  border-radius: 14px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border: 1px solid #6d4c41;
+  text-align: center;
+}
+
+.contact-support h2 {
+  color: #6d4c41;
+  margin-bottom: 1rem;
+  font-size: 1.8rem;
+  font-family: '"The Seasons", serif';
+}
+
+.contact-methods {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.contact-method {
+  padding: 1.5rem;
+  background-color: #f5f0e6;
+  border-radius: 10px;
+  border: 1px solid #6d4c41;
+}
+
+.contact-method h3 {
+  color: #6d4c41;
+  margin-bottom: 1rem;
+  font-size: 1.2rem;
+}
+
+.contact-method p {
+  color: #666;
+  margin: 0.5rem 0;
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .help-container {
+    padding: 1rem;
+  }
+
+  .help-container h1 {
+    font-size: 2rem;
+  }
+
+  .help-section-header {
+    padding: 1rem;
+  }
+
+  .help-section-content {
+    padding: 1rem;
+  }
+
+  .contact-methods {
+    grid-template-columns: 1fr;
+  }
+} 
