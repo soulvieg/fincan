@@ -16,6 +16,7 @@ import ProfileSettings from "./pages/ProfileSettings";
 import ProductsPage from "./pages/ProductPage";
 import ProductDetailPage from "./pages/ProductDetailPage";
 import AboutUs from "./components/AboutUs";
+import Legal from "./pages/Legal";
 
 // Contexts
 import { CartProvider } from "./contexts/CartContext";
@@ -108,6 +109,7 @@ const App: React.FC = () => {
                       <Route path="/login-user" element={<LoginUser />} />
                       <Route path="/signup-user" element={<SignupUser />} />
                       <Route path="/about" element={<AboutUs />} />
+                      <Route path="/legal" element={<Legal />} />
                       <Route
                         path="/profile-settings"
                         element={<ProfileSettings />}
