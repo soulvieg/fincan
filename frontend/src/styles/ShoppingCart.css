@@ -1,43 +1,59 @@
 .shopping-cart {
-  max-width: 400px;
-  margin: auto;
-  padding: 20px;
-  border: 1px solid #ddd;
-  border-radius: 10px;
-  background: #cfcccc;
+  max-width: 800px;
+  margin: 2rem auto;
+  padding: 2rem;
+  border: 2px solid #e4d4b4;
+  border-radius: 15px;
+  background: #f5f0e6;
   text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
 }
 
 .shopping-cart ul {
   list-style: none;
   padding: 0;
+  margin: 1.5rem 0;
 }
 
 .shopping-cart li {
-  margin: 10px 0;
+  margin: 1.5rem 0;
+  padding: 1rem;
   display: flex;
   justify-content: space-between;
   align-items: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
 }
 
 .cart-item-img {
-  width: 50px;
-  height: 50px;
-  margin-right: 10px;
-  border-radius: 5px;
+  width: 80px;
+  height: 80px;
+  margin-right: 1.5rem;
+  border-radius: 8px;
+  object-fit: cover;
 }
 
 .shopping-cart button {
-  padding: 5px 10px;
-  background: #6b3503;
+  padding: 0.8rem 1.5rem;
+  background: #55b2a2;
   color: white;
   border: none;
   cursor: pointer;
-  border-radius: 5px;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.shopping-cart button:hover {
+  background-color: #4a756e;
 }
 
 .shopping-cart h3 {
-  margin-top: 15px;
+  margin: 1.5rem 0;
+  font-size: 1.8rem;
+  color: #6b3503;
+  font-weight: 600;
 }
 
 /* New Header styles */
@@ -129,7 +145,7 @@
 }
 
 .clear-order-history-button {
-  background-color: #6b3503; /* Tomato color */
+  background-color: #6b3503;
   color: white;
   padding: 10px 20px;
   border: none;
@@ -193,13 +209,15 @@
 
 /* Button styling to match your theme */
 .btn-outline-danger {
-  color: #9e2a2b;
-  border-color: #9e2a2b;
+  color: #dc3545;
+  border-color: #dc3545;
+  background-color: transparent;
 }
 
 .btn-outline-danger:hover {
-  background-color: #9e2a2b;
+  background-color: #dc3545;
   color: white;
+  border-color: #dc3545;
 }
 
 /* Table styling */
@@ -251,4 +269,19 @@
   object-fit: cover;
   margin-right: 10px;
   border-radius: 4px;
+}
+
+.shopping-cart button.remove-button {
+  background: #dc3545;
+  color: white;
+  padding: 0.8rem 1.5rem;
+  border: none;
+  cursor: pointer;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.shopping-cart button.remove-button:hover {
+  background-color: #c82333;
 }
