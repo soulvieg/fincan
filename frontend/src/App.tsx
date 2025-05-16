@@ -43,9 +43,6 @@ const MainStore: React.FC = () => (
     </div>
     <div className="mt-auto py-4 border-top">
       <div className="container d-flex justify-content-center gap-2">
-        <Link to="/contact" className="text-decoration-underline text-dark d-flex align-items-center gap-1">
-          Contact
-        </Link>
         <Link to="/help" className="text-decoration-underline text-dark d-flex align-items-center gap-1">
           Help
         </Link>
