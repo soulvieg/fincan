@@ -208,7 +208,7 @@
 /* Add to cart notification styles */
 .add-to-cart-notification {
   position: fixed;
-  top: 20px;
+  top: 78px;
   right: 20px;
   background-color: #4a756e; /* Match your theme color */
   color: white;
