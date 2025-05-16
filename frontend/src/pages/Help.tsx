@@ -1,9 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import '../styles/Help.css';
 import { FaShoppingCart, FaShippingFast, FaExchangeAlt, FaQuestionCircle, FaUserCircle } from 'react-icons/fa';
 
 const Help: React.FC = () => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
 
   const toggleSection = (section: string) => {
     setActiveSection(activeSection === section ? null : section);

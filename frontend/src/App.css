@@ -407,3 +407,7 @@ body {
   background-color: #e53935;
   border-color: #e53935;
 }
+
+.login-btn:hover {
+  background-color: rgba(245, 240, 230, 0.1) !important;
+}

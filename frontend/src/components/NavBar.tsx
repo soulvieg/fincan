@@ -141,11 +141,11 @@ const NavBar: React.FC = () => {
             ) : (
               <Link
                 to="/login-user"
-                className="btn btn-outline-light ms-3"
+                className="btn btn-outline-light ms-3 login-btn"
                 style={{
                   borderRadius: "10px",
                   color: "#f5f0e6",
-                  borderColor: "#f5f0e6",
+                  borderColor: "#f5f0e6"
                 }}
               >
                 Log in
