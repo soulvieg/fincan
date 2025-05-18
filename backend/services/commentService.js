@@ -1,11 +1,11 @@
 const Review = require("../models/Reviews"); // Import the Reviews model
-
+const Comment = require("../models/Comment");
 async function approveComment(commentId) {
   try {
-    const comment = await Review.findByPk(commentId);
+    const comment = await Comment.findByPk(commentId);
     if (!comment) throw new Error("Comment not found");
 
-    comment.status = "Approved";
+    comment.approval = true;
     await comment.save();
 
     return { success: true, message: "Comment approved", comment };
@@ -17,10 +17,10 @@ async function approveComment(commentId) {
 
 async function rejectComment(commentId) {
   try {
-    const comment = await Review.findByPk(commentId);
+    const comment = await Comment.findByPk(commentId);
     if (!comment) throw new Error("Comment not found");
 
-    comment.status = "Rejected";
+    comment.approval = false;
     await comment.save();
 
     return { success: true, message: "Comment rejected", comment };

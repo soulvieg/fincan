@@ -4,6 +4,8 @@ const {
     addRatingToProduct,
     reviewComment,
     getApprovedCommentsForProduct,
+    getPendingComments,
+    getComments,
   } = require("../services/reviewService");
   const { hasUserPurchasedProduct } = require("../services/orderService");
   /**
@@ -40,7 +42,7 @@ const {
       const { customer_id, rating } = req.body;
       
       if (!customer_id || typeof rating === "undefined") {
-        return res.status(400).json({ message: "userId and rating are required." });
+        return res.status(400).json({ message: "customer id and rating are required." });
       }
       console.log("Comes here. 2");
       const new_rating = await addRatingToProduct(productId, customer_id, rating);
@@ -95,10 +97,45 @@ async function getApprovedCommentsController(req, res) {
   }
 }
   
+/**
+ * Controller to get all pending comments across products
+ * @route GET /api/products/comments/pending
+ */
+async function getPendingCommentsController(req, res) {
+  try {
+    const comments = await getPendingComments();
+    return res.status(200).json({
+      comments,
+    });
+  } catch (error) {
+    console.error("Error fetching pending comments:", error);
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+  /**
+ * Controller to get all approved comments for a product
+ * @route GET /api/products/comments/all
+ */
+async function getCommentsController(req, res) {
+  try {
+    const comments = await getComments();
+    return res.status(200).json({
+      comments,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+  
+
+
   module.exports = {
     addCommentController,
     addRatingController,
     reviewCommentController,
     getApprovedCommentsController,
+    getPendingCommentsController,
+    getCommentsController,
   };
   

@@ -5,6 +5,8 @@ const {
   addRatingController,
   reviewCommentController,
   getApprovedCommentsController,
+  getPendingCommentsController,
+  getCommentsController,
 } = require("../controllers/reviewController");
 const authenticate = require("../middlewares/authenticate");
 
@@ -21,5 +23,11 @@ router.patch("/comments/:commentId/review", authenticate, reviewCommentControlle
 
 // GET /api/products/:productId/comments
 router.get("/:productId/comments", getApprovedCommentsController);
+
+// GET /api/products/comments/pending
+router.get("/comments/pending", getPendingCommentsController);
+
+// GET /api/products/comments/all
+router.get("/comments/all", getCommentsController);
 
 module.exports = router;

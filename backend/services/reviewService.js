@@ -1,6 +1,7 @@
 const Rating = require("../models/Rating");
 const Comment = require("../models/Comment");
 const Product = require("../models/Product");
+const User = require("../models/User");
 const { hasUserPurchasedProduct } = require("../services/orderService");
 
 /**
@@ -35,11 +36,11 @@ async function addCommentToProduct(productId, userId, commentText) {
       manager_id: null, // Manager not assigned initially
       customer_id: userId,
       text: commentText,
-      approval: false, // New comments need approval
+      approval: null, // New comments need approval
     });
   } else {
     comment.text = commentText;
-    comment.approval = false; // Reapproval needed after edit
+    comment.approval = null; // Reapproval needed after edit
     await comment.save();
   }
 
@@ -132,11 +133,42 @@ async function getApprovedCommentsForProduct(productId) {
   });
 }
 
+/**
+ * Fetch pending comments for a product.
+ * (For manager access)
+ * @returns {array} - List of pending comments
+ */
+async function getPendingComments() {
+  return Comment.findAll({
+    where: {
+      approval: false,
+    },
+    include: [
+      {
+        model: Product,
+        as:"Product",
+        attributes: ['product_id', 'name'],
+      },
+      {
+        model: User,
+        as: "Customer",
+        attributes: ['id', 'firstName','lastName'],
+      },
+    ],
+    
+  
+  });
+}
 
+async function getComments() {
+  return Comment.findAll({});
+}
 
 module.exports = {
   addCommentToProduct,
   addRatingToProduct,
   getApprovedCommentsForProduct,
+  getPendingComments,
   reviewComment,
+  getComments,
 };

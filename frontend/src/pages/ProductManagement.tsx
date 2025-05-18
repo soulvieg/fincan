@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Card, Button, Table } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
@@ -6,6 +6,8 @@ import CommentTable from "../components/CommentTable";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
+import { useReview } from "../contexts/ReviewContext";
+import axios from 'axios';
 
 interface Product {
   id: number;
@@ -162,15 +164,43 @@ const ProductManagement: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
-  const [comments, setComments] = useState<Comment[]>(mockComments);
+  const [comments, setComments] = useState<Comment[]>([]);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showAddProductModal, setShowAddProductModal] =
     useState<boolean>(false);
   const [showAddCategoryModal, setShowAddCategoryModal] =
     useState<boolean>(false);
+    const { approveComment, rejectComment } = useReview();
 
-  // Function to handle scrolling to sections
+    useEffect(() => {
+      const fetchComments = async () => {
+        try {
+          const response = await fetch('http://localhost:5001/api/products/comments/all');
+          const data = await response.json();
+          // Normalize backend response to match the Comment interface
+          const normalizedComments = data.comments.map((c: any) => ({
+            id: c.comment_id,
+            productId: c.product_id,
+            customerId: c.customer_id,
+            product: c.product || 'Unknown Product', // fallback if not included
+            user: c.user || 'Anonymous',             // fallback if not included
+            comment: c.text,
+            rating: c.rating || 0,
+            status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
+          }));
+          
+          setComments(normalizedComments); // Assuming setComments exists in your component state
+        } catch (error) {
+          console.error('Failed to fetch comments:', error);
+        }
+      };
+      
+    
+      fetchComments();
+    }, []);
+    
+    // Function to handle scrolling to sections
   const scrollToSection = (element: HTMLDivElement | null) => {
     if (element) {
       element.scrollIntoView({ behavior: "smooth" });
@@ -215,31 +245,27 @@ const ProductManagement: React.FC = () => {
 
   // Handlers for approving/rejecting comments
   const handleApproveComment = async (commentId: number) => {
+    console.log("eeake");
     try {
-      const res = await fetch(`/api/products/comments/${commentId}/approve`, {
-        method: "PUT",
-      });
-      if (!res.ok) throw new Error("Failed to approve comment");
-      const { comment: updatedComment } = await res.json();
-      setComments(prev =>
-        prev.map(c => (c.id === commentId ? updatedComment : c))
+      const updatedComment = await approveComment(commentId);
+      if (!updatedComment) throw new Error("Failed to approve comment");
+      setComments((prev) =>
+        prev!.map((c) => (c.id === commentId ? { ...c, status: "Approved" } : c))
       );
     } catch (err) {
-      console.error(err);
+      console.error("Approve error:", err);
     }
   };
+  
   const handleRejectComment = async (commentId: number) => {
     try {
-      const res = await fetch(`/api/products/comments/${commentId}/reject`, {
-        method: "PUT",
-      });
-      if (!res.ok) throw new Error("Failed to reject comment");
-      const { comment: updatedComment } = await res.json();
-      setComments(prev =>
-        prev.map(c => (c.id === commentId ? updatedComment : c))
+      const updatedComment = await rejectComment(commentId);
+      if (!updatedComment) throw new Error("Failed to reject comment");
+      setComments((prev) =>
+        prev!.map((c) => (c.id === commentId ? { ...c, status: "Rejected" } : c))
       );
     } catch (err) {
-      console.error(err);
+      console.error("Reject error:", err);
     }
   };
 
@@ -378,16 +404,16 @@ const ProductManagement: React.FC = () => {
             />
           </div>
 
-          {/* Comments Section */}
-          <div ref={setCommentsElement} className="mb-5">
-            <CommentTable
-              comments={comments}
-              onApprove={handleApproveComment}
-              onReject={handleRejectComment}
-            />
-          </div>
-        </Container>
+      {/* Comments Section */}
+      <div ref={setCommentsElement} className="mb-5">
+        <CommentTable
+          comments={comments || []}
+          onApprove={handleApproveComment}
+          onReject={handleRejectComment}
+        />
       </div>
+    </Container>
+    </div>
     </>
   );
 };

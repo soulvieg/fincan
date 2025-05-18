@@ -1,5 +1,5 @@
 // src/pages/ProductDetailPage.tsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import {
   Container,
@@ -25,6 +25,8 @@ import StarIcon from "@mui/icons-material/Star";
 import { useProductContext } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
 import { useWishlist } from "../contexts/WishlistContext";
+import { useReview } from "../contexts/ReviewContext";
+import { useUser } from "../contexts/UserContext";
 import StarComponent from "../components/StarComponent";
 import CommentComponent from "../components/CommentComponent";
 import "./ProductPage.css";
@@ -34,8 +36,11 @@ const ProductDetailPage: React.FC = () => {
   const [comments, setComments]       = useState<{ user: string; text: string }[]>([]);
   const [infoOpen, setInfoOpen]       = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [rating, setRating] = useState<number>(0);
 
+  
   const { id } = useParams<{ id: string }>();
+  const { user } = useUser();
   const {
     products,
     updateRating,
@@ -43,6 +48,9 @@ const ProductDetailPage: React.FC = () => {
   } = useProductContext();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
+  const { addComment, addRating, getApprovedComments } = useReview(); 
+  
+
   const navigate = useNavigate();
 
   const product = products.find(
@@ -88,12 +96,33 @@ const ProductDetailPage: React.FC = () => {
     }, 10);
   };
 
-  const handleRatingChange = (newRating: number) => {
-    if (product) updateRating(product.product_id, newRating);
+  const handleRatingChange = async (newRating: number) => {
+    if (!product || !user || typeof user.id !== "number") return;
+    
+    try {
+      const ratingResponse = await addRating(product.product_id, user.id, newRating);
+      if (ratingResponse) {
+        setRating(ratingResponse.score);
+      }
+    } catch (error) {
+      console.error("Error submitting rating:", error);
+    }
   };
+  
 
-  const handleAddComment = (text: string) =>
-    setComments((prev) => [...prev, { user: "Anonymous", text }]);
+  const handleAddComment = async (text: string) => {
+    if (!product || !user || typeof user.id !== "number") return;
+  
+    try {
+      const newComment = await addComment(product.product_id, user.id, text);
+      if (newComment) {
+        setComments((prev) => [...prev, { user: user.name || "You", text: newComment.text }]);
+      }
+    } catch (error) {
+      console.error("Error adding comment:", error);
+    }
+  };
+  
 
   const handleWishlistToggle = () => {
     if (!product) return;
