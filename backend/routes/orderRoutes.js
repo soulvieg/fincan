@@ -1,14 +1,17 @@
 // backend/routes/orderRoutes.js
 const express = require("express");
-const { checkPurchaseController, placeOrderController } = require("../controllers/purchaseController");
-const authenticate = require("../middlewares/authenticate");
+const {
+  getOrdersController,
+  placeOrderController,
+  updateOrderStatusController,
+  cancelOrderController,
+} = require("../controllers/purchaseController");
 
 const router = express.Router();
 
-// GET /api/orders/check-purchase?userId=...&productId=...
-router.get("/check-purchase", checkPurchaseController);
-
-// POST /api/orders (requires login)
-router.post("/", authenticate, placeOrderController);
+router.get("/", getOrdersController);
+router.post("/", placeOrderController);
+router.patch("/:orderId/status", updateOrderStatusController);
+router.patch("/:orderId/cancel", cancelOrderController);
 
 module.exports = router;

@@ -1,7 +1,8 @@
+// src/contexts/OrderContext.tsx
 import React, { createContext, useState, useContext, useEffect } from "react";
-import { useUser } from "./UserContext";
+import axios from "axios";
 
-// Define the order interface
+// ——— Interfaces ———
 export interface OrderItem {
   productId: number;
   name: string;
@@ -16,7 +17,7 @@ export interface Order {
   date: string;
   items: OrderItem[];
   total: number;
-  status: "Processing" | "In-Transit" | "Delivered" | "Cancelled";
+  status: "processing" | "in-transit" | "delivered" | "cancelled";
   address: string;
   customer: string;
   refundStatus?: "Waiting for Refund" | "Refunded" | "Refund Denied" | null;
@@ -24,11 +25,10 @@ export interface Order {
   daysLeft?: number;
 }
 
+// ——— Context Type ———
 interface OrderContextType {
   orders: Order[];
-  addOrder: (
-    order: Omit<Order, "id" | "status" | "customerId" | "customer" | "address">
-  ) => void;
+  addOrder: (orderData: { items: OrderItem[] }) => void;
   updateOrderStatus: (orderId: number, status: Order["status"]) => void;
   cancelOrder: (orderId: number) => void;
   requestRefund: (orderId: number) => void;
@@ -41,140 +41,93 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const { user } = useUser();
-  const [allOrders, setAllOrders] = useState<Order[]>(() => {
-    const storedOrders = localStorage.getItem("orders");
-    return storedOrders ? JSON.parse(storedOrders) : [];
-  });
+  const [allOrders, setAllOrders] = useState<Order[]>([]);
 
-  // Add this filtered orders variable after the state declaration:
-  const orders = user
-    ? allOrders.filter((order) => order.customerId === user.id)
-    : [];
-
+  // 1️⃣ Fetch all orders from backend once on mount
   useEffect(() => {
-    localStorage.setItem("orders", JSON.stringify(allOrders));
-  }, [allOrders]);
+    axios
+      .get<Order[]>("/api/orders")
+      .then((res) => setAllOrders(res.data))
+      .catch((err) => console.error("Failed to load orders:", err));
+  }, []);
 
-  // Replace the current getNextOrderId function with this:
-  const getNextOrderId = () => {
-    if (!user) return 1;
-
-    // Filter orders for the current user only
-    const userOrders = allOrders.filter(
-      (order) => order.customerId === user.id
-    );
-
-    // If the user has no orders, start with 1
-    if (userOrders.length === 0) return 1;
-
-    // Otherwise, find the max ID among this user's orders and add 1
-    return Math.max(...userOrders.map((order) => order.id)) + 1;
-  };
-
-  const addOrder = (
-    orderData: Omit<
-      Order,
-      "id" | "status" | "customerId" | "customer" | "address"
-    >
-  ) => {
-    if (!user) return;
-
-    // Ensure all order items have both id and productId
-    const orderItems = orderData.items.map((item) => ({
-      ...item,
-      // If productId doesn't exist, use id as fallback (but this shouldn't happen)
-      productId: item.productId,
+  // 2️⃣ Place a new order
+  const addOrder = (orderData: { items: OrderItem[] }) => {
+    const products = orderData.items.map(({ productId, quantity }) => ({
+      productId,
+      quantity,
     }));
 
-    setAllOrders((prevOrders) => {
-      const nextId = getNextOrderId();
-      const newOrder: Order = {
-        ...orderData,
-        items: orderItems,
-        id: nextId,
-        customerId: user.id || 0,
-        status: "Processing",
-        customer: `${user.first_name} ${user.last_name}`,
-        address: user.address || "No address provided",
-      };
-      return [...prevOrders, newOrder];
-    });
-  };
-
-  const updateOrderStatus = (orderId: number, status: Order["status"]) => {
-    setAllOrders((prevOrders) =>
-      prevOrders.map((order) => {
-        if (order.id === orderId) {
-          const updatedOrder = { ...order, status };
-
-          // If status is changing to Delivered, set the delivery date
-          if (status === "Delivered" && order.status !== "Delivered") {
-            updatedOrder.deliveryDate = new Date().toISOString();
-          }
-
-          return updatedOrder;
-        }
-        return order;
+    axios
+      .post<Order>("/api/orders", { customer_id: 1, products }) // use a real customer_id if you have one
+      .then((res) => {
+        setAllOrders((prev) => [...prev, res.data]);
       })
-    );
+      .catch((err) => console.error("Place order failed:", err));
   };
 
-  // Replace the cancelOrder function with:
-  const cancelOrder = (orderId: number) => {
-    // Only allow cancellation if the order belongs to the current user
-    if (user) {
-      const orderToCancel = allOrders.find(
-        (order) => order.id === orderId && order.customerId === user.id
-      );
-
-      if (orderToCancel) {
-        setAllOrders((prevOrders) =>
-          prevOrders.map((order) =>
-            order.id === orderId
-              ? {
-                  ...order,
-                  status: "Cancelled",
-                  refundStatus: "Waiting for Refund",
-                }
-              : order
-          )
-        );
-      }
-    }
-  };
-  const requestRefund = (orderId: number) => {
-    setAllOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId
-          ? { ...order, refundStatus: "Waiting for Refund" }
-          : order
+  // 3️⃣ Update order status
+  const updateOrderStatus = (orderId: number, status: Order["status"]) => {
+    axios
+      .patch<Order>(`/api/orders/${orderId}/status`, { status })
+      .then((res) =>
+        setAllOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? res.data : o))
+        )
       )
-    );
+      .catch((err) => console.error("Update status failed:", err));
   };
 
+  // 4️⃣ Cancel an order
+  const cancelOrder = (orderId: number) => {
+    axios
+      .patch<Order>(`/api/orders/${orderId}/cancel`)
+      .then((res) =>
+        setAllOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? res.data : o))
+        )
+      )
+      .catch((err) => console.error("Cancel failed:", err));
+  };
+
+  // 5️⃣ Request refund
+  const requestRefund = (orderId: number) => {
+    axios
+      .patch<Order>(`/api/orders/${orderId}/refund-request`)
+      .then((res) =>
+        setAllOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? res.data : o))
+        )
+      )
+      .catch((err) => console.error("Refund request failed:", err));
+  };
+
+  // 6️⃣ Update refund status
   const updateRefundStatus = (
     orderId: number,
-    status: Order["refundStatus"]
+    refundStatus: Order["refundStatus"]
   ) => {
-    setAllOrders((prevOrders) =>
-      prevOrders.map((order) =>
-        order.id === orderId ? { ...order, refundStatus: status } : order
+    axios
+      .patch<Order>(`/api/orders/${orderId}/refund-status`, { refundStatus })
+      .then((res) =>
+        setAllOrders((prev) =>
+          prev.map((o) => (o.id === orderId ? res.data : o))
+        )
       )
-    );
+      .catch((err) => console.error("Updating refund status failed:", err));
   };
 
+  // 7️⃣ Calculate days left for refund window
   const calculateDaysLeft = (order: Order) => {
     if (!order.deliveryDate) return 0;
-
-    const deliveryDate = new Date(order.deliveryDate);
-    const currentDate = new Date();
-    const timeDiff =
-      deliveryDate.getTime() + 30 * 24 * 60 * 60 * 1000 - currentDate.getTime();
-    const daysLeft = Math.ceil(timeDiff / (1000 * 3600 * 24));
-
-    return Math.max(0, daysLeft);
+    const deliver = new Date(order.deliveryDate).getTime();
+    const now = Date.now();
+    const msLeft = deliver + 30 * 24 * 3600e3 - now;
+    return Math.max(0, Math.ceil(msLeft / 86400e3));
   };
+
+  // 8️⃣ Expose all orders (no filtering)
+  const orders = allOrders;
 
   return (
     <OrderContext.Provider
@@ -194,9 +147,7 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const useOrders = () => {
-  const context = useContext(OrderContext);
-  if (!context) {
-    throw new Error("useOrders must be used within an OrderProvider");
-  }
-  return context;
+  const ctx = useContext(OrderContext);
+  if (!ctx) throw new Error("useOrders must be used within OrderProvider");
+  return ctx;
 };
