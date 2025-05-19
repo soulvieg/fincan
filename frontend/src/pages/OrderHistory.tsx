@@ -52,18 +52,18 @@ const OrderHistory: React.FC = () => {
   const generateAndDownloadPDF = async (order: Order) => {
     const itemsWithBase64 = await Promise.all(
       order.items.map(async (item) => {
-        let base64Image = item.image;
+        let base64Image = "";
         try {
           base64Image = await toBase64(item.image);
         } catch (e) {
-          console.warn(
-            "Failed to convert image, using original URL:",
-            item.image
-          );
+          console.warn("Failed to convert image:", item.image);
+          // Optionally, set a fallback image
+          base64Image = ""; // or a default base64 image
         }
         return { ...item, image: base64Image };
       })
     );
+
     const receiptHTML = `
 <div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; color: #333; padding: 14px 8px; background-color: #f5f5f5;">
   <div style="max-width: 600px; margin: auto; background-color: #fff;">
@@ -85,9 +85,12 @@ const OrderHistory: React.FC = () => {
           <tbody>
             <tr style="vertical-align: top; height: 62px;">
               <td style="padding: 24px 8px 0 4px; display: inline-block; width: max-content;">
-                <img style="height: 64px;" src="${
-                  item.image
-                }" alt="item" height="64px">
+              ${
+                item.image
+                  ? `<img style="height: 64px;" src="${item.image}" alt="item" height="64px">`
+                  : `<div style="height: 64px; width: 64px; background: #ccc; display: inline-block;"></div>`
+              }
+
               </td>
               <td style="padding: 24px 8px 0 8px; width: 100%;">
                 <div>${item.name}</div>
