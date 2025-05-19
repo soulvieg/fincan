@@ -1,11 +1,14 @@
-import React, { useEffect } from "react";
+import React from "react";
 import { useOrders, Order } from "../contexts/OrderContext";
-import { Button, Card, Table, Badge } from "react-bootstrap";
+import { Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
 import "../styles/ShoppingCart.css"; // Use the existing CSS file
+import html2pdf from "html2pdf.js";
+import { useUser } from "../contexts/UserContext"; // get user name
 
 const OrderHistory: React.FC = () => {
+  const { user } = useUser(); // To access first and last name
   const { orders, cancelOrder, requestRefund } = useOrders();
   const navigate = useNavigate();
   console.log(
@@ -32,6 +35,123 @@ const OrderHistory: React.FC = () => {
   };
   const isRefundButtonDisabled = (order: Order) => {
     return order.refundStatus !== null && order.refundStatus !== undefined;
+  };
+  const toBase64 = (url: string): Promise<string> =>
+    fetch(url, { mode: "cors" })
+      .then((res) => res.blob())
+      .then(
+        (blob) =>
+          new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          })
+      );
+
+  const generateAndDownloadPDF = async (order: Order) => {
+    const itemsWithBase64 = await Promise.all(
+      order.items.map(async (item) => {
+        let base64Image = item.image;
+        try {
+          base64Image = await toBase64(item.image);
+        } catch (e) {
+          console.warn(
+            "Failed to convert image, using original URL:",
+            item.image
+          );
+        }
+        return { ...item, image: base64Image };
+      })
+    );
+    const receiptHTML = `
+<div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; color: #333; padding: 14px 8px; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: auto; background-color: #fff;">
+    <div style="border-top: 6px solid #458500; padding: 16px;">
+      <span style="font-size: 16px; vertical-align: middle; border-left: 1px solid #333; padding-left: 8px;">
+        <strong>Thank You for Your Order</strong>
+      </span>
+    </div>
+    <div style="padding: 0 16px;">
+      <p>We'll send you tracking information when the order ships.</p>
+      <div style="text-align: left; font-size: 14px; padding-bottom: 4px; border-bottom: 2px solid #333;">
+        <strong>Order #${order.id}</strong>
+      </div>
+
+      ${itemsWithBase64
+        .map(
+          (item) => `
+        <table style="width: 100%; border-collapse: collapse; height: 62px;">
+          <tbody>
+            <tr style="vertical-align: top; height: 62px;">
+              <td style="padding: 24px 8px 0 4px; display: inline-block; width: max-content;">
+                <img style="height: 64px;" src="${
+                  item.image
+                }" alt="item" height="64px">
+              </td>
+              <td style="padding: 24px 8px 0 8px; width: 100%;">
+                <div>${item.name}</div>
+                <div style="font-size: 14px; color: #888; padding-top: 4px;">QTY: ${
+                  item.quantity
+                }</div>
+              </td>
+              <td style="padding: 24px 4px 0 0; white-space: nowrap;"><strong>$${item.price.toFixed(
+                2
+              )}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      `
+        )
+        .join("")}
+
+      <div style="padding: 24px 0;">
+        <div style="border-top: 2px solid #333;">&nbsp;</div>
+      </div>
+
+      <table style="border-collapse: collapse; width: 100%; text-align: right;">
+        <tbody>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td>Shipping</td>
+            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
+          </tr>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td>Taxes</td>
+            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
+          </tr>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td style="border-top: 2px solid #333;">
+              <strong style="white-space: nowrap;">Order Total</strong>
+            </td>
+            <td style="padding: 16px 8px; border-top: 2px solid #333; white-space: nowrap;">
+              <strong>$${order.total.toFixed(2)}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = receiptHTML;
+    document.body.appendChild(tempDiv);
+
+    const filename = `invoice_${user?.first_name || "user"}_${order.id}.pdf`;
+
+    setTimeout(() => {
+      html2pdf()
+        .set({ filename })
+        .from(tempDiv)
+        .save()
+        .then(() => {
+          document.body.removeChild(tempDiv);
+        });
+    }, 200);
   };
 
   const getStatusBadge = (status: Order["status"]) => {
@@ -225,6 +345,14 @@ const OrderHistory: React.FC = () => {
               </Table>
               <div className="mt-3">
                 <strong>Shipping Address:</strong> {order.address}
+              </div>
+              <div className="mt-2">
+                <button
+                  onClick={() => generateAndDownloadPDF(order)}
+                  className="clear-order-history-button"
+                >
+                  Download Invoice
+                </button>
               </div>
             </div>
           </div>

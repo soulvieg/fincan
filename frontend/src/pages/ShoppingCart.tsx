@@ -12,7 +12,6 @@ const ShoppingCart: React.FC = () => {
   const { user } = useUser();
   const { addOrder } = useOrders();
   const [message, setMessage] = useState<string | null>(null);
-  const [receipt, setReceipt] = useState<any | null>(null);
 
   // Init EmailJS once
   useEffect(() => {
@@ -71,117 +70,6 @@ const ShoppingCart: React.FC = () => {
     return true;
   };
 
-  const showReceiptPopup = (receiptData: any) => {
-    const popup = window.open("", "Receipt", "width=600,height=800");
-    if (popup) {
-      popup.document.write(`
-        <html>
-          <head>
-            <title>Receipt</title>
-            <style>
-              @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&display=swap');
-              
-              body {
-                font-family: Arial, sans-serif;
-                margin: 20px;
-                background-color: #6d4c41;
-                color: #f5f0e6;
-              }
-              
-              .brand {
-                font-family: "The Seasons", "Playfair Display", serif;
-                color: #f5f0e6;
-                font-size: 2rem;
-                margin-bottom: 20px;
-              }
-              
-              h2 {
-                text-align: center;
-                color: #f5f0e6;
-              }
-              
-              h3 {
-                text-align: left;
-                color: #f5f0e6;
-                margin-top: 30px;
-                margin-bottom: 15px;
-              }
-              
-              ul {
-                list-style: none;
-                padding: 0;
-              }
-              
-              li {
-                display: flex;
-                align-items: center;
-                margin-bottom: 10px;
-                padding: 10px;
-                background: #7d5c51;
-                border-radius: 8px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-              }
-              
-              img {
-                margin-right: 15px;
-                border-radius: 4px;
-              }
-              
-              .cost-summary {
-                margin-top: 20px;
-                padding: 15px;
-                background: #7d5c51;
-                border-radius: 8px;
-                box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-              }
-              
-              .total {
-                font-size: 2rem;
-                font-weight: bold;
-                text-align: center;
-                margin-top: 40px;
-                margin-bottom: 30px;
-                color: #f5f0e6;
-              }
-              
-              p {
-                color: #f5f0e6;
-              }
-            </style>
-          </head>
-          <body>
-            <div class="brand">Fincan</div>
-            <h2>Receipt</h2>
-            <p>Order ID: ${receiptData.order.order_id}</p>
-            <h3>Items:</h3>
-            <ul>
-              ${receiptData.orderItems
-                .map(
-                  (item: any) => `
-                <li>
-                  <img src="${item.image}" width="80" height="80" />
-                  ${item.name} - ${item.quantity} x $${formatCurrency(
-                    item.price
-                  )}
-                </li>
-              `
-                )
-                .join("")}
-            </ul>
-            <div class="cost-summary">
-              <p>Shipping: $0.00</p>
-              <p>Tax: $0.00</p>
-            </div>
-            <div class="total">
-              Total: $${formatCurrency(receiptData.order.total_amount)}
-            </div>
-          </body>
-        </html>
-      `);
-      popup.document.close();
-    }
-  };
-
   const handleCheckout = async () => {
     if (cart.length === 0) return;
     if (!user) {
@@ -213,7 +101,6 @@ const ShoppingCart: React.FC = () => {
         items: cart,
         total: calculateTotal(),
       });
-      setReceipt({ orderItems: cart, order });
       clearCart();
 
       // 3) Send EmailJS confirmation
@@ -240,7 +127,6 @@ const ShoppingCart: React.FC = () => {
       );
 
       // 4) Show receipt and success message
-      showReceiptPopup({ orderItems: cart, order });
       setMessage("Thank you for your purchase! Confirmation email sent.");
     } catch (error: any) {
       console.error("[Checkout] Error:", error.response || error);
