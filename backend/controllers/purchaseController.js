@@ -7,7 +7,25 @@ const { placeOrder } = require("../services/orderService");
  */
 async function getOrdersController(req, res) {
   try {
-    const [rows] = await sequelize.query(`
+    const { startDate, endDate } = req.query;
+
+    let whereClause = "";
+    const replacements = [];
+
+    if (startDate) {
+      whereClause += " AND o.order_date >= ?";
+      replacements.push(startDate);
+    }
+
+    if (endDate) {
+      const inclusiveEndDate = new Date(endDate);
+      inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1);
+      whereClause += " AND o.order_date < ?";
+      replacements.push(inclusiveEndDate.toISOString().slice(0, 10));
+    }
+
+    const [rows] = await sequelize.query(
+      `
       SELECT
         o.order_id      AS id,
         o.customer_id   AS customerId,
@@ -24,8 +42,11 @@ async function getOrdersController(req, res) {
       FROM Orders o
       JOIN Customers u ON u.customer_id = o.customer_id
       LEFT JOIN Products p ON p.product_id = o.product_id
+      WHERE 1=1 ${whereClause}
       ORDER BY o.order_id ASC, p.product_id ASC;
-    `);
+    `,
+      { replacements }
+    );
 
     const orders = rows.reduce((acc, row) => {
       let ord = acc.find((o) => o.id === row.id);
@@ -70,9 +91,9 @@ async function placeOrderController(req, res) {
       !Array.isArray(products) ||
       products.length === 0
     ) {
-      return res
-        .status(400)
-        .json({ message: "customer_id and at least one product are required." });
+      return res.status(400).json({
+        message: "customer_id and at least one product are required.",
+      });
     }
 
     const { order_id, total_amount } = await placeOrder({
@@ -193,6 +214,23 @@ async function cancelOrderController(req, res) {
     return updateOrderStatusController(req, res);
   } catch (err) {
     console.error("cancelOrderController error:", err);
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+/**
+ * PATCH /api/orders/:orderId/mark-delivered
+ */
+async function markOrderDeliveredController(req, res) {
+  try {
+    const { orderId } = req.params;
+
+    // ✅ Inject delivery status
+    req.body.status = "delivered";
+
+    return updateOrderStatusController(req, res);
+  } catch (err) {
+    console.error("markOrderDeliveredController error:", err);
     return res.status(500).json({ message: err.message });
   }
 }

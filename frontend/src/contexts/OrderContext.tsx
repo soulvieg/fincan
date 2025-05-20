@@ -1,5 +1,6 @@
 // src/contexts/OrderContext.tsx
 import React, { createContext, useState, useContext, useEffect } from "react";
+import { useUser } from "./UserContext";
 import axios from "axios";
 
 // ——— Interfaces ———
@@ -28,7 +29,7 @@ export interface Order {
 // ——— Context Type ———
 interface OrderContextType {
   orders: Order[];
-  addOrder: (orderData: { items: OrderItem[] }) => void;
+  addOrder: (order: Order) => void;
   updateOrderStatus: (orderId: number, status: Order["status"]) => void;
   cancelOrder: (orderId: number) => void;
   requestRefund: (orderId: number) => void;
@@ -41,6 +42,7 @@ const OrderContext = createContext<OrderContextType | undefined>(undefined);
 export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  const { user } = useUser();
   const [allOrders, setAllOrders] = useState<Order[]>([]);
 
   // 1️⃣ Fetch all orders from backend once on mount
@@ -52,18 +54,8 @@ export const OrderProvider: React.FC<{ children: React.ReactNode }> = ({
   }, []);
 
   // 2️⃣ Place a new order
-  const addOrder = (orderData: { items: OrderItem[] }) => {
-    const products = orderData.items.map(({ productId, quantity }) => ({
-      productId,
-      quantity,
-    }));
-
-    axios
-      .post<Order>("/api/orders", { customer_id: 1, products }) // use a real customer_id if you have one
-      .then((res) => {
-        setAllOrders((prev) => [...prev, res.data]);
-      })
-      .catch((err) => console.error("Place order failed:", err));
+  const addOrder = (order: Order) => {
+    setAllOrders((prev) => [...prev, order]);
   };
 
   // 3️⃣ Update order status
