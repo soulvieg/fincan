@@ -96,12 +96,8 @@ const ShoppingCart: React.FC = () => {
       });
 
       // 2) On success, update frontend state
-      const { order } = response.data;
-      addOrder({
-        date: new Date().toLocaleString(),
-        items: cart,
-        total: calculateTotal(),
-      });
+      const order = response.data;
+      addOrder(order);
       clearCart();
 
       // 3) Send EmailJS confirmation
