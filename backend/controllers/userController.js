@@ -10,19 +10,20 @@ const {
 // POST /api/users/signup
 async function signupController(req, res) {
   try {
-    const { firstName, lastName, email, homeAddress, password, userType } =
-      req.body;
+    const { firstName, lastName, email, homeAddress, phoneNumber, password, userType } = req.body;
     if (!firstName || !lastName || !email || !homeAddress || !password) {
       return res.status(400).json({
         message:
-          "All fields (firstName, lastName, email, homeAddress, password) are required.",
+          "All fields (firstName, lastName, email, homeAddress, phoneNumber, password) are required.",
       });
     }
+    if(!phoneNumber) console.log("Heck");
     const newUser = await registerUser({
       firstName,
       lastName,
       email,
       homeAddress,
+      phoneNumber,
       password,
       userType,
     });
@@ -34,6 +35,7 @@ async function signupController(req, res) {
         lastName: newUser.lastName,
         email: newUser.email,
         homeAddress: newUser.homeAddress,
+        phoneNumber: newUser.phoneNumber,
         userType: newUser.userType,
       },
     });
