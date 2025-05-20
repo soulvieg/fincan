@@ -33,7 +33,7 @@ User.hasMany(Comment,   { foreignKey: "manager_id" });
 Product.hasMany(Comment,{ foreignKey: "product_id" });
 Comment.belongsTo(User,   { foreignKey: "customer_id", as: "Customer" });
 Comment.belongsTo(User,   { foreignKey: "manager_id", as: "Manager" });
-Comment.belongsTo(Product,{ foreignKey: "product_id" });
+Comment.belongsTo(Product,{ foreignKey: "product_id" , as: "Product"});
 
 // Product ↔ Category
 Category.hasMany(Product, { foreignKey: "category_id" });

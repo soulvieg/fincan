@@ -20,10 +20,11 @@ interface CommentItemProps {
 
 const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject }) => {
   const [isHovering, setIsHovering] = useState(false);
-  
+  const [localStatus, setLocalStatus] = useState(comment.status);
   const getStatusStyle = (status: string) => {
     switch (status.toLowerCase()) {
       case 'approved':
+        console.log(status);
         return { color: '#28a745', fontWeight: 'bold' };
       case 'rejected':
         return { color: '#dc3545', fontWeight: 'bold' };
@@ -45,7 +46,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject 
   };
   
   // Disable actions if the comment is already approved or rejected
-  const isActionable = comment.status.toLowerCase() === 'pending';
+  const isActionable = localStatus.toLowerCase() === 'pending';
   
   return (
     <tr
@@ -67,8 +68,8 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject 
       <td className="text-center align-middle">{comment.user}</td>
       <td className="text-center align-middle">{comment.comment}</td>
       <td className="text-center align-middle" style={getRatingStyle(comment.rating)}>{comment.rating}/5</td>
-      <td className="text-center align-middle position-relative" style={getStatusStyle(comment.status)}>
-        {comment.status}
+      <td className="text-center align-middle position-relative" style={getStatusStyle(localStatus)}>
+        {localStatus}
         {isHovering && isActionable && (
           <div
             className={`action-buttons ${isHovering ? 'visible' : 'invisible'}`}
@@ -91,16 +92,18 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onApprove, onReject 
             <Button
               variant="outline-success"
               size="sm"
-              onClick={() => onApprove(comment.id)}
+              onClick={() => {setLocalStatus('Approved'); onApprove(comment.id)}}
               style={{ width: '32px', height: '32px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              
             >
               <FaCheck size={14}/>
             </Button>
             <Button
               variant="outline-danger"
               size="sm"
-              onClick={() => onReject(comment.id)}
+              onClick={() => {setLocalStatus('Rejected'); onReject(comment.id)}}
               style={{ width: '32px', height: '32px', padding: '0', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              
             >
               <FaTimes size={14}/>
             </Button>
