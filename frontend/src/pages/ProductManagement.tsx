@@ -47,6 +47,8 @@ interface Comment {
   status: string;
 }
 
+
+
 // Mock data for the page
 const mockProducts: Product[] = [
   {
@@ -186,11 +188,37 @@ const ProductManagement: React.FC = () => {
             product: c.product || 'Unknown Product', // fallback if not included
             user: c.user || 'Anonymous',             // fallback if not included
             comment: c.text,
-            rating: c.rating || 0,
+            rating: 2,
             status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
           }));
           
-          setComments(normalizedComments); // Assuming setComments exists in your component state
+          const commentsWithRatings = await Promise.all(
+            normalizedComments.map(async (comment: Comment) => {
+              try {
+                // Fetch the specific rating for this product+customer combination
+                const ratingRes = await axios.get(
+                  `http://localhost:5001/api/products/${comment.productId}/${comment.customerId}/rating`
+                );
+                if(comment.customerId == 11) console.log("Rating Response: ", ratingRes);
+                const commentRating = ratingRes.data.rating?.[0]?.score || 2;
+    
+                if(comment.customerId == 11) console.log("Retrieved score: ", commentRating);  // Debug log
+                // Assuming the response is an array and we want the first/latest rating
+                
+                if(comment.customerId == 11) {console.log("User Rating: ", commentRating)}
+                return {
+                  ...comment,
+                  rating: commentRating
+                };
+              } catch (error) {
+                console.error(`Failed to fetch rating for comment ${comment.id}:`, error);
+                return comment; // Return without rating if fetch fails
+              }
+            })
+          );
+          
+          
+          setComments(commentsWithRatings); // Assuming setComments exists in your component state
         } catch (error) {
           console.error('Failed to fetch comments:', error);
         }
@@ -200,6 +228,10 @@ const ProductManagement: React.FC = () => {
       fetchComments();
     }, []);
     
+    
+    
+    
+  
     // Function to handle scrolling to sections
   const scrollToSection = (element: HTMLDivElement | null) => {
     if (element) {
@@ -245,7 +277,6 @@ const ProductManagement: React.FC = () => {
 
   // Handlers for approving/rejecting comments
   const handleApproveComment = async (commentId: number) => {
-    console.log("eeake");
     try {
       const updatedComment = await approveComment(commentId);
       if (!updatedComment) throw new Error("Failed to approve comment");

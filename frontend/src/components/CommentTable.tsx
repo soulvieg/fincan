@@ -26,7 +26,7 @@ const CommentTable: React.FC<CommentTableProps> = ({ comments, onApprove, onReje
   useEffect(() => {
     setLocalComments(comments);
   }, [comments]);
-
+  
   const handleApprove = async (commentId: number) => {
     const updated = await approveComment(commentId);
     if (updated) {
@@ -66,7 +66,7 @@ const CommentTable: React.FC<CommentTableProps> = ({ comments, onApprove, onReje
                     </tr>
                     </thead>
                     <tbody>
-                    {comments.map(comment => (
+                    {localComments.map(comment => (
                         <CommentItem
                             key={comment.id}
                             comment={comment}

@@ -20,9 +20,12 @@ import React, {
     manager_id: number | null;
     createdAt: string;
     updatedAt: string;
+    Customer?: {
+      id: number;
+      firstName: string;
   }
-  
-  interface Rating {
+}
+interface Rating {
     id: number;
     score: number;
     customer_id: number;
@@ -47,6 +50,10 @@ import React, {
     getApprovedComments: (productId: number) => Promise<Comment[]>;
     approveComment: (commentId: number) => Promise<Comment | null>;
     rejectComment: (commentId: number) => Promise<Comment | null>;
+    getUsersRatingForProduct: (
+      productID: number,
+      customerID: number
+    ) => Promise<Rating[]>;
   }
   
   const ReviewContext = createContext<ReviewContextType | undefined>(undefined);
@@ -94,15 +101,30 @@ import React, {
     ): Promise<Comment[]> => {
       try {
         const res = await axios.get(`/api/products/${productId}/comments`);
+        console.log(res.data.comments);
         return res.data.comments;
       } catch (err) {
         console.error("Fetch comments error:", err);
         return [];
       }
     };
-  
+    
+    const getUsersRatingForProduct = async (
+      productID: number,
+      customerID: number
+    ): Promise<Rating[]> => {
+      try {
+        const res = await axios.get<Rating[]>(`/api/products/${productID}/${customerID}/rating`);
+        console.log(res.data[0].score);
+        return res.data;
+      } catch (err) {
+        console.error("Fetch comments error:", err);
+        return [];
+      }
+    };
+    
     // Approve Comment
-  const approveComment = async (commentId: number): Promise<Comment | null> => {
+    const approveComment = async (commentId: number): Promise<Comment | null> => {
     try {
       const res = await axios.put(`/api/products/comments/${commentId}/approve`);
       return res.data.comment;
@@ -123,9 +145,7 @@ import React, {
     }
   };
     
-    
-    
-    return (
+  return (
       <ReviewContext.Provider
         value={{
           addComment,
@@ -133,6 +153,7 @@ import React, {
           getApprovedComments,
           approveComment,
           rejectComment,
+          getUsersRatingForProduct,
         }}
       >
         {children}

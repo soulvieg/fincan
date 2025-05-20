@@ -48,7 +48,7 @@ const ProductDetailPage: React.FC = () => {
   } = useProductContext();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { addComment, addRating, getApprovedComments } = useReview(); 
+  const { addComment, addRating, getApprovedComments, getUsersRatingForProduct } = useReview(); 
   
 
   const navigate = useNavigate();
@@ -57,6 +57,26 @@ const ProductDetailPage: React.FC = () => {
     (p) => p.product_id === Number(id)
   );
 
+  useEffect(() => {
+    const fetchComments = async () => {
+      if (product) {
+        try {
+          const approvedComments = await getApprovedComments(product.product_id);
+          console.log(approvedComments);
+          setComments(
+            approvedComments.map((c) => ({
+              user: c.Customer?.firstName || `User #${c.customer_id}`,
+              text: c.text,
+            }))
+          );
+        } catch (err) {
+          console.error("Error fetching approved comments:", err);
+        }
+      }
+    };
+    fetchComments();
+  }, [product]);
+  
   const handleAddToCart = async () => {
     if (!product) return;
     const stock = product.quantity_in_stock;
@@ -137,6 +157,9 @@ const ProductDetailPage: React.FC = () => {
       });
   };
 
+  
+  
+  
   if (!product) {
     return (
       <Container maxWidth="lg" sx={{ mt: 4, textAlign: "center" }}>
