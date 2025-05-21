@@ -1,6 +1,6 @@
 // backend/controllers/purchaseController.js
 const sequelize = require("../config/db");
-const { placeOrder } = require("../services/orderService");
+const { placeOrder, cancelOrder } = require("../services/orderService");
 
 /**
  * GET /api/orders
@@ -200,17 +200,17 @@ async function updateOrderStatusController(req, res) {
   }
 }
 
-/**
- * PATCH /api/orders/:orderId/cancel
- */
+
 async function cancelOrderController(req, res) {
-  try {
-    const { orderId } = req.params;
-    await sequelize.query(
-      `UPDATE Orders SET order_status = 'cancelled' WHERE order_id = ?`,
-      { replacements: [orderId] }
-    );
-    // reuse status update logic to return full order
+   try {
+   const { orderId } = req.params;
+    // 1️⃣ run your service which restocks & marks cancelled
+    await cancelOrder(Number(orderId));
+
+    // 2️⃣ ensure updateOrderStatusController has a status to work with
+    req.body.status = "cancelled";
+
+    // 3️⃣ now fetch & return the updated order
     return updateOrderStatusController(req, res);
   } catch (err) {
     console.error("cancelOrderController error:", err);
