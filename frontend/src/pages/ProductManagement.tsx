@@ -112,8 +112,9 @@ const ProductManagement: React.FC = () => {
   useEffect(() => {
     const loadComments = async () => {
       try {
-        const resp = await fetch("/api/products/comments/all");
-        const data = await resp.json();
+        const resp = await fetch("http://localhost:5001/api/products/comments/all");
+        if (!resp.ok) throw new Error(`HTTP error! ${resp.status}`);
+        const data = await resp.clone().json(); // Clone before reading
         const norm: Comment[] = data.comments.map((c: any) => ({
           id: c.comment_id,
           productId: c.product_id,
@@ -122,7 +123,7 @@ const ProductManagement: React.FC = () => {
           user: c.user || "Anonymous",
           comment: c.text,
           rating: 2,
-          status: c.approval === null ? "Pending" : c.approval ? "Approved" : "Rejected",
+          status: c.approval === null ? "Pending" : (c.approval ? "Approved" : "Rejected"),
         }));
         const withScores = await Promise.all(
           norm.map(async (cmt) => {
