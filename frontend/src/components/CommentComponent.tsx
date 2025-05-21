@@ -4,6 +4,7 @@ import { Box, Typography, TextField, Button } from "@mui/material";
 interface Comment {
   user: string;
   text: string;
+  greyedOut?: boolean; 
 }
 
 interface CommentComponentProps {
@@ -31,16 +32,17 @@ const CommentComponent: React.FC<CommentComponentProps> = ({ comments, onAddComm
           key={index}
           sx={{
             mb: 2,
-            backgroundColor: "#fff",
+            backgroundColor: comment.greyedOut ? "#f5f5f5" : "#fff",
             p: 2,
             borderRadius: "10px",
             boxShadow: "0px 2px 5px rgba(0, 0, 0, 0.1)",
+            opacity: comment.greyedOut ? 0.7 : 1,
           }}
         >
-          <Typography variant="body1" sx={{ fontWeight: "bold", color: "#4e342e" }}>
+          <Typography variant="body1" sx={{ fontWeight: "bold", color: comment.greyedOut ? "#9e9e9e" : "#4e342e" }}>
             {comment.user}
           </Typography>
-          <Typography variant="body2" sx={{ color: "#4e342e" }}>
+          <Typography variant="body2" sx={{ color: comment.greyedOut ? "#9e9e9e" : "#4e342e", fontStyle: comment.greyedOut ? "italic" : "normal" }}>
             {comment.text}
           </Typography>
         </Box>

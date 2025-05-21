@@ -33,7 +33,7 @@ import "./ProductPage.css";
 
 const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity]       = useState<number>(1);
-  const [comments, setComments]       = useState<{ user: string; text: string }[]>([]);
+  const [comments, setComments]       = useState<{ user: string; text: string, greyedOut: boolean }[]>([]);
   const [infoOpen, setInfoOpen]       = useState<boolean>(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [rating, setRating] = useState<number>(0);
@@ -48,7 +48,7 @@ const ProductDetailPage: React.FC = () => {
   } = useProductContext();
   const { addToCart } = useCart();
   const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
-  const { addComment, addRating, getApprovedComments, getUsersRatingForProduct } = useReview(); 
+  const { addComment, addRating, getApprovedComments, getPendingComments ,getUsersRatingForProduct } = useReview(); 
   
 
   const navigate = useNavigate();
@@ -62,13 +62,21 @@ const ProductDetailPage: React.FC = () => {
       if (product) {
         try {
           const approvedComments = await getApprovedComments(product.product_id);
+          const pendingComments = await getPendingComments(product.product_id);
           console.log(approvedComments);
-          setComments(
-            approvedComments.map((c) => ({
+          console.log(pendingComments);
+          setComments([
+            ...approvedComments.map(c => ({
               user: c.Customer?.firstName || `User #${c.customer_id}`,
               text: c.text,
+              greyedOut: false
+            })),
+            ...pendingComments.map(c => ({
+              user: c.Customer?.firstName || `User #${c.customer_id}`,
+              text: c.text,
+              greyedOut: true
             }))
-          );
+          ]);
         } catch (err) {
           console.error("Error fetching approved comments:", err);
         }
@@ -136,7 +144,7 @@ const ProductDetailPage: React.FC = () => {
     try {
       const newComment = await addComment(product.product_id, user.id, text);
       if (newComment) {
-        setComments((prev) => [...prev, { user: user.name || "You", text: newComment.text }]);
+        setComments((prev) => [...prev, { user: user.name || "You", text: newComment.text, greyedOut: newComment.greyedOut }]);
       }
     } catch (error) {
       console.error("Error adding comment:", error);

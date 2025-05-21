@@ -7,6 +7,7 @@ const {
     getPendingComments,
     getComments,
     getRatingForCustomerComments,
+    getPendingCommentsForProduct,
   } = require("../services/reviewService");
   const { hasUserPurchasedProduct } = require("../services/orderService");
   /**
@@ -120,6 +121,19 @@ async function getPendingCommentsController(req, res) {
   }
 }
 
+
+async function getPendingCommentsForProductContoller(req,res) 
+{
+  try {
+    const { productId } = req.params;
+    const comments = await getPendingCommentsForProduct(productId);
+    return res.status(200).json({
+      comments,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
   /**
  * Controller to get all approved comments for a product
  * @route GET /api/products/comments/all
@@ -162,5 +176,6 @@ async function getRatingForCustomerCommentsController(req,res)
     getPendingCommentsController,
     getCommentsController,
     getRatingForCustomerCommentsController,
+    getPendingCommentsForProductContoller,
   };
   

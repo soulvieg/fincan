@@ -20,6 +20,7 @@ import React, {
     manager_id: number | null;
     createdAt: string;
     updatedAt: string;
+    greyedOut: boolean;
     Customer?: {
       id: number;
       firstName: string;
@@ -48,6 +49,7 @@ interface Rating {
       rating: number
     ) => Promise<Rating | null>;
     getApprovedComments: (productId: number) => Promise<Comment[]>;
+    getPendingComments: (productId: number) => Promise<Comment[]>;
     approveComment: (commentId: number) => Promise<Comment | null>;
     rejectComment: (commentId: number) => Promise<Comment | null>;
     getUsersRatingForProduct: (
@@ -71,7 +73,7 @@ interface Rating {
           userId,
           comment,
         });
-        return res.data.comment;
+        return {...res.data.comment, greyedOut: true};
       } catch (err) {
         console.error("Add comment error:", err);
         return null;
@@ -101,6 +103,19 @@ interface Rating {
     ): Promise<Comment[]> => {
       try {
         const res = await axios.get(`/api/products/${productId}/comments`);
+        console.log(res.data.comments);
+        return res.data.comments;
+      } catch (err) {
+        console.error("Fetch comments error:", err);
+        return [];
+      }
+    };
+
+    const getPendingComments = async (
+      productId: number
+    ): Promise<Comment[]> => {
+      try {
+        const res = await axios.get(`/api/products/${productId}/comments/pending`);
         console.log(res.data.comments);
         return res.data.comments;
       } catch (err) {
@@ -154,6 +169,7 @@ interface Rating {
           approveComment,
           rejectComment,
           getUsersRatingForProduct,
+          getPendingComments,
         }}
       >
         {children}

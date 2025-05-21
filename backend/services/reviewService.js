@@ -138,7 +138,7 @@ async function getApprovedCommentsForProduct(productId) {
 async function getPendingComments() {
   return Comment.findAll({
     where: {
-      approval: false,
+      approval: null,
     },
     include: [
       {
@@ -152,10 +152,29 @@ async function getPendingComments() {
         attributes: ['id', 'firstName','lastName'],
       },
     ],
+  });
+}
+
+async function getPendingCommentsForProduct(productId) {
+  return Comment.findAll({
+    where: {
+      product_id: productId,
+      approval: null,
+    },
+    include: [
+      {
+        model: User,
+        as: "Customer",
+        attributes: ['id', 'firstName','lastName'],
+      },
+    ],
     
   
   });
 }
+
+
+
 
 async function getComments() {
   return Comment.findAll({});
@@ -178,4 +197,5 @@ module.exports = {
   reviewComment,
   getComments,
   getRatingForCustomerComments,
+  getPendingCommentsForProduct,
 };

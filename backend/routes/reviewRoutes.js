@@ -8,6 +8,7 @@ const {
   getPendingCommentsController,
   getCommentsController,
   getRatingForCustomerCommentsController,
+  getPendingCommentsForProductContoller,
 } = require("../controllers/reviewController");
 const authenticate = require("../middlewares/authenticate");
 
@@ -33,5 +34,7 @@ router.get("/comments/all", getCommentsController);
 
 // GET /:productID/:customerID/rating
 router.get("/:productID/:customerID/rating", getRatingForCustomerCommentsController);
+
+router.get("/:productId/comments/pending", getPendingCommentsForProductContoller);
 
 module.exports = router;
