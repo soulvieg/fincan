@@ -9,7 +9,7 @@ import { useUser } from "../contexts/UserContext"; // get user name
 
 const OrderHistory: React.FC = () => {
   const { user } = useUser(); // To access first and last name
-  const { orders, cancelOrder, requestRefund } = useOrders();
+  const { orders, cancelOrder, requestRefund, calculateDaysLeft } = useOrders();
   const navigate = useNavigate();
   console.log(
     "Orders before sorting:",
@@ -34,8 +34,16 @@ const OrderHistory: React.FC = () => {
     return "Ask for Refund";
   };
   const isRefundButtonDisabled = (order: Order) => {
-    return order.refundStatus !== null && order.refundStatus !== undefined;
+    const moreThan30Days = order.deliveryDate
+      ? calculateDaysLeft(order) === 0
+      : false;
+
+    const hasRefundStatus =
+      order.refundStatus !== null && order.refundStatus !== undefined;
+
+    return hasRefundStatus || moreThan30Days;
   };
+
   const toBase64 = (url: string): Promise<string> =>
     fetch(url, { mode: "cors" })
       .then((res) => res.blob())
@@ -260,18 +268,33 @@ const OrderHistory: React.FC = () => {
                 )}
                 {(order.status === "delivered" ||
                   order.status === "cancelled") && (
-                  <button
-                    className="clear-order-history-button"
-                    style={{
-                      margin: "0 0 0 10px",
-                      padding: "5px 10px",
-                      opacity: isRefundButtonDisabled(order) ? 0.7 : 1,
-                    }}
-                    onClick={() => handleRefundRequest(order.id)}
-                    disabled={isRefundButtonDisabled(order)}
+                  <div
+                    title={
+                      isRefundButtonDisabled(order) &&
+                      calculateDaysLeft(order) === 0
+                        ? "Refund period expired"
+                        : ""
+                    }
                   >
-                    {getRefundButtonText(order)}
-                  </button>
+                    <button
+                      className="clear-order-history-button"
+                      style={{
+                        margin: "0 0 0 10px",
+                        padding: "5px 10px",
+                        opacity: isRefundButtonDisabled(order) ? 0.5 : 1,
+                        cursor: isRefundButtonDisabled(order)
+                          ? "not-allowed"
+                          : "pointer",
+                        pointerEvents: isRefundButtonDisabled(order)
+                          ? "none"
+                          : "auto",
+                      }}
+                      onClick={() => handleRefundRequest(order.id)}
+                      disabled={isRefundButtonDisabled(order)}
+                    >
+                      {getRefundButtonText(order)}
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
