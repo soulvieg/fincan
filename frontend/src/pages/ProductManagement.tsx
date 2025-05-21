@@ -3,6 +3,7 @@ import { Container, Card, Button } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
 import CommentTable from "../components/CommentTable";
+import AddCategoryModal from "../components/AddCategoryModal";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
@@ -119,6 +120,7 @@ const ProductManagement: React.FC = () => {
   const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
   const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
   const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
+  const [categories, setCategories] = useState<string[]>([]);
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [comments, setComments] = useState<Comment[]>(mockComments);
@@ -127,6 +129,19 @@ const ProductManagement: React.FC = () => {
   const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
   const { approveComment, rejectComment } = useReview();
+
+  useEffect(() => {
+    const loadCategories = async () => {
+      try {
+        const response = await axios.get('/api/categories');
+        setCategories(response.data.map((cat: any) => cat.name));
+      } catch (error) {
+        console.error('Error loading categories:', error);
+      }
+    };
+
+    loadCategories();
+  }, []);
 
   // Fetch comments and ratings from backend
   useEffect(() => {
@@ -192,7 +207,19 @@ const ProductManagement: React.FC = () => {
 
   const handleAddCategory = () => {
     setShowAddCategoryModal(true);
-    console.log("Opening add category modal");
+  };
+
+  const handleSaveCategory = async (categoryName: string) => {
+    try {
+      const response = await axios.post('/api/categories', { name: categoryName });
+      if (response.status === 201) {
+        // Refresh the categories list
+        const categoriesResponse = await axios.get('/api/categories');
+        setCategories(categoriesResponse.data.map((cat: any) => cat.name));
+      }
+    } catch (error) {
+      console.error('Error adding category:', error);
+    }
   };
 
   // Comment handlers
@@ -269,7 +296,7 @@ const ProductManagement: React.FC = () => {
           <div ref={setStocksElement} className="mb-5">
             <ProductInventoryTable
               products={products}
-              categories={[]}
+              categories={categories}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onAddProduct={handleAddProduct}
@@ -290,6 +317,11 @@ const ProductManagement: React.FC = () => {
           </div>
         </Container>
       </div>
+      <AddCategoryModal
+        show={showAddCategoryModal}
+        onHide={() => setShowAddCategoryModal(false)}
+        onSave={handleSaveCategory}
+      />
     </>
   );
 };
