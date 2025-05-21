@@ -1,6 +1,7 @@
 const Rating = require("../models/Rating");
 const Comment = require("../models/Comment");
 const Product = require("../models/Product");
+const User = require("../models/User");
 const { hasUserPurchasedProduct } = require("../services/orderService");
 
 /**
@@ -26,22 +27,14 @@ async function addCommentToProduct(productId, userId, commentText) {
     throw new Error("User has not purchased this product and cannot leave a comment.");
   }
 
-  // Find existing comment
-  let comment = await Comment.findOne({ where: { product_id: productId, customer_id: userId } });
-
-  if (!comment) {
-    comment = await Comment.create({
-      product_id: productId,
-      manager_id: null, // Manager not assigned initially
-      customer_id: userId,
-      text: commentText,
-      approval: false, // New comments need approval
-    });
-  } else {
-    comment.text = commentText;
-    comment.approval = false; // Reapproval needed after edit
-    await comment.save();
-  }
+  // Create a new comment (don't check for existing ones)
+  const comment = await Comment.create({
+    product_id: productId,
+    manager_id: null, // Manager not assigned initially
+    customer_id: userId,
+    text: commentText,
+    approval: null, // New comments need approval
+  });
 
   return comment;
 } catch (error) {
@@ -129,14 +122,60 @@ async function getApprovedCommentsForProduct(productId) {
       product_id: productId,
       approval: true,
     },
+    include: {
+      model: User,
+      as: "Customer",
+      attributes: ['id', 'firstName'], // or fullName, email, etc.  
+  },
   });
 }
 
+/**
+ * Fetch pending comments.
+ * (For manager access)
+ * @returns {array} - List of pending comments
+ */
+async function getPendingComments() {
+  return Comment.findAll({
+    where: {
+      approval: false,
+    },
+    include: [
+      {
+        model: Product,
+        as:"Product",
+        attributes: ['product_id', 'name'],
+      },
+      {
+        model: User,
+        as: "Customer",
+        attributes: ['id', 'firstName','lastName'],
+      },
+    ],
+    
+  
+  });
+}
 
+async function getComments() {
+  return Comment.findAll({});
+}
+
+async function getRatingForCustomerComments(customerID,productID) 
+{
+  return Rating.findAll({where: 
+    {
+      product_id: productID,
+      customer_id: customerID,
+    }});
+}
 
 module.exports = {
   addCommentToProduct,
   addRatingToProduct,
   getApprovedCommentsForProduct,
+  getPendingComments,
   reviewComment,
+  getComments,
+  getRatingForCustomerComments,
 };

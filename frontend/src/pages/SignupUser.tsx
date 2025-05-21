@@ -54,13 +54,12 @@ const SignupUser = () => {
       const response = await axios.post(
         `${API_BASE}/api/users/signup`,
         {
-          firstName,
-          lastName,
-          email,
-          homeAddress,
-          phone,
-          password,
-          userType: "regular",
+          firstName: firstName,
+          lastName: lastName,
+          email: email,
+          homeAddress: homeAddress,
+          phoneNumber: phone,
+          password: password,
         },
         { withCredentials: true }
       );

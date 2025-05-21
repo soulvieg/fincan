@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Card, Table } from 'react-bootstrap';
 import CommentItem from './CommentItem';
-
+import { useReview } from '../contexts/ReviewContext';
 interface Comment {
     id: number;
     productId: number;
@@ -19,7 +19,35 @@ interface CommentTableProps {
     onReject: (commentId: number) => void;
 }
 
-const CommentTable: React.FC<CommentTableProps> = ({ comments, onApprove, onReject }) => {
+const CommentTable: React.FC<CommentTableProps> = ({ comments, onApprove, onReject}) => {
+    const { approveComment, rejectComment } = useReview();
+  const [localComments, setLocalComments] = useState<Comment[]>([]);
+
+  useEffect(() => {
+    setLocalComments(comments);
+  }, [comments]);
+  
+  const handleApprove = async (commentId: number) => {
+    const updated = await approveComment(commentId);
+    if (updated) {
+      setLocalComments(prev =>
+        prev.map(comment =>
+          comment.id === commentId ? { ...comment, status: 'Approved' } : comment
+        )
+      );
+    }
+  };
+
+  const handleReject = async (commentId: number) => {
+    const updated = await rejectComment(commentId);
+    if (updated) {
+      setLocalComments(prev =>
+        prev.map(comment =>
+          comment.id === commentId ? { ...comment, status: 'Rejected' } : comment
+        )
+      );
+    }
+  };
     return (
         <Card className="rounded-border" style={{ backgroundColor: '#fff0e2' }}>
             <Card.Header as="h4" style={{borderBottom: 'none', backgroundColor: 'transparent'}}>Comments</Card.Header>
@@ -38,12 +66,12 @@ const CommentTable: React.FC<CommentTableProps> = ({ comments, onApprove, onReje
                     </tr>
                     </thead>
                     <tbody>
-                    {comments.map(comment => (
+                    {localComments.map(comment => (
                         <CommentItem
                             key={comment.id}
                             comment={comment}
-                            onApprove={onApprove}
-                            onReject={onReject}
+                            onApprove={handleApprove}
+                            onReject={handleReject}
                         />
                     ))}
                     </tbody>

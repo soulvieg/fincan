@@ -38,7 +38,7 @@ interface RegisterData {
   name: string;
   email: string;
   homeAddress: string;
-  phone: string;
+  phone: number;
   password: string;
 }
 
@@ -65,6 +65,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         .get("/api/users/me")
         .then((res) => {
           const u = res.data.user;
+          console.log(u);
           setUser({
             id: u.id,
             first_name: u.firstName || u.first_name,
@@ -74,7 +75,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
             email: u.email,
             phone_number: u.phoneNumber || u.phone || "",
             address: u.homeAddress || u.address || "",
-            creditCard: u.creditCard,
+            creditCard: u.creditCard || "",
           });
         })
         .catch(() => {
@@ -126,7 +127,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({
         lastName,
         email: data.email,
         homeAddress: data.homeAddress,
-        phone: data.phone,
+        phoneNumber: data.phone,
         password: data.password,
         userType: "customer",
       });

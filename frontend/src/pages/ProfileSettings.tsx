@@ -142,7 +142,7 @@ const ProfileSettings: React.FC = () => {
 
       updateUser({
         email:        updated.email,
-        phone_number: updated.phone_number || updated.phone,
+        phone_number: updated.phoneNumber || updated.phone,
         address:      updated.homeAddress || updated.address,
         // if we didn’t send a new card, keep old masked one
         creditCard:

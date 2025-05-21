@@ -25,6 +25,7 @@ import { UserProvider } from "./contexts/UserContext";
 import { ProductProvider } from "./contexts/ProductContext";
 import { OrderProvider } from "./contexts/OrderContext";
 import { WishlistProvider } from "./contexts/WishlistContext";
+import { ReviewProvider } from "./contexts/ReviewContext";
 
 // Components
 import Carousel from "./components/Carousel";
@@ -97,6 +98,7 @@ const App: React.FC = () => {
         <OrderProvider>
           <ProductProvider>
             <WishlistProvider>
+              <ReviewProvider>
               <div className="d-flex flex-column vh-100">
                 <NavBar />
                 <div className="container flex-grow-1 d-flex flex-column justify-content-start align-items-center py-4 pt-5">
@@ -148,6 +150,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
               </div>
+              </ReviewProvider>
             </WishlistProvider>
           </ProductProvider>
         </OrderProvider>

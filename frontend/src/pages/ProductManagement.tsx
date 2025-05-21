@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Container, Card, Button } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
@@ -6,6 +6,8 @@ import CommentTable from "../components/CommentTable";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
+import { useReview } from "../contexts/ReviewContext";
+import axios from 'axios';
 
 // --- Interfaces ---
 interface Product {
@@ -120,11 +122,51 @@ const ProductManagement: React.FC = () => {
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [comments, setComments] = useState<Comment[]>(mockComments);
-
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
   const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
+  const { approveComment, rejectComment } = useReview();
+
+  // Fetch comments and ratings from backend
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/products/comments/all');
+        const data = await response.json();
+        const normalizedComments: Comment[] = data.comments.map((c: any) => ({
+          id: c.comment_id,
+          productId: c.product_id,
+          customerId: c.customer_id,
+          product: c.product || 'Unknown Product',
+          user: c.user || 'Anonymous',
+          comment: c.text,
+          rating: 2,
+          status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
+        }));
+
+        const commentsWithRatings = await Promise.all(
+          normalizedComments.map(async (comment) => {
+            try {
+              const ratingRes = await axios.get(
+                `http://localhost:5001/api/products/${comment.productId}/${comment.customerId}/rating`
+              );
+              const score = ratingRes.data.rating?.[0]?.score || comment.rating;
+              return { ...comment, rating: score };
+            } catch (error) {
+              console.error(`Failed to fetch rating for comment ${comment.id}:`, error);
+              return comment;
+            }
+          })
+        );
+
+        setComments(commentsWithRatings);
+      } catch (error) {
+        console.error('Failed to fetch comments:', error);
+      }
+    };
+    fetchComments();
+  }, []);
 
   // Scroll to a section
   const scrollToSection = (el: HTMLDivElement | null) => {
@@ -156,29 +198,26 @@ const ProductManagement: React.FC = () => {
   // Comment handlers
   const handleApproveComment = async (commentId: number) => {
     try {
-      const res = await fetch(`/api/products/comments/${commentId}/approve`, { method: "PUT" });
-      if (!res.ok) throw new Error("Failed to approve comment");
-      const { comment: updatedComment } = await res.json();
-      setComments((prev) => prev.map((c) => (c.id === commentId ? updatedComment : c)));
+      const updated = await approveComment(commentId);
+      if (!updated) throw new Error("Failed to approve comment");
+      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Approved" } : c));
     } catch (err) {
-      console.error(err);
+      console.error("Approve error:", err);
     }
   };
 
   const handleRejectComment = async (commentId: number) => {
     try {
-      const res = await fetch(`/api/products/comments/${commentId}/reject`, { method: "PUT" });
-      if (!res.ok) throw new Error("Failed to reject comment");
-      const { comment: updatedComment } = await res.json();
-      setComments((prev) => prev.map((c) => (c.id === commentId ? updatedComment : c)));
+      const updated = await rejectComment(commentId);
+      if (!updated) throw new Error("Failed to reject comment");
+      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Rejected" } : c));
     } catch (err) {
-      console.error(err);
+      console.error("Reject error:", err);
     }
   };
 
   return (
     <>
-      {/* Full-page background */}
       <div
         style={{
           position: "fixed",
@@ -191,20 +230,11 @@ const ProductManagement: React.FC = () => {
           pointerEvents: "none",
         }}
       />
-
-      {/* Main content */}
       <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
         <Container>
           <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
             <Card.Body>
-              <Card.Text
-                style={{
-                  fontSize: "30px",
-                  textAlign: "center",
-                  marginTop: "40px",
-                  marginBottom: "60px",
-                }}
-              >
+              <Card.Text style={{ fontSize: "30px", textAlign: "center", marginTop: "40px", marginBottom: "60px" }}>
                 What would you like to do?
               </Card.Text>
               <div className="d-flex gap-3 mt-3 justify-content-center" style={{ marginBottom: "240px" }}>
@@ -236,7 +266,6 @@ const ProductManagement: React.FC = () => {
             </Card.Body>
           </Card>
 
-          {/* Stocks Section */}
           <div ref={setStocksElement} className="mb-5">
             <ProductInventoryTable
               products={products}
@@ -248,12 +277,10 @@ const ProductManagement: React.FC = () => {
             />
           </div>
 
-          {/* Deliveries Section */}
           <div ref={setDeliveriesElement} className="mb-5">
             <DeliveryTable />
           </div>
 
-          {/* Comments Section */}
           <div ref={setCommentsElement} className="mb-5">
             <CommentTable
               comments={comments}

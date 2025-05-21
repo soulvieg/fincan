@@ -4,6 +4,9 @@ const {
     addRatingToProduct,
     reviewComment,
     getApprovedCommentsForProduct,
+    getPendingComments,
+    getComments,
+    getRatingForCustomerComments,
   } = require("../services/reviewService");
   const { hasUserPurchasedProduct } = require("../services/orderService");
   /**
@@ -40,7 +43,7 @@ const {
       const { customer_id, rating } = req.body;
       
       if (!customer_id || typeof rating === "undefined") {
-        return res.status(400).json({ message: "userId and rating are required." });
+        return res.status(400).json({ message: "customer id and rating are required." });
       }
       console.log("Comes here. 2");
       const new_rating = await addRatingToProduct(productId, customer_id, rating);
@@ -85,7 +88,6 @@ async function reviewCommentController(req, res) {
 async function getApprovedCommentsController(req, res) {
   try {
     const { productId } = req.params;
-
     const comments = await getApprovedCommentsForProduct(productId);
     return res.status(200).json({
       comments,
@@ -95,10 +97,70 @@ async function getApprovedCommentsController(req, res) {
   }
 }
   
+/**
+ * Controller to get all pending comments across products
+ * @route GET /api/products/comments/pending
+ */
+async function getPendingCommentsController(req, res) {
+  try {
+    const comments = await getPendingComments();
+    const formatted = comments.map((c) => ({
+      id: c.comment_id,
+      text: c.text,
+      customerId: c.customer_id,
+      firstName: c.Customer?.firstName || 'Unknown',
+    }));
+
+    return res.status(200).json({
+      comments: formatted,
+    });
+  } catch (error) {
+    console.error("Error fetching pending comments:", error);
+    return res.status(400).json({ message: error.message });
+  }
+}
+
+  /**
+ * Controller to get all approved comments for a product
+ * @route GET /api/products/comments/all
+ */
+async function getCommentsController(req, res) {
+  try {
+    const comments = await getComments();
+    return res.status(200).json({
+      comments,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
+  }
+}
+  
+async function getRatingForCustomerCommentsController(req,res)
+{
+      const { productID, customerID } = req.params;
+      if (!customerID) {
+        return res.status(400).json({ message: "userId is required." });
+      }
+      try 
+      {
+        const rating = await getRatingForCustomerComments(customerID,productID);
+        console.log(rating);
+        return res.status(200).json({
+          rating,
+        });
+      }
+      catch (error) {
+        return res.status(400).json({ message: error.message });
+      }
+}
+
   module.exports = {
     addCommentController,
     addRatingController,
     reviewCommentController,
     getApprovedCommentsController,
+    getPendingCommentsController,
+    getCommentsController,
+    getRatingForCustomerCommentsController,
   };
   

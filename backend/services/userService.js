@@ -9,7 +9,7 @@ const SALT_ROUNDS = 12;
 /**
  * Register a new user.
  */
-async function registerUser({ firstName, lastName, email, homeAddress, password, userType }) {
+async function registerUser({ firstName, lastName, email, homeAddress, phoneNumber, password, userType }) {
   const existing = await User.findOne({ where: { email } });
   if (existing) throw new Error("User with this email already exists.");
 
@@ -19,6 +19,7 @@ async function registerUser({ firstName, lastName, email, homeAddress, password,
     lastName,
     email,
     homeAddress,
+    phoneNumber,
     password: hashed,
     userType,
   });
@@ -40,6 +41,7 @@ async function loginUser({ email, password }) {
     lastName:    user.lastName,
     email:       user.email,
     homeAddress: user.homeAddress,
+    phoneNumber: user.phoneNumber,
     userType:    user.userType,
   };
 }
