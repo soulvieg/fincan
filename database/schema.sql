@@ -169,24 +169,26 @@ CREATE TABLE Orders (
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+-- Create the Refunds table
 CREATE TABLE Refunds (
-    refund_id       INT                    NOT NULL AUTO_INCREMENT,
-    order_id        INT                    NOT NULL,
-    customer_id     INT                    NOT NULL,
-    amount          DECIMAL(10,2)          NOT NULL,
-    refund_status   ENUM(
-                       'waiting for refund',
-                       'refunded',
-                       'refund denied'
-                    )                     NOT NULL
-                                       DEFAULT 'waiting for refund',
-    request_date    DATETIME               NOT NULL
-                                       DEFAULT CURRENT_TIMESTAMP,
-    processed_date  DATETIME               NULL,
-    PRIMARY KEY (refund_id),
-    -- note: Orders.order_id is part of a composite PK; adjust or omit FK if your engine rejects it
-    FOREIGN KEY (customer_id)
-      REFERENCES Customers(customer_id)
-      ON DELETE CASCADE
-      ON UPDATE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  refund_id      INT                           NOT NULL AUTO_INCREMENT,
+  order_id       INT                           NOT NULL,
+  refund_status  ENUM(
+                    'Waiting for Refund',
+                    'Refunded',
+                    'Refund Denied'
+                  )                          NOT NULL
+                                           DEFAULT 'Waiting for Refund',
+  request_date   DATETIME                      NOT NULL
+                                           DEFAULT CURRENT_TIMESTAMP,
+  processed_date DATETIME                      NULL,
+  amount         DECIMAL(10,2)                 NOT NULL DEFAULT 0,
+  PRIMARY KEY (refund_id),
+  INDEX idx_refund_order (order_id),
+  CONSTRAINT fk_Refunds_Orders
+    FOREIGN KEY (order_id)
+    REFERENCES Orders(order_id)
+    ON DELETE CASCADE
+    ON UPDATE CASCADE
+) ENGINE=InnoDB
+  DEFAULT CHARSET = utf8mb4;
