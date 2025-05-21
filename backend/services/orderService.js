@@ -1,4 +1,5 @@
 // backend/services/orderService.js
+const sequelize = require("../config/db");
 const Order   = require("../models/Order");
 const User    = require("../models/User");
 const Product = require("../models/Product");
@@ -66,7 +67,43 @@ async function hasUserPurchasedProduct(userId, productId) {
   return !!match;
 }
 
+/**
+ * Cancel an existing order group and restock its products.
+ * @param {number} orderId
+ */
+async function cancelOrder(orderId) {
+  const t = await sequelize.transaction();
+  try {
+    // fetch all items for this order
+    const items = await Order.findAll({
+      where: { order_id: orderId },
+      transaction: t,
+    });
+
+    // restock each product
+    for (const line of items) {
+      const prod = await Product.findByPk(line.product_id, { transaction: t });
+      if (!prod) throw new Error(`Product ${line.product_id} not found`);
+      prod.quantity_in_stock += line.quantity;
+      await prod.save({ transaction: t });
+    }
+
+    // mark the order rows cancelled
+    await Order.update(
+      { order_status: "cancelled" },
+      { where: { order_id: orderId }, transaction: t }
+    );
+
+    await t.commit();
+    return true;
+  } catch (err) {
+    await t.rollback();
+    throw err;
+  }
+}
+
 module.exports = {
   placeOrder,
   hasUserPurchasedProduct,
+  cancelOrder,
 };

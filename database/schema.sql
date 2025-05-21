@@ -10,6 +10,7 @@ DROP TABLE IF EXISTS Carts;
 DROP TABLE IF EXISTS Products;
 DROP TABLE IF EXISTS Admins;
 DROP TABLE IF EXISTS Customers;
+DROP TABLE IF EXISTS Refunds;
 DROP TABLE IF EXISTS Categories;
 
 -- Categories
@@ -166,4 +167,26 @@ CREATE TABLE Orders (
     PRIMARY KEY (order_id, product_id),
     FOREIGN KEY (customer_id) REFERENCES Customers(customer_id),
     FOREIGN KEY (product_id)  REFERENCES Products(product_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+CREATE TABLE Refunds (
+    refund_id       INT                    NOT NULL AUTO_INCREMENT,
+    order_id        INT                    NOT NULL,
+    customer_id     INT                    NOT NULL,
+    amount          DECIMAL(10,2)          NOT NULL,
+    refund_status   ENUM(
+                       'waiting for refund',
+                       'refunded',
+                       'refund denied'
+                    )                     NOT NULL
+                                       DEFAULT 'waiting for refund',
+    request_date    DATETIME               NOT NULL
+                                       DEFAULT CURRENT_TIMESTAMP,
+    processed_date  DATETIME               NULL,
+    PRIMARY KEY (refund_id),
+    -- note: Orders.order_id is part of a composite PK; adjust or omit FK if your engine rejects it
+    FOREIGN KEY (customer_id)
+      REFERENCES Customers(customer_id)
+      ON DELETE CASCADE
+      ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
