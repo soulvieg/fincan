@@ -48,6 +48,10 @@ const Carousel: React.FC = () => {
     navigate(`/products?category=${encodeURIComponent(category)}`);
   };
 
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
   return (
     <div className="carousel">
       <div
@@ -72,6 +76,15 @@ const Carousel: React.FC = () => {
       <button className="next" onClick={nextSlide}>
         &#10095;
       </button>
+      <div className="carousel-dots">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            className={`dot ${index === currentIndex ? "active" : ""}`}
+            onClick={() => goToSlide(index)}
+          />
+        ))}
+      </div>
     </div>
   );
 };
