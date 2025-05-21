@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Container, Card, Button, Table } from "react-bootstrap";
+import { Container, Card, Button } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
 import CommentTable from "../components/CommentTable";
@@ -9,6 +9,7 @@ import { VscCommentDiscussion } from "react-icons/vsc";
 import { useReview } from "../contexts/ReviewContext";
 import axios from 'axios';
 
+// --- Interfaces ---
 interface Product {
   id: number;
   name: string;
@@ -24,18 +25,6 @@ interface Product {
   image?: string;
 }
 
-interface Delivery {
-  id: number;
-  customerId: number;
-  productId: number;
-  customer: string;
-  quantity: number;
-  products: string;
-  totalPrice: number;
-  status: string;
-  address: string;
-}
-
 interface Comment {
   id: number;
   productId: number;
@@ -47,9 +36,7 @@ interface Comment {
   status: string;
 }
 
-
-
-// Mock data for the page
+// --- Mock Data ---
 const mockProducts: Product[] = [
   {
     id: 1,
@@ -105,32 +92,6 @@ const mockProducts: Product[] = [
   },
 ];
 
-// Updated mock data for deliveries with all required fields
-const mockDeliveries: Delivery[] = [
-  {
-    id: 1001,
-    customerId: 101,
-    productId: 1,
-    customer: "John Doe",
-    products: "Coffee - Guatemala",
-    quantity: 2,
-    totalPrice: 399.98,
-    status: "Processing",
-    address: "123 Main St, Anytown",
-  },
-  {
-    id: 1002,
-    customerId: 102,
-    productId: 2,
-    customer: "Jane Smith",
-    products: "Coffee - Arabica",
-    quantity: 1,
-    totalPrice: 24.99,
-    status: "Processing",
-    address: "456 Oak Ave, Somewhere",
-  },
-];
-
 const mockComments: Comment[] = [
   {
     id: 1,
@@ -155,155 +116,108 @@ const mockComments: Comment[] = [
 ];
 
 const ProductManagement: React.FC = () => {
-  const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(
-    null
-  );
-  const [deliveriesElement, setDeliveriesElement] =
-    useState<HTMLDivElement | null>(null);
-  const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(
-    null
-  );
+  const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
+  const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
+  const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [deliveries, setDeliveries] = useState<Delivery[]>(mockDeliveries);
-  const [comments, setComments] = useState<Comment[]>([]);
+  const [comments, setComments] = useState<Comment[]>(mockComments);
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [showAddProductModal, setShowAddProductModal] =
-    useState<boolean>(false);
-  const [showAddCategoryModal, setShowAddCategoryModal] =
-    useState<boolean>(false);
-    const { approveComment, rejectComment } = useReview();
+  const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
+  const { approveComment, rejectComment } = useReview();
 
-    useEffect(() => {
-      const fetchComments = async () => {
-        try {
-          const response = await fetch('http://localhost:5001/api/products/comments/all');
-          const data = await response.json();
-          // Normalize backend response to match the Comment interface
-          const normalizedComments = data.comments.map((c: any) => ({
-            id: c.comment_id,
-            productId: c.product_id,
-            customerId: c.customer_id,
-            product: c.product || 'Unknown Product', // fallback if not included
-            user: c.user || 'Anonymous',             // fallback if not included
-            comment: c.text,
-            rating: 2,
-            status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
-          }));
-          
-          const commentsWithRatings = await Promise.all(
-            normalizedComments.map(async (comment: Comment) => {
-              try {
-                // Fetch the specific rating for this product+customer combination
-                const ratingRes = await axios.get(
-                  `http://localhost:5001/api/products/${comment.productId}/${comment.customerId}/rating`
-                );
-                if(comment.customerId == 11) console.log("Rating Response: ", ratingRes);
-                const commentRating = ratingRes.data.rating?.[0]?.score || 2;
-    
-                if(comment.customerId == 11) console.log("Retrieved score: ", commentRating);  // Debug log
-                // Assuming the response is an array and we want the first/latest rating
-                
-                if(comment.customerId == 11) {console.log("User Rating: ", commentRating)}
-                return {
-                  ...comment,
-                  rating: commentRating
-                };
-              } catch (error) {
-                console.error(`Failed to fetch rating for comment ${comment.id}:`, error);
-                return comment; // Return without rating if fetch fails
-              }
-            })
-          );
-          
-          
-          setComments(commentsWithRatings); // Assuming setComments exists in your component state
-        } catch (error) {
-          console.error('Failed to fetch comments:', error);
-        }
-      };
-      
-    
-      fetchComments();
-    }, []);
-    
-    
-    
-    
-  
-    // Function to handle scrolling to sections
-  const scrollToSection = (element: HTMLDivElement | null) => {
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
+  // Fetch comments and ratings from backend
+  useEffect(() => {
+    const fetchComments = async () => {
+      try {
+        const response = await fetch('http://localhost:5001/api/products/comments/all');
+        const data = await response.json();
+        const normalizedComments: Comment[] = data.comments.map((c: any) => ({
+          id: c.comment_id,
+          productId: c.product_id,
+          customerId: c.customer_id,
+          product: c.product || 'Unknown Product',
+          user: c.user || 'Anonymous',
+          comment: c.text,
+          rating: 2,
+          status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
+        }));
+
+        const commentsWithRatings = await Promise.all(
+          normalizedComments.map(async (comment) => {
+            try {
+              const ratingRes = await axios.get(
+                `http://localhost:5001/api/products/${comment.productId}/${comment.customerId}/rating`
+              );
+              const score = ratingRes.data.rating?.[0]?.score || comment.rating;
+              return { ...comment, rating: score };
+            } catch (error) {
+              console.error(`Failed to fetch rating for comment ${comment.id}:`, error);
+              return comment;
+            }
+          })
+        );
+
+        setComments(commentsWithRatings);
+      } catch (error) {
+        console.error('Failed to fetch comments:', error);
+      }
+    };
+    fetchComments();
+  }, []);
+
+  // Scroll to a section
+  const scrollToSection = (el: HTMLDivElement | null) => {
+    el?.scrollIntoView({ behavior: "smooth" });
   };
 
-  // Handler for editing a product
+  // Product handlers
   const handleEditProduct = (product: Product) => {
     setSelectedProduct(product);
     setShowEditModal(true);
     console.log("Edit product:", product);
   };
 
-  // Handler for deleting a product
   const handleDeleteProduct = (productId: number) => {
-    setProducts(products.filter((p) => p.id !== productId));
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
     console.log("Delete product with ID:", productId);
   };
 
-  // Handler for adding a new product
   const handleAddProduct = () => {
     setShowAddProductModal(true);
     console.log("Opening add product modal");
   };
 
-  // Handler for adding a new category
   const handleAddCategory = () => {
     setShowAddCategoryModal(true);
     console.log("Opening add category modal");
   };
 
-  // Handlers for updating delivery status
-  const handleUpdateDeliveryStatus = (deliveryId: number) => {
-    console.log("Update status for delivery ID:", deliveryId);
-    // Implement status update logic here
-  };
-
-  // Handler for canceling an order
-  const handleCancelDelivery = (deliveryId: number) => {
-    console.log("Cancel delivery with ID:", deliveryId);
-  };
-
-  // Handlers for approving/rejecting comments
+  // Comment handlers
   const handleApproveComment = async (commentId: number) => {
     try {
-      const updatedComment = await approveComment(commentId);
-      if (!updatedComment) throw new Error("Failed to approve comment");
-      setComments((prev) =>
-        prev!.map((c) => (c.id === commentId ? { ...c, status: "Approved" } : c))
-      );
+      const updated = await approveComment(commentId);
+      if (!updated) throw new Error("Failed to approve comment");
+      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Approved" } : c));
     } catch (err) {
       console.error("Approve error:", err);
     }
   };
-  
+
   const handleRejectComment = async (commentId: number) => {
     try {
-      const updatedComment = await rejectComment(commentId);
-      if (!updatedComment) throw new Error("Failed to reject comment");
-      setComments((prev) =>
-        prev!.map((c) => (c.id === commentId ? { ...c, status: "Rejected" } : c))
-      );
+      const updated = await rejectComment(commentId);
+      if (!updated) throw new Error("Failed to reject comment");
+      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Rejected" } : c));
     } catch (err) {
       console.error("Reject error:", err);
     }
   };
 
-  
   return (
     <>
-      {/* Full-page background */}
       <div
         style={{
           position: "fixed",
@@ -316,99 +230,36 @@ const ProductManagement: React.FC = () => {
           pointerEvents: "none",
         }}
       />
-      {/* Main content */}
       <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
         <Container>
           <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
             <Card.Body>
-              <Card.Text
-                style={{
-                  fontSize: "30px",
-                  textAlign: "center",
-                  marginTop: "40px",
-                  marginBottom: "60px",
-                }}
-              >
+              <Card.Text style={{ fontSize: "30px", textAlign: "center", marginTop: "40px", marginBottom: "60px" }}>
                 What would you like to do?
               </Card.Text>
-              {/* Navigation Buttons */}
-              <div
-                className="d-flex gap-3 mt-3 justify-content-center"
-                style={{ marginBottom: "240px" }}
-              >
+              <div className="d-flex gap-3 mt-3 justify-content-center" style={{ marginBottom: "240px" }}>
                 <Button
                   variant="primary"
                   onClick={() => scrollToSection(stocksElement)}
-                  style={{
-                    width: "250px",
-                    height: "280px",
-                    backgroundColor: "#fff0e2",
-                    color: "black",
-                    borderColor: "black",
-                    borderRadius: "38px",
-                    fontSize: "24px",
-                    fontWeight: "semibold",
-                  }}
+                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <FaBoxOpen style={{ fontSize: "100px" }} />
-                  </div>
+                  <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
                   Manage Stocks
                 </Button>
                 <Button
                   variant="outline-primary"
                   onClick={() => scrollToSection(deliveriesElement)}
-                  style={{
-                    width: "250px",
-                    height: "280px",
-                    backgroundColor: "#fff0e2",
-                    color: "black",
-                    borderColor: "black",
-                    borderRadius: "38px",
-                    fontSize: "24px",
-                    fontWeight: "semibold",
-                  }}
+                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <TbTruckDelivery style={{ fontSize: "100px" }} />
-                  </div>
+                  <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
                   Manage Deliveries
                 </Button>
                 <Button
                   variant="primary"
                   onClick={() => scrollToSection(commentsElement)}
-                  style={{
-                    width: "250px",
-                    height: "280px",
-                    backgroundColor: "#fff0e2",
-                    color: "black",
-                    borderColor: "black",
-                    borderRadius: "38px",
-                    fontSize: "24px",
-                    fontWeight: "semibold",
-                  }}
+                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "center",
-                      marginBottom: "10px",
-                    }}
-                  >
-                    <VscCommentDiscussion style={{ fontSize: "100px" }} />
-                  </div>
+                  <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
                   Manage Comments
                 </Button>
               </div>
@@ -426,25 +277,19 @@ const ProductManagement: React.FC = () => {
             />
           </div>
 
-          {/* Deliveries Section */}
           <div ref={setDeliveriesElement} className="mb-5">
-            <DeliveryTable
-              deliveries={deliveries}
-              onUpdateStatus={handleUpdateDeliveryStatus}
-              onCancel={handleCancelDelivery}
-            />
+            <DeliveryTable />
           </div>
 
-      {/* Comments Section */}
-      <div ref={setCommentsElement} className="mb-5">
-        <CommentTable
-          comments={comments || []}
-          onApprove={handleApproveComment}
-          onReject={handleRejectComment}
-        />
+          <div ref={setCommentsElement} className="mb-5">
+            <CommentTable
+              comments={comments}
+              onApprove={handleApproveComment}
+              onReject={handleRejectComment}
+            />
+          </div>
+        </Container>
       </div>
-    </Container>
-    </div>
     </>
   );
 };

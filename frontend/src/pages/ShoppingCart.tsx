@@ -72,7 +72,7 @@ const ShoppingCart: React.FC = () => {
 
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-    if (!user) {
+    if (!user || !user.id) {
       setMessage("Please log in to confirm the checkout.");
       return;
     }
@@ -84,6 +84,7 @@ const ShoppingCart: React.FC = () => {
     try {
       // 1) Call backend to place order
       const payload = {
+        customer_id: user?.id,
         products: cart.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
@@ -95,17 +96,13 @@ const ShoppingCart: React.FC = () => {
       });
 
       // 2) On success, update frontend state
-      const { order } = response.data;
-      addOrder({
-        date: new Date().toLocaleString(),
-        items: cart,
-        total: calculateTotal(),
-      });
+      const order = response.data;
+      addOrder(order);
       clearCart();
 
       // 3) Send EmailJS confirmation
       const emailParams = {
-        order_id: order.order_id.toString(),
+        order_id: order.id.toString(),
         email: user.email || "no-reply@example.com",
         orders: cart.map((item) => ({
           image_url: item.image,

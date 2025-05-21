@@ -53,7 +53,7 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
   return (
     <tr
       className="rounded-row"
-      style={{ 
+      style={{
         backgroundColor: '#f9f9f9',
         transition: 'all 0.5s ease',
         transform: isHovering ? 'scale(1.02)' : 'scale(1)',
@@ -102,11 +102,11 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
             <Button
               variant="outline-warning"
               size="sm"
-              onClick={() => onUpdateStatus(delivery.id, "In-Transit")}
+              onClick={() => onUpdateStatus(delivery.id, "in-transit")}
               disabled={
-                delivery.status === "In-Transit" ||
-                delivery.status === "Delivered" ||
-                delivery.status === "Cancelled"
+                delivery.status === "in-transit" ||
+                delivery.status === "delivered" ||
+                delivery.status === "cancelled"
               }
             >
               <TbTruckDelivery size={16} />
@@ -114,9 +114,9 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
             <Button
               variant="outline-success"
               size="sm"
-              onClick={() => onUpdateStatus(delivery.id, "Delivered")}
+              onClick={() => onUpdateStatus(delivery.id, "delivered")}
               disabled={
-                delivery.status === "Delivered" || delivery.status === "Cancelled"
+                delivery.status === "delivered" || delivery.status === "cancelled"
               }
             >
               <BsCheckCircleFill size={16} />
@@ -126,7 +126,7 @@ const DeliveryItem: React.FC<DeliveryItemProps> = ({
               size="sm"
               onClick={() => onCancel(delivery.id)}
               disabled={
-                delivery.status === "Delivered" || delivery.status === "Cancelled"
+                delivery.status === "delivered" || delivery.status === "cancelled"
               }
             >
               <IoTrashOutline size={16} />

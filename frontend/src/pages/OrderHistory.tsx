@@ -160,16 +160,16 @@ const OrderHistory: React.FC = () => {
   const getStatusBadge = (status: Order["status"]) => {
     let className = "";
     switch (status) {
-      case "Processing":
+      case "processing":
         className = "badge-primary";
         break;
-      case "In-Transit":
+      case "in-transit":
         className = "badge-warning";
         break;
-      case "Delivered":
+      case "delivered":
         className = "badge-success";
         break;
-      case "Cancelled":
+      case "cancelled":
         className = "badge-danger";
         break;
       default:
@@ -183,7 +183,7 @@ const OrderHistory: React.FC = () => {
   };
 
   const canCancel = (status: Order["status"]) => {
-    return status === "Processing" || status === "In-Transit";
+    return status === "processing" || status === "in-transit";
   };
 
   // Update the handleReviewClick function
@@ -258,8 +258,8 @@ const OrderHistory: React.FC = () => {
                     Cancel Order
                   </button>
                 )}
-                {(order.status === "Delivered" ||
-                  order.status === "Cancelled") && (
+                {(order.status === "delivered" ||
+                  order.status === "cancelled") && (
                   <button
                     className="clear-order-history-button"
                     style={{
@@ -283,7 +283,7 @@ const OrderHistory: React.FC = () => {
                     <th>Price</th>
                     <th>Quantity</th>
                     <th>Subtotal</th>
-                    {order.status === "Delivered" && <th>Review</th>}
+                    {order.status === "delivered" && <th>Review</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -302,7 +302,7 @@ const OrderHistory: React.FC = () => {
                       <td>${item.price.toFixed(2)}</td>
                       <td>{item.quantity}</td>
                       <td>${(item.price * item.quantity).toFixed(2)}</td>
-                      {order.status === "Delivered" && (
+                      {order.status === "delivered" && (
                         <td>
                           <div
                             className="review-button"
@@ -334,7 +334,7 @@ const OrderHistory: React.FC = () => {
                 <tfoot>
                   <tr>
                     <td
-                      colSpan={order.status === "Delivered" ? 3 : 2}
+                      colSpan={order.status === "delivered" ? 3 : 2}
                       className="text-end"
                     >
                       <strong>Total:</strong>
@@ -342,7 +342,7 @@ const OrderHistory: React.FC = () => {
                     <td>
                       <strong>${order.total.toFixed(2)}</strong>
                     </td>
-                    {order.status === "Delivered" && <td></td>}
+                    {order.status === "delivered" && <td></td>}
                   </tr>
                 </tfoot>
               </Table>

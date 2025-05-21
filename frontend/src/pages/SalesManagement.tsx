@@ -1,5 +1,6 @@
 import React from "react";
 import RefundTable from "../components/RefundTable";
+import SalesManagerInvoiceTable from "../components/InvoiceTable";
 
 const SalesManagement: React.FC = () => {
   return (
@@ -8,6 +9,7 @@ const SalesManagement: React.FC = () => {
         Sales Management
       </h2>
       <RefundTable />
+      <SalesManagerInvoiceTable />
     </div>
   );
 };
