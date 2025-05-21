@@ -35,6 +35,7 @@ interface Comment {
   comment: string;
   rating: number;
   status: string;
+  greyedOut?: boolean;
 }
 
 // --- Mock Data ---
