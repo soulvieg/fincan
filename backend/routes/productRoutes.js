@@ -10,7 +10,8 @@ const {
   searchProductsController,
   approveCommentController,
   rejectCommentController,
-  updateImageController
+  updateImageController,
+  addCategoryController,
 } = require("../controllers/productController");
 
 const router = express.Router();
