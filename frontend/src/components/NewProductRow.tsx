@@ -134,6 +134,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     size="sm"
                     required
                 >
+                    <option value="" disabled>Select a category</option>
                     {categories.length > 0 ? (
                         categories.map((category, index) => (
                             <option key={index} value={category}>{category}</option>
@@ -163,6 +164,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     onKeyDown={handleKeyDown}
                     size="sm"
                 >
+                    <option value="" disabled>Select warranty status</option>
                     <option value="No Warranty">No Warranty</option>
                     <option value="1 Year">1 Year</option>
                     <option value="3 Years">3 Years</option>
