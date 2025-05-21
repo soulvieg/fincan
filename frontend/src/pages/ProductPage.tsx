@@ -59,7 +59,11 @@ const ProductPage: React.FC = () => {
     if (selectedCategoryId === 0) return true;              // All
     if (selectedCategoryId === -1) return p.is_best_seller; // Best Sellers
     return p.category_id === selectedCategoryId;            // real category
-  });
+  }).filter((p) => {
+  // Convert the price to a number for the check, if it doesnt hgave a price, filter it out
+  const priceNum = Number(p.price);
+  return p.price !== undefined && p.price !== null && isFinite(priceNum);
+});
 
   // then sort
   const sorted = [...filtered].sort((a, b) => {
