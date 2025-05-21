@@ -2,6 +2,7 @@
 const { Op, fn, col, literal } = require("sequelize");
 const Product                  = require("../models/Product");
 const Rating                   = require("../models/Rating");
+const Category                 = require("../models/Category");
 
 /**
  * Add a new product
