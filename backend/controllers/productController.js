@@ -9,6 +9,7 @@ const {
   getProducts,
   updateProductImage,
   addCategory,
+  updateProductPrice,
 } = require("../services/productService");
 const { approveComment, rejectComment } = require("../services/commentService");
 
@@ -195,6 +196,25 @@ async function addCategoryController(req, res) {
   }
 }
 
+
+/**
+ * Set the price of a product
+ * PATCH /api/products/:productId/price
+ */
+async function updatePriceController(req, res) {
+  try {
+    const { productId } = req.params;
+    const price         = Number(req.body.price);
+    if (isNaN(price) || price < 0) {
+      return res.status(400).json({ message: "Invalid price." });
+    }
+    const updated = await updateProductPrice(Number(productId), price);
+    return res.status(200).json(updated);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
@@ -207,4 +227,5 @@ module.exports = {
   getProductsController,
   updateImageController,
   addCategoryController,
+  updatePriceController,
 };

@@ -170,6 +170,20 @@ async function addCategory(name) {
   return await Category.create({ name });
 }
 
+/**
+ * Update the price of a product
+ */
+async function updateProductPrice(productId, newPrice) {
+  const p = await Product.findByPk(productId);
+  if (!p) throw new Error("Product not found");
+  if (typeof newPrice !== "number" || newPrice < 0) {
+    throw new Error("Invalid price. Must be a non-negative number.");
+  }
+  p.price = newPrice;
+  await p.save();
+  return p;
+}
+
 module.exports = {
   addProduct,
   getProducts,
@@ -180,4 +194,5 @@ module.exports = {
   deleteProduct,
   updateProductImage,
   addCategory,
+  updateProductPrice,
 };
