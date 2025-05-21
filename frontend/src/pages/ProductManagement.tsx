@@ -3,6 +3,7 @@ import { Container, Card, Button } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
 import CommentTable from "../components/CommentTable";
+import AddCategoryModal from "../components/AddCategoryModal";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
@@ -119,6 +120,7 @@ const ProductManagement: React.FC = () => {
   const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
   const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
   const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
+  const [categories, setCategories] = useState<string[]>(["Premium Beans", "Regular Beans", "Equipment"]);
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [comments, setComments] = useState<Comment[]>(mockComments);
@@ -192,7 +194,11 @@ const ProductManagement: React.FC = () => {
 
   const handleAddCategory = () => {
     setShowAddCategoryModal(true);
-    console.log("Opening add category modal");
+  };
+
+  const handleSaveCategory = (categoryName: string) => {
+    setCategories(prev => [...prev, categoryName]);
+    setShowAddCategoryModal(false);
   };
 
   // Comment handlers
@@ -243,24 +249,30 @@ const ProductManagement: React.FC = () => {
                   onClick={() => scrollToSection(stocksElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Stocks
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Stocks</span>
+                  </div>
                 </Button>
                 <Button
                   variant="outline-primary"
                   onClick={() => scrollToSection(deliveriesElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Deliveries
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Deliveries</span>
+                  </div>
                 </Button>
                 <Button
                   variant="primary"
                   onClick={() => scrollToSection(commentsElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Comments
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Comments</span>
+                  </div>
                 </Button>
               </div>
             </Card.Body>
@@ -269,7 +281,7 @@ const ProductManagement: React.FC = () => {
           <div ref={setStocksElement} className="mb-5">
             <ProductInventoryTable
               products={products}
-              categories={[]}
+              categories={categories}
               onEdit={handleEditProduct}
               onDelete={handleDeleteProduct}
               onAddProduct={handleAddProduct}
@@ -290,6 +302,11 @@ const ProductManagement: React.FC = () => {
           </div>
         </Container>
       </div>
+      <AddCategoryModal
+        show={showAddCategoryModal}
+        onHide={() => setShowAddCategoryModal(false)}
+        onSave={handleSaveCategory}
+      />
     </>
   );
 };
