@@ -1,7 +1,9 @@
+// src/components/SearchBar.tsx
 import React, { useState, useEffect, useRef } from "react";
 import { FaSearch } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
+import { useProductContext } from "../contexts/ProductContext";
 
 interface Product {
   product_id: number;
@@ -12,13 +14,6 @@ interface Product {
   category_id: number;
   sku: string;
 }
-
-const categoryMap: { [key: number]: string } = {
-  1: "Coffee Beans",
-  2: "Accessories",
-  3: "Tea",
-  4: "Best Sellers",
-};
 
 const spinnerStyles = {
   loadingSpinner: {
@@ -33,6 +28,7 @@ const spinnerStyles = {
 };
 
 const SearchBar: React.FC = () => {
+  const { categories } = useProductContext();
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -40,6 +36,7 @@ const SearchBar: React.FC = () => {
   const searchRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
 
+  // click outside to close
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -50,16 +47,14 @@ const SearchBar: React.FC = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
+    return () =>
       document.removeEventListener("mousedown", handleClickOutside);
-    };
   }, []);
 
   const handleSearch = async (e: React.FormEvent) => {
     e.preventDefault();
-    const trimmedSearchTerm = searchTerm.trim();
-
-    if (!trimmedSearchTerm) {
+    const trimmed = searchTerm.trim();
+    if (!trimmed) {
       setSearchResults([]);
       setShowResults(false);
       return;
@@ -69,44 +64,48 @@ const SearchBar: React.FC = () => {
     setShowResults(true);
 
     try {
+      // check for exact category match on submit
       if (e.type === "submit") {
-        const lowerSearchTerm = trimmedSearchTerm.toLowerCase();
-
-        const matchingCategory = Object.entries(categoryMap).find(
-          ([id, name]) => name.toLowerCase() === lowerSearchTerm
+        const lower = trimmed.toLowerCase();
+        const foundCat = categories.find(
+          (c) => c.name.toLowerCase() === lower
         );
-
-        if (matchingCategory) {
+        if (foundCat) {
           navigate(
-            `/products?category=${encodeURIComponent(matchingCategory[1])}`
+            `/products?category=${encodeURIComponent(foundCat.name)}`
           );
           setShowResults(false);
           return;
         }
       }
 
-      const response = await axios.get(
-        `http://localhost:5001/api/products/search?query=${encodeURIComponent(
-          trimmedSearchTerm
-        )}`
+      const { data } = await axios.get<{
+        products: Product[];
+      }>(
+        `/api/products/search?query=${encodeURIComponent(trimmed)}`
       );
 
-      if (response.data && response.data.products) {
-        setSearchResults(response.data.products);
+      if (data.products) {
+        // filter out zero‐price items
+        const filtered = data.products.filter((p) => {
+          const price = Number(p.price);
+          return isFinite(price) && price > 0;
+        });
+        setSearchResults(filtered);
 
+        // if exactly one result and exact name match on submit, go straight to product
         if (
           e.type === "submit" &&
-          response.data.products.length === 1 &&
-          response.data.products[0].name.toLowerCase() ===
-            trimmedSearchTerm.toLowerCase()
+          filtered.length === 1 &&
+          filtered[0].name.toLowerCase() === trimmed.toLowerCase()
         ) {
-          handleResultClick(response.data.products[0]);
+          handleResultClick(filtered[0]);
           return;
         }
       } else {
         setSearchResults([]);
       }
-    } catch (error) {
+    } catch {
       setSearchResults([]);
     } finally {
       setIsLoading(false);
@@ -118,14 +117,11 @@ const SearchBar: React.FC = () => {
     setSearchTerm(value);
 
     if (value.trim().length >= 3) {
-      const debounceTimer = setTimeout(() => {
-        const fakeEvent = {
-          preventDefault: () => {},
-          type: "input",
-        } as React.FormEvent;
-        handleSearch(fakeEvent);
+      const timer = setTimeout(() => {
+        // fake submit event
+        handleSearch({ preventDefault: () => {}, type: "input" } as any);
       }, 500);
-      return () => clearTimeout(debounceTimer);
+      return () => clearTimeout(timer);
     } else if (!value.trim()) {
       setSearchResults([]);
       setShowResults(false);
@@ -133,8 +129,6 @@ const SearchBar: React.FC = () => {
   };
 
   const handleResultClick = (product: Product) => {
-    if (!product.product_id) return;
-
     navigate(`/product/${product.product_id}`);
     setShowResults(false);
   };
@@ -142,7 +136,6 @@ const SearchBar: React.FC = () => {
   return (
     <div ref={searchRef} style={{ position: "relative" }}>
       <form
-        className="search-container"
         onSubmit={handleSearch}
         style={{
           display: "flex",
@@ -154,10 +147,12 @@ const SearchBar: React.FC = () => {
       >
         <input
           type="text"
-          placeholder="Search for coffee, mugs..."
+          placeholder="Search for products..."
           value={searchTerm}
           onChange={handleInputChange}
-          onFocus={() => searchTerm.trim() && setShowResults(true)}
+          onFocus={() =>
+            searchTerm.trim().length >= 3 && setShowResults(true)
+          }
           style={{
             padding: "8px 12px",
             paddingRight: "40px",
@@ -170,7 +165,6 @@ const SearchBar: React.FC = () => {
             outline: "none",
             transition: "all 0.3s ease",
           }}
-          className="search-input"
         />
         <button
           type="submit"
@@ -182,20 +176,17 @@ const SearchBar: React.FC = () => {
             background: "none",
             border: "none",
             cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
             padding: "6px",
             borderRadius: "50%",
             color: "#6d4c41",
             transition: "background-color 0.2s ease",
           }}
-          className="search-button"
           aria-label="Search"
         >
           <FaSearch size={16} />
         </button>
       </form>
+
       {showResults && (
         <div
           style={{
@@ -229,9 +220,10 @@ const SearchBar: React.FC = () => {
               >
                 Search Results
               </div>
-              {searchResults.map((product) => (
+              {searchResults.map((prod) => (
                 <div
-                  key={product.product_id}
+                  key={prod.product_id}
+                  onClick={() => handleResultClick(prod)}
                   style={{
                     padding: "12px 15px",
                     borderBottom: "1px solid #eee",
@@ -240,7 +232,6 @@ const SearchBar: React.FC = () => {
                     display: "flex",
                     justifyContent: "space-between",
                   }}
-                  onClick={() => handleResultClick(product)}
                   onMouseEnter={(e) =>
                     (e.currentTarget.style.backgroundColor = "#f5f5f5")
                   }
@@ -249,7 +240,7 @@ const SearchBar: React.FC = () => {
                   }
                 >
                   <div>
-                    <div style={{ fontWeight: "500" }}>{product.name}</div>
+                    <div style={{ fontWeight: 500 }}>{prod.name}</div>
                     <div
                       style={{
                         fontSize: "12px",
@@ -257,13 +248,13 @@ const SearchBar: React.FC = () => {
                         marginTop: "3px",
                       }}
                     >
-                      {product.description.length > 50
-                        ? `${product.description.substring(0, 50)}...`
-                        : product.description}
+                      {prod.description.length > 50
+                        ? `${prod.description.slice(0, 50)}…`
+                        : prod.description}
                     </div>
                   </div>
                   <div style={{ color: "#6d4c41", fontWeight: "bold" }}>
-                    ${parseFloat(product.price).toFixed(2)}
+                    ${parseFloat(prod.price).toFixed(2)}
                   </div>
                 </div>
               ))}
