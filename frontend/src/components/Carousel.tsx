@@ -7,25 +7,25 @@ const images = [
     src: "img/tea.jpg",
     alt: "Tea",
     category: "Tea",
-    text: "Discover the variety of teas that we offer, perfect for any occasion.",
+    text: "Discover our curated collection of premium teas from around the world.",
   },
   {
     src: "img/beans.jpg",
     alt: "Coffee",
     category: "Coffee Beans",
-    text: "Explore our premium coffee beans, freshly roasted to perfection.",
+    text: "Single-origin and specialty blends, roasted to bring out their unique flavor profiles.",
   },
   {
     src: "img/mug.jpg",
     alt: "Utensils",
     category: "Accessories",
-    text: "Find the best utensils for your coffee and tea needs.",
+    text: "Elevate your brewing experience with our curated selection of premium accessories.",
   },
   {
     src: "img/machine.jpg",
     alt: "Machines",
     category: "Accessories",
-    text: "Get the best machines to brew your drinks at home.",
+    text: "Professional-grade equipment for the perfect brew, every time.",
   },
 ];
 
@@ -48,6 +48,10 @@ const Carousel: React.FC = () => {
     navigate(`/products?category=${encodeURIComponent(category)}`);
   };
 
+  const goToSlide = (index: number) => {
+    setCurrentIndex(index);
+  };
+
   return (
     <div className="carousel">
       <div
@@ -60,7 +64,9 @@ const Carousel: React.FC = () => {
             <div className="description">
               <p>{img.text}</p>
               <a href="#" onClick={(e) => handleNavigate(img.category, e)}>
-                Click here
+                {img.category === "Tea" ? "Discover Teas" :
+                 img.category === "Coffee Beans" ? "Discover Beans" :
+                 "View Accessories"}
               </a>
             </div>
           </div>
@@ -72,6 +78,15 @@ const Carousel: React.FC = () => {
       <button className="next" onClick={nextSlide}>
         &#10095;
       </button>
+      <div className="carousel-dots">
+        {images.map((_, index) => (
+          <button
+            key={index}
+            className={`dot ${index === currentIndex ? "active" : ""}`}
+            onClick={() => goToSlide(index)}
+          />
+        ))}
+      </div>
     </div>
   );
 };

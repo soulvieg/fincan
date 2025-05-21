@@ -1,12 +1,155 @@
+.best-seller-container {
+  width: 100%;
+  padding: 40px 20px;
+  background: transparent;
+}
+
+.best-seller-title {
+  text-align: center;
+  color: #6b3503;
+  font-size: 2rem;
+  margin-top: 40px;
+  margin-bottom: 30px;
+  font-weight: 600;
+}
+
 .best-seller {
-  width: 80%;
-  margin: 30px auto;
-  padding: 15px;
-  background: rgba(228, 212, 180, 0.8);
-  border-radius: 10px;
-  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: rgba(228, 212, 180, 0.3);
+  border-radius: 15px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.bs-items {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 30px;
+  padding: 20px;
+  justify-content: center;
+  align-items: center;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.bs-item {
   display: flex;
-  align-items: center; /* Align text & images in the same row */
+  flex-direction: column;
+  align-items: center;
+  background: none;
+  border-radius: 0;
+  box-shadow: none;
+  transition: none;
+  margin: 0 auto;
+}
+
+.bs-item-image-container {
+  position: relative;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 16px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  background: transparent;
+  margin: 0 auto;
+}
+
+.bs-item-image-container:hover {
+  transform: translateY(-8px) scale(1.04);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.18);
+}
+
+.bs-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 16px;
+  transition: transform 0.5s ease;
+}
+
+.bs-item-image-container:hover img {
+  transform: scale(1.05);
+}
+
+.bs-item-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  border-radius: 16px;
+}
+
+.bs-item-image-container:hover .bs-item-overlay {
+  opacity: 1;
+}
+
+.bs-item-details {
+  width: 100%;
+  padding: 16px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  background: none;
+}
+
+.bs-item-name {
+  font-size: 1.1rem;
+  color: #333;
+  margin: 0 0 6px 0;
+  font-weight: 600;
+}
+
+.bs-item-price {
+  font-size: 1.1rem;
+  color: #6b3503;
+  font-weight: 600;
+  margin: 0;
+}
+
+.bs-item button {
+  padding: 12px 25px;
+  font-size: 1rem;
+  background-color: #6b3503;
+  color: white;
+  border: none;
+  border-radius: 25px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bs-item button:hover {
+  background-color: #8a4e2f;
+  transform: scale(1.05);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 768px) {
+  .best-seller {
+    width: 95%;
+    padding: 15px;
+  }
+  
+  .bs-items {
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    max-width: 100%;
+  }
+  
+  .bs-item-image-container {
+    height: 200px;
+  }
 }
 
 /* Best Seller Text */
