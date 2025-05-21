@@ -1,3 +1,4 @@
+// src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
 import { useProductContext, Category } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
@@ -21,7 +22,6 @@ const ProductPage: React.FC = () => {
   // parse categoryId from URL (0 = All, -1 = Best Sellers, >0 real category_id)
   const params = new URLSearchParams(location.search);
   const initialCatParam = params.get("category");
-  // find matching category_id by name, else default = 0
   const initialCategoryId = (() => {
     if (!initialCatParam) return 0;
     const found = categories.find((c) => c.name === initialCatParam);
@@ -55,15 +55,21 @@ const ProductPage: React.FC = () => {
   }
 
   // filter by selectedCategoryId
-  const filtered = products.filter((p) => {
-    if (selectedCategoryId === 0) return true;              // All
-    if (selectedCategoryId === -1) return p.is_best_seller; // Best Sellers
-    return p.category_id === selectedCategoryId;            // real category
-  }).filter((p) => {
-  // Convert the price to a number for the check, if it doesnt hgave a price, filter it out
-  const priceNum = Number(p.price);
-  return p.price !== undefined && p.price !== null && isFinite(priceNum);
-});
+  const filtered = products
+    .filter((p) => {
+      if (selectedCategoryId === 0) return true;              // All
+      if (selectedCategoryId === -1) return p.is_best_seller; // Best Sellers
+      return p.category_id === selectedCategoryId;            // real category
+    })
+    // remove any products without a valid numeric price > 0
+    .filter((p) => {
+      const priceNum = Number(p.price);
+      return (
+        p.price != null &&
+        isFinite(priceNum) &&
+        priceNum > 0
+      );
+    });
 
   // then sort
   const sorted = [...filtered].sort((a, b) => {
@@ -163,9 +169,7 @@ const ProductPage: React.FC = () => {
             }
           >
             {product.is_best_seller && (
-              <div className="best-seller-badge">
-                Best Seller
-              </div>
+              <div className="best-seller-badge">Best Seller</div>
             )}
 
             <div className="product-rating">
@@ -177,10 +181,7 @@ const ProductPage: React.FC = () => {
               <StarIcon fontSize="small" />
             </div>
 
-            <img
-              src={product.image_url}
-              alt={product.name}
-            />
+            <img src={product.image_url} alt={product.name} />
             <h3>{product.name}</h3>
             <p>{product.description}</p>
             <p className="product-price">
