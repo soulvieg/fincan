@@ -42,10 +42,6 @@
   transition: transform 0.3s ease;
 }
 
-.slide img:hover {
-  transform: scale(1.02);
-}
-
 /* Description paragraph on the right of the image */
 .description {
   width: 45%;
