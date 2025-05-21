@@ -21,10 +21,10 @@ const RefundTable: React.FC = () => {
   };
 
   return (
-    <Card className="rounded-border" style={{ backgroundColor: "#fff0e2" }}>
+    <Card className="shadow-sm rounded-4 mt-4 border-0" style={{ background: "#ADD8E6" }}>
       <Card.Header
         as="h4"
-        style={{ borderBottom: "none", backgroundColor: "transparent" }}
+        style={{ borderBottom: "none", background: "transparent", color: "#264e70" }}
       >
         Refund Requests
       </Card.Header>
@@ -32,11 +32,11 @@ const RefundTable: React.FC = () => {
         <Table
           bordered
           hover
-          className="custom-table"
-          style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}
+          className="rounded-3 overflow-hidden mb-0"
+          style={{ background: "#fff", borderCollapse: "separate", borderSpacing: "0 8px", marginBottom: "2rem"}}
         >
           <thead>
-            <tr className="rounded-row header-row">
+            <tr style={{ background: "#e2eaff", color: "#264e70" }}>
               <th className="text-center align-middle">Order ID</th>
               <th className="text-center align-middle">Customer ID</th>
               <th className="text-center align-middle">Customer Name</th>
