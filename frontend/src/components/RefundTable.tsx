@@ -2,40 +2,43 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import { Card, Table } from "react-bootstrap";
-import { useOrders, Order } from "../contexts/OrderContext";
+import { useOrders } from "../contexts/OrderContext";
 import RefundItem from "./RefundItem";
 
 interface RefundRow {
-  refund_id:    number;
-  order_id:     number;
-  refund_status:string;
-  amount?:      number;
+  refund_id:     number;
+  order_id:      number;
+  refund_status: string;
+  amount?:       number;
 }
 
 export default function RefundTable() {
   const { orders, updateRefundStatus, calculateDaysLeft } = useOrders();
 
-  // Map of orderId → refund record
-  const [refunds, setRefunds] = useState<Record<number,RefundRow>>({});
+  /** map<orderId, RefundRow> */
+  const [refunds, setRefunds] = useState<Record<number, RefundRow>>({});
 
-  // Whenever orders change, fetch refunds for those that qualify
+  /* ------------------------------------------------------------------ *
+   * Fetch refund rows for every delivered / cancelled order.            *
+   * ------------------------------------------------------------------ */
   useEffect(() => {
-    // only orders delivered or cancelled
-    const toFetch = orders.filter(o =>
-      o.status === "cancelled" ||
-      (o.status === "delivered")
+    const relevant = orders.filter(
+      (o) => o.status === "cancelled" || o.status === "delivered"
     );
 
-    toFetch.forEach(o => {
+    relevant.forEach((o) => {
       axios
         .get<RefundRow>(`/api/orders/${o.id}/refund`)
-        .then(res => {
-          setRefunds(r => ({ ...r, [o.id]: res.data }));
-        })
-        .catch(err => {
+        .then((res) =>
+          setRefunds((r) => ({
+            ...r,
+            [o.id]: res.data,
+          }))
+        )
+        .catch((err) => {
           if (err.response?.status === 404) {
-            // no refund record yet
-            setRefunds(r => {
+            // no refund record yet – remove any stale entry
+            setRefunds((r) => {
               const copy = { ...r };
               delete copy[o.id];
               return copy;
@@ -47,53 +50,64 @@ export default function RefundTable() {
     });
   }, [orders]);
 
-  // Build a list of orders that actually have a refund entry
-  const refundOrders = orders.filter(o => refunds[o.id]);
+  const refundOrders = orders.filter((o) => refunds[o.id]);
 
   return (
-    <Card className="rounded-border" style={{ backgroundColor: "#fff0e2" }}>
-      <Card.Header as="h4" style={{ backgroundColor: "transparent" }}>
+    <Card
+      className="shadow-sm rounded-4 mt-4 border-0"
+      style={{ background: "#ADD8E6" }}
+    >
+      <Card.Header
+        as="h4"
+        style={{ borderBottom: "none", background: "transparent", color: "#264e70" }}
+      >
         Refund Requests
       </Card.Header>
+
       <Card.Body>
         <Table
           bordered
           hover
-          className="custom-table"
-          style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}
+          className="rounded-3 overflow-hidden mb-0"
+          style={{
+            background: "#fff",
+            borderCollapse: "separate",
+            borderSpacing: "0 8px",
+            marginBottom: "2rem",
+          }}
         >
           <thead>
-            <tr className="rounded-row header-row">
-              <th>Order ID</th>
-              <th>Customer ID</th>
-              <th>Customer Name</th>
-              <th>Total Price</th>
-              <th>Address</th>
-              <th>Order Status</th>
-              <th>Days Left</th>
-              <th>Refund Status</th>
+            <tr style={{ background: "#e2eaff", color: "#264e70" }}>
+              <th className="text-center align-middle">Order&nbsp;ID</th>
+              <th className="text-center align-middle">Customer&nbsp;ID</th>
+              <th className="text-center align-middle">Customer&nbsp;Name</th>
+              <th className="text-center align-middle">Total&nbsp;Price</th>
+              <th className="text-center align-middle">Address</th>
+              <th className="text-center align-middle">Order&nbsp;Status</th>
+              <th className="text-center align-middle">Days&nbsp;Left</th>
+              <th className="text-center align-middle">Refund&nbsp;Status</th>
             </tr>
           </thead>
+
           <tbody>
-            {refundOrders.map(order => (
+            {refundOrders.map((order) => (
               <RefundItem
                 key={order.id}
                 order={order}
                 daysLeft={calculateDaysLeft(order)}
                 refundStatus={refunds[order.id].refund_status}
-                onAccept={id => {
+                onAccept={(id) => {
                   updateRefundStatus(id, "Refunded");
-                  // immediately update UI
-                  setRefunds(r => ({
+                  setRefunds((r) => ({
                     ...r,
-                    [id]: { ...r[id], refund_status: "Refunded" }
+                    [id]: { ...r[id], refund_status: "Refunded" },
                   }));
                 }}
-                onReject={id => {
+                onReject={(id) => {
                   updateRefundStatus(id, "Refund Denied");
-                  setRefunds(r => ({
+                  setRefunds((r) => ({
                     ...r,
-                    [id]: { ...r[id], refund_status: "Refund Denied" }
+                    [id]: { ...r[id], refund_status: "Refund Denied" },
                   }));
                 }}
               />

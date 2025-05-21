@@ -1,18 +1,29 @@
+// src/pages/SalesManagement.tsx
 import React from "react";
-import RefundTable from "../components/RefundTable";
-import SalesManagerInvoiceTable from "../components/InvoiceTable";
+import RefundTable                 from "../components/RefundTable";
+import SalesManagerInvoiceTable    from "../components/InvoiceTable";
+import ProductPriceTable           from "../components/ProductPriceTable";
 
 const SalesManagement: React.FC = () => (
   <div style={{ padding: 20 }}>
-    <h2 style={{ marginBottom: 20, color: "#6b3503" }}>Sales Management</h2>
+    <h2 style={{ marginBottom: 20, color: "#6b3503" }}>
+      Sales Management
+    </h2>
 
-    {/* refund block */}
-    <div style={{ marginBottom: 40 }}>
+    {/* Refund requests */}
+    <section style={{ marginBottom: 40 }}>
       <RefundTable />
-    </div>
+    </section>
 
-    {/* invoices block */}
-    <SalesManagerInvoiceTable />
+    {/* Invoices / all orders */}
+    <section style={{ marginBottom: 40 }}>
+      <SalesManagerInvoiceTable />
+    </section>
+
+    {/* Price overview */}
+    <section>
+      <ProductPriceTable />
+    </section>
   </div>
 );
 

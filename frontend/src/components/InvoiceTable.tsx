@@ -30,10 +30,7 @@ const SalesManagerInvoiceTable: React.FC = () => {
       const params: any = {};
       if (startDate) params.startDate = startDate;
       if (endDate) params.endDate = endDate;
-
-      const response = await axios.get("http://localhost:5001/api/orders", {
-        params,
-      });
+      const response = await axios.get("http://localhost:5001/api/orders", { params });
       setOrders(response.data);
     } catch (error) {
       console.error("Failed to fetch orders", error);
@@ -51,12 +48,9 @@ const SalesManagerInvoiceTable: React.FC = () => {
       <div style="font-family: Arial; padding: 20px;">
         <h2 style="color: #6b3503">Fincan - Customer Invoice</h2>
         <p><strong>Order ID:</strong> ${order.id}</p>
-        <p><strong>Customer:</strong> ${order.customer} (ID: ${
-      order.customerId
-    })</p>
+        <p><strong>Customer:</strong> ${order.customer} (ID: ${order.customerId})</p>
         <p><strong>Address:</strong> ${order.address}</p>
         <p><strong>Date:</strong> ${order.date}</p>
-
         <table style="width: 100%; border-collapse: collapse;">
           <thead>
             <tr>
@@ -74,23 +68,19 @@ const SalesManagerInvoiceTable: React.FC = () => {
                   <td>${item.name}</td>
                   <td align="center">${item.quantity}</td>
                   <td align="right">${formatCurrency(item.price)}</td>
-                  <td align="right">${formatCurrency(
-                    item.price * item.quantity
-                  )}</td>
-                </tr>`
+                  <td align="right">${formatCurrency(item.price * item.quantity)}</td>
+                </tr>
+              `
               )
               .join("")}
           </tbody>
         </table>
-
         <h3 style="margin-top: 20px;">Total: ${formatCurrency(order.total)}</h3>
       </div>
     `;
-
     const tempDiv = document.createElement("div");
     tempDiv.innerHTML = content;
     document.body.appendChild(tempDiv);
-
     html2pdf()
       .set({ filename: `invoice_${order.customer}_${order.id}.pdf` })
       .from(tempDiv)
@@ -99,10 +89,10 @@ const SalesManagerInvoiceTable: React.FC = () => {
   };
 
   return (
-    <Card className="rounded-border" style={{ backgroundColor: "#fff0e2" }}>
+    <Card className="shadow-sm rounded-4 border-0 mb-5" style={{ background: "#ADD8E6", marginTop: "2.5rem" }}>
       <Card.Header
         as="h4"
-        style={{ borderBottom: "none", backgroundColor: "transparent" }}
+        style={{ borderBottom: "none", background: "transparent", color: "#264e70" }}
       >
         All Orders
       </Card.Header>
@@ -128,11 +118,11 @@ const SalesManagerInvoiceTable: React.FC = () => {
         <Table
           bordered
           hover
-          className="custom-table"
-          style={{ borderCollapse: "separate", borderSpacing: "0 8px" }}
+          className="rounded-3 overflow-hidden"
+          style={{ background: "#fff", borderCollapse: "separate", borderSpacing: "0 8px", marginBottom: "2rem", marginTop: "2.5rem" }}
         >
           <thead>
-            <tr className="rounded-row header-row">
+            <tr style={{ background: "#e2eaff", color: "#264e70" }}>
               <th className="text-center align-middle">Order ID</th>
               <th className="text-center align-middle">Customer</th>
               <th className="text-center align-middle">Date</th>
@@ -144,15 +134,36 @@ const SalesManagerInvoiceTable: React.FC = () => {
           <tbody>
             {orders.map((order) => (
               <tr key={order.id}>
-                <td className="text-center align-middle">{order.id}</td>
+                {/* Order ID with pastel badge */}
+                <td className="text-center align-middle">
+                  <span style={{
+                    background: '#f3e6ff',
+                    color: '#872ff7',
+                    borderRadius: '16px',
+                    padding: '2px 12px',
+                    fontSize: '0.98rem',
+                    display: 'inline-block'
+                  }}>{order.id}</span>
+                </td>
+                {/* Customer info */}
                 <td className="text-center align-middle">
                   {order.customer} (ID: {order.customerId})
                 </td>
+                {/* Date & address */}
                 <td className="text-center align-middle">{order.date}</td>
                 <td className="text-center align-middle">{order.address}</td>
+                {/* Total with pastel badge */}
                 <td className="text-center align-middle">
-                  {formatCurrency(order.total)}
+                  <span style={{
+                    background: '#fde9d7',
+                    color: '#de7015',
+                    borderRadius: '14px',
+                    padding: '2px 18px',
+                    fontSize: '1.01rem',
+                    display: 'inline-block'
+                  }}>{formatCurrency(order.total)}</span>
                 </td>
+                {/* Download Action */}
                 <td className="text-center align-middle">
                   <Button
                     variant="outline-secondary"
