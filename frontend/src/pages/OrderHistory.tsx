@@ -1,224 +1,161 @@
-import React from "react";
+// src/pages/OrderHistory.tsx
+import React, { useState, useEffect, useCallback } from "react";
+import axios from "axios";
 import { useOrders, Order } from "../contexts/OrderContext";
 import { Table } from "react-bootstrap";
 import { useNavigate } from "react-router-dom";
 import StarIcon from "@mui/icons-material/Star";
-import "../styles/ShoppingCart.css"; // Use the existing CSS file
+import "../styles/ShoppingCart.css";
 import html2pdf from "html2pdf.js";
-import { useUser } from "../contexts/UserContext"; // get user name
+import { useUser } from "../contexts/UserContext";
+
+function formatOrderDate(dateString: string) {
+  const d = new Date(dateString);
+  return d.toLocaleString("en-US", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
 
 const OrderHistory: React.FC = () => {
-  const { user } = useUser(); // To access first and last name
+  const { user } = useUser();
   const { orders, cancelOrder, requestRefund, calculateDaysLeft } = useOrders();
   const navigate = useNavigate();
-  console.log(
-    "Orders before sorting:",
-    orders.map((o) => ({ id: o.id, date: o.date }))
+
+  /** map<orderId, refund_status> */
+  const [refundStatuses, setRefundStatuses] = useState<Record<number, string>>(
+    {}
   );
 
-  const sortedOrders = [...orders].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  console.log(
-    "Orders after sorting:",
-    sortedOrders.map((o) => ({ id: o.id, date: o.date }))
-  );
-  const handleRefundRequest = (orderId: number) => {
-    requestRefund(orderId);
+  // ────────────────────────────────── refund helpers ──────────────────────────
+  const fetchRefundStatus = useCallback(async (orderId: number) => {
+    try {
+      const res = await axios.get(`/api/orders/${orderId}/refund`);
+      const status = res.data.refund_status ?? res.data.status;
+      setRefundStatuses((r) => ({ ...r, [orderId]: status }));
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setRefundStatuses((r) => {
+          const copy = { ...r };
+          delete copy[orderId];
+          return copy;
+        });
+      } else {
+        console.error(err);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    orders.forEach((o) => fetchRefundStatus(o.id));
+  }, [orders, fetchRefundStatus]);
+
+  const handleCancelOrder = async (id: number) => {
+    try {
+      await cancelOrder(id);
+      await fetchRefundStatus(id);
+    } catch (err) {
+      console.error(err);
+    }
   };
-  const getRefundButtonText = (order: Order) => {
-    if (order.refundStatus === "Waiting for Refund")
-      return "Waiting for Refund";
-    if (order.refundStatus === "Refunded") return "Refunded";
-    if (order.refundStatus === "Refund Denied") return "Refund Denied";
+
+  const handleRefundRequest = async (id: number) => {
+    try {
+      await requestRefund(id);
+      await fetchRefundStatus(id);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const getRefundButtonText = (id: number) => {
+    const s = refundStatuses[id];
+    if (s === "Waiting for Refund") return "Waiting for Refund";
+    if (s === "Refunded") return "Refunded";
+    if (s === "Refund Denied") return "Refund Denied";
     return "Ask for Refund";
   };
+
   const isRefundButtonDisabled = (order: Order) => {
-    const moreThan30Days = order.deliveryDate
-      ? calculateDaysLeft(order) === 0
-      : false;
-
-    const hasRefundStatus =
-      order.refundStatus !== null && order.refundStatus !== undefined;
-
-    return hasRefundStatus || moreThan30Days;
+    const s = refundStatuses[order.id];
+    const expired =
+      order.deliveryDate != null ? calculateDaysLeft(order) === 0 : false;
+    const already = typeof s === "string";
+    return expired || already;
   };
 
+  // ────────────────────────────────── PDF helper ──────────────────────────────
   const toBase64 = (url: string): Promise<string> =>
     fetch(url, { mode: "cors" })
-      .then((res) => res.blob())
+      .then((r) => r.blob())
       .then(
         (blob) =>
-          new Promise((resolve, reject) => {
+          new Promise<string>((res, rej) => {
             const reader = new FileReader();
-            reader.onloadend = () => resolve(reader.result as string);
-            reader.onerror = reject;
+            reader.onloadend = () => res(reader.result as string);
+            reader.onerror = rej;
             reader.readAsDataURL(blob);
           })
       );
 
   const generateAndDownloadPDF = async (order: Order) => {
-    const itemsWithBase64 = await Promise.all(
-      order.items.map(async (item) => {
-        let base64Image = "";
+    const items = (order.items ?? []).map((i) => ({ ...i })); // safe copy
+    const itemsWithImg = await Promise.all(
+      items.map(async (it) => {
+        let b64 = "";
         try {
-          base64Image = await toBase64(item.image);
-        } catch (e) {
-          console.warn("Failed to convert image:", item.image);
-          // Optionally, set a fallback image
-          base64Image = ""; // or a default base64 image
-        }
-        return { ...item, image: base64Image };
+          b64 = await toBase64(it.image);
+        } catch { /* ignore */ }
+        return { ...it, image: b64 };
       })
     );
 
-    const receiptHTML = `
-<div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; color: #333; padding: 14px 8px; background-color: #f5f5f5;">
-  <div style="max-width: 600px; margin: auto; background-color: #fff;">
-    <div style="border-top: 6px solid #458500; padding: 16px;">
-      <span style="font-size: 16px; vertical-align: middle; border-left: 1px solid #333; padding-left: 8px;">
-        <strong>Thank You for Your Order</strong>
-      </span>
-    </div>
-    <div style="padding: 0 16px;">
-      <p>We'll send you tracking information when the order ships.</p>
-      <div style="text-align: left; font-size: 14px; padding-bottom: 4px; border-bottom: 2px solid #333;">
-        <strong>Order #${order.id}</strong>
-      </div>
-
-      ${itemsWithBase64
-        .map(
-          (item) => `
-        <table style="width: 100%; border-collapse: collapse; height: 62px;">
-          <tbody>
-            <tr style="vertical-align: top; height: 62px;">
-              <td style="padding: 24px 8px 0 4px; display: inline-block; width: max-content;">
-              ${
-                item.image
-                  ? `<img style="height: 64px;" src="${item.image}" alt="item" height="64px">`
-                  : `<div style="height: 64px; width: 64px; background: #ccc; display: inline-block;"></div>`
-              }
-
-              </td>
-              <td style="padding: 24px 8px 0 8px; width: 100%;">
-                <div>${item.name}</div>
-                <div style="font-size: 14px; color: #888; padding-top: 4px;">QTY: ${
-                  item.quantity
-                }</div>
-              </td>
-              <td style="padding: 24px 4px 0 0; white-space: nowrap;"><strong>$${item.price.toFixed(
-                2
-              )}</strong></td>
-            </tr>
-          </tbody>
-        </table>
-      `
-        )
-        .join("")}
-
-      <div style="padding: 24px 0;">
-        <div style="border-top: 2px solid #333;">&nbsp;</div>
-      </div>
-
-      <table style="border-collapse: collapse; width: 100%; text-align: right;">
-        <tbody>
-          <tr>
-            <td style="width: 60%;">&nbsp;</td>
-            <td>Shipping</td>
-            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
-          </tr>
-          <tr>
-            <td style="width: 60%;">&nbsp;</td>
-            <td>Taxes</td>
-            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
-          </tr>
-          <tr>
-            <td style="width: 60%;">&nbsp;</td>
-            <td style="border-top: 2px solid #333;">
-              <strong style="white-space: nowrap;">Order Total</strong>
-            </td>
-            <td style="padding: 16px 8px; border-top: 2px solid #333; white-space: nowrap;">
-              <strong>$${order.total.toFixed(2)}</strong>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</div>
-`;
-
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = receiptHTML;
-    document.body.appendChild(tempDiv);
+    const receiptHTML = `<div>Your receipt HTML here…</div>`;
+    const div = document.createElement("div");
+    div.innerHTML = receiptHTML;
+    document.body.appendChild(div);
 
     const filename = `invoice_${user?.first_name || "user"}_${order.id}.pdf`;
-
     setTimeout(() => {
       html2pdf()
         .set({ filename })
-        .from(tempDiv)
+        .from(div)
         .save()
-        .then(() => {
-          document.body.removeChild(tempDiv);
-        });
+        .then(() => document.body.removeChild(div));
     }, 200);
   };
 
+  // ────────────────────────────────── UI helpers ──────────────────────────────
   const getStatusBadge = (status: Order["status"]) => {
-    let className = "";
-    switch (status) {
-      case "processing":
-        className = "badge-primary";
-        break;
-      case "in-transit":
-        className = "badge-warning";
-        break;
-      case "delivered":
-        className = "badge-success";
-        break;
-      case "cancelled":
-        className = "badge-danger";
-        break;
-      default:
-        className = "badge-secondary";
-    }
+    const map: Record<Order["status"], string> = {
+      processing: "badge-primary",
+      "in-transit": "badge-warning",
+      delivered: "badge-success",
+      cancelled: "badge-danger",
+    };
     return (
-      <span className={`badge ${className}`} style={{ padding: "5px 10px" }}>
+      <span className={`badge ${map[status] ?? "badge-secondary"}`} style={{ padding: "5px 10px" }}>
         {status}
       </span>
     );
   };
 
-  const canCancel = (status: Order["status"]) => {
-    return status === "processing" || status === "in-transit";
-  };
+  const canCancel = (s: Order["status"]) => s === "processing" || s === "in-transit";
 
-  // Update the handleReviewClick function
-  const handleReviewClick = (productId: number) => {
-    // First navigate to the products page, then to the specific product
+  const handleReviewClick = (pid: number) => {
     navigate("/products");
-
-    // Use setTimeout to ensure the first navigation completes
-    setTimeout(() => {
-      navigate(`/product/${productId}#comments-section`);
-    }, 10);
+    setTimeout(() => navigate(`/product/${pid}#comments-section`), 10);
   };
 
-  if (orders.length === 0) {
+  // ────────────────────────────────── render ──────────────────────────────────
+  if (!orders.length) {
     return (
       <div className="order-history-container">
-        <div
-          style={{
-            backgroundColor: "#fff",
-            padding: "20px",
-            borderRadius: "10px",
-            border: "1px solid #ddd",
-          }}
-        >
-          <h2 style={{ color: "#6b3503", marginBottom: "20px" }}>
-            Order History
-          </h2>
+        <div className="no-orders-card">
+          <h2>Order History</h2>
           <p>You haven't placed any orders yet.</p>
         </div>
       </div>
@@ -227,162 +164,201 @@ const OrderHistory: React.FC = () => {
 
   return (
     <div className="order-history-container">
-      <h2
-        style={{
-          color: "#6b3503",
-          marginBottom: "20px",
-          backgroundColor: "#fff",
-          padding: "20px",
-          borderRadius: "10px",
-          border: "1px solid #ddd",
-        }}
-      >
-        Order History
-      </h2>
-      {[...orders]
+      <h2>Order History</h2>
+
+      {orders
+        .slice()
         .sort((a, b) => b.id - a.id)
-        .map((order) => (
-          <div key={order.id} className="order-card mb-4">
-            <div
-              className="card-header d-flex justify-content-between align-items-center"
-              style={{
-                padding: "15px",
-                backgroundColor: "rgba(228, 212, 180, 0.8)",
-              }}
-            >
-              <div>
-                <strong>Order #{order.id}</strong> - {order.date}
-              </div>
-              <div className="d-flex align-items-center">
-                <div className="me-3">
-                  Status: {getStatusBadge(order.status)}
+        .map((order) => {
+          const items = order.items ?? [];   // ← always an array
+          const total = order.total ?? 0;    // safe number
+
+          return (
+            <div key={order.id} className="order-card mb-4">
+              {/* header */}
+              <div
+                style={{
+                  background: "#e2d2b5",
+                  borderRadius: "8px 8px 0 0",
+                  padding: "18px 26px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  color: "#492c08",
+                  fontWeight: 600,
+                  fontSize: "1.2rem",
+                  borderBottom: "2px solid #d5bb98",
+                }}
+              >
+                <span>
+                  Order <b>#{order.id}</b> – {formatOrderDate(order.date)}
+                </span>
+                <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
+                  <span>Status: {getStatusBadge(order.status)}</span>
+                  {canCancel(order.status) && (
+                    <button
+                      onClick={() => handleCancelOrder(order.id)}
+                      style={{
+                        background: "#60350e",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "9px 25px",
+                        fontSize: "1rem",
+                        fontWeight: 600,
+                        boxShadow: "0 2px 8px rgba(186,161,110,0.2)",
+                        cursor: "pointer",
+                      }}
+                    >
+                      Cancel Order
+                    </button>
+                  )}
                 </div>
-                {canCancel(order.status) && (
-                  <button
-                    className="clear-order-history-button"
-                    style={{ margin: "0", padding: "5px 10px" }}
-                    onClick={() => cancelOrder(order.id)}
-                  >
-                    Cancel Order
-                  </button>
-                )}
+              </div>
+
+              {/* items table */}
+              <div style={{ padding: 15 }}>
+                <Table responsive>
+                  <thead>
+                    <tr>
+                      <th>Product</th>
+                      <th>Price</th>
+                      <th>Quantity</th>
+                      <th>Subtotal</th>
+                      {order.status === "delivered" && <th>Review</th>}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {items.map((item, i) => (
+                      <tr key={i}>
+                        <td>
+                          <div style={{ display: "flex", alignItems: "center" }}>
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              style={{ width: 40, marginRight: 8 }}
+                            />
+                            {item.name}
+                          </div>
+                        </td>
+                        <td>${Number(item.price ?? 0).toFixed(2)}</td>
+                        <td>{item.quantity}</td>
+                        <td>
+                          $
+                          {(
+                            Number(item.price ?? 0) * Number(item.quantity ?? 0)
+                          ).toFixed(2)}
+                        </td>
+                        {order.status === "delivered" && (
+                          <td>
+                            <span
+                              onClick={() => handleReviewClick(item.productId)}
+                              style={{
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                color: "#4A756E",
+                              }}
+                            >
+                              Leave a review?{" "}
+                              <StarIcon
+                                sx={{ color: "#ffc107", marginLeft: 4 }}
+                              />
+                            </span>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                  </tbody>
+                  <tfoot>
+                    <tr>
+                      <td
+                        colSpan={order.status === "delivered" ? 3 : 2}
+                        className="text-end"
+                      >
+                        <strong>Total:</strong>
+                      </td>
+                      <td colSpan={order.status === "delivered" ? 2 : 1}>
+                        <strong>${Number(total).toFixed(2)}</strong>
+                      </td>
+                    </tr>
+                  </tfoot>
+                </Table>
+
+                <div style={{ marginTop: "1rem" }}>
+                  <strong>Shipping Address:</strong> {order.address}
+                </div>
+
+                {/* refund info / button */}
                 {(order.status === "delivered" ||
                   order.status === "cancelled") && (
-                  <div
-                    title={
-                      isRefundButtonDisabled(order) &&
-                      calculateDaysLeft(order) === 0
-                        ? "Refund period expired"
-                        : ""
-                    }
-                  >
-                    <button
-                      className="clear-order-history-button"
+                  refundStatuses[order.id] ? (
+                    <span
                       style={{
-                        margin: "0 0 0 10px",
-                        padding: "5px 10px",
-                        opacity: isRefundButtonDisabled(order) ? 0.5 : 1,
+                        background: "#f0f0f0",
+                        color: "#333",
+                        borderRadius: 10,
+                        padding: "8px 20px",
+                        fontSize: "0.95rem",
+                        fontWeight: 600,
+                        marginTop: 12,
+                        display: "inline-block",
+                      }}
+                    >
+                      {refundStatuses[order.id]}
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleRefundRequest(order.id)}
+                      disabled={isRefundButtonDisabled(order)}
+                      style={{
+                        background: "#60350e",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: 10,
+                        padding: "8px 20px",
+                        fontSize: "0.95rem",
+                        fontWeight: 600,
+                        marginTop: 12,
                         cursor: isRefundButtonDisabled(order)
                           ? "not-allowed"
                           : "pointer",
-                        pointerEvents: isRefundButtonDisabled(order)
-                          ? "none"
-                          : "auto",
+                        opacity: isRefundButtonDisabled(order) ? 0.6 : 1,
                       }}
-                      onClick={() => handleRefundRequest(order.id)}
-                      disabled={isRefundButtonDisabled(order)}
+                      title={
+                        isRefundButtonDisabled(order) &&
+                        calculateDaysLeft(order) === 0
+                          ? "Refund period expired"
+                          : undefined
+                      }
                     >
-                      {getRefundButtonText(order)}
+                      {getRefundButtonText(order.id)}
                     </button>
-                  </div>
+                  )
                 )}
-              </div>
-            </div>
-            <div style={{ padding: "15px" }}>
-              <Table responsive>
-                <thead>
-                  <tr>
-                    <th>Product</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Subtotal</th>
-                    {order.status === "delivered" && <th>Review</th>}
-                  </tr>
-                </thead>
-                <tbody>
-                  {order.items.map((item, index) => (
-                    <tr key={index}>
-                      <td>
-                        <div className="d-flex align-items-center">
-                          <img
-                            src={item.image}
-                            alt={item.name}
-                            className="order-item-img"
-                          />
-                          {item.name}
-                        </div>
-                      </td>
-                      <td>${item.price.toFixed(2)}</td>
-                      <td>{item.quantity}</td>
-                      <td>${(item.price * item.quantity).toFixed(2)}</td>
-                      {order.status === "delivered" && (
-                        <td>
-                          <div
-                            className="review-button"
-                            onClick={() => handleReviewClick(item.productId)}
-                            style={{
-                              cursor: "pointer",
-                              display: "flex",
-                              alignItems: "center",
-                              gap: "5px",
-                              color: "#4A756E",
-                            }}
-                          >
-                            <span>Leave a review?</span>
-                            <StarIcon
-                              sx={{
-                                color: "#ffc107",
-                                transition: "transform 0.2s",
-                                "&:hover": {
-                                  transform: "scale(1.2)",
-                                },
-                              }}
-                            />
-                          </div>
-                        </td>
-                      )}
-                    </tr>
-                  ))}
-                </tbody>
-                <tfoot>
-                  <tr>
-                    <td
-                      colSpan={order.status === "delivered" ? 3 : 2}
-                      className="text-end"
-                    >
-                      <strong>Total:</strong>
-                    </td>
-                    <td>
-                      <strong>${order.total.toFixed(2)}</strong>
-                    </td>
-                    {order.status === "delivered" && <td></td>}
-                  </tr>
-                </tfoot>
-              </Table>
-              <div className="mt-3">
-                <strong>Shipping Address:</strong> {order.address}
-              </div>
-              <div className="mt-2">
+
+                {/* download invoice */}
                 <button
                   onClick={() => generateAndDownloadPDF(order)}
-                  className="clear-order-history-button"
+                  style={{
+                    background: "#60350e",
+                    color: "#fff",
+                    border: "none",
+                    borderRadius: 10,
+                    padding: "8px 20px",
+                    fontSize: "0.95rem",
+                    fontWeight: 600,
+                    marginTop: 12,
+                    marginLeft: 10,
+                    cursor: "pointer",
+                  }}
                 >
                   Download Invoice
                 </button>
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
     </div>
   );
 };

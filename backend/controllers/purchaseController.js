@@ -1,6 +1,13 @@
 // backend/controllers/purchaseController.js
 const sequelize = require("../config/db");
-const { placeOrder, cancelOrder } = require("../services/orderService");
+const {
+  placeOrder,
+  cancelOrder,
+  requestRefund,
+  updateRefundStatus,
+  getRefundByOrderId,
+} = require("../services/orderService");
+const Product = require("../models/Product");
 
 /**
  * GET /api/orders
@@ -8,7 +15,6 @@ const { placeOrder, cancelOrder } = require("../services/orderService");
 async function getOrdersController(req, res) {
   try {
     const { startDate, endDate } = req.query;
-
     let whereClause = "";
     const replacements = [];
 
@@ -16,12 +22,11 @@ async function getOrdersController(req, res) {
       whereClause += " AND o.order_date >= ?";
       replacements.push(startDate);
     }
-
     if (endDate) {
-      const inclusiveEndDate = new Date(endDate);
-      inclusiveEndDate.setDate(inclusiveEndDate.getDate() + 1);
+      const inc = new Date(endDate);
+      inc.setDate(inc.getDate() + 1);
       whereClause += " AND o.order_date < ?";
-      replacements.push(inclusiveEndDate.toISOString().slice(0, 10));
+      replacements.push(inc.toISOString().slice(0, 10));
     }
 
     const [rows] = await sequelize.query(
@@ -44,7 +49,7 @@ async function getOrdersController(req, res) {
       LEFT JOIN Products p ON p.product_id = o.product_id
       WHERE 1=1 ${whereClause}
       ORDER BY o.order_id ASC, p.product_id ASC;
-    `,
+      `,
       { replacements }
     );
 
@@ -102,8 +107,7 @@ async function placeOrderController(req, res) {
       paymentInfo,
     });
 
-    // Build full Order for response
-    const Product = require("../models/Product");
+    // Build full Order response
     const items = await Promise.all(
       products.map(async ({ productId, quantity }) => {
         const prod = await Product.findByPk(productId);
@@ -121,7 +125,7 @@ async function placeOrderController(req, res) {
       id: order_id,
       customerId: customer_id,
       date: new Date().toISOString(),
-      total: Number(total_amount),
+      total: total_amount,
       status: "processing",
       address: "",
       customer: "",
@@ -139,13 +143,14 @@ async function placeOrderController(req, res) {
 async function updateOrderStatusController(req, res) {
   try {
     const { orderId } = req.params;
-    const { status } = req.body;
+    const { status }  = req.body;
+
     await sequelize.query(
       `UPDATE Orders SET order_status = ? WHERE order_id = ?`,
       { replacements: [status, orderId] }
     );
 
-    // re-fetch this order
+    // re-fetch and return the updated order…
     const [rows] = await sequelize.query(
       `
       SELECT
@@ -166,7 +171,7 @@ async function updateOrderStatusController(req, res) {
       LEFT JOIN Products p ON p.product_id = o.product_id
       WHERE o.order_id = ?
       ORDER BY p.product_id ASC;
-    `,
+      `,
       { replacements: [orderId] }
     );
 
@@ -200,17 +205,14 @@ async function updateOrderStatusController(req, res) {
   }
 }
 
-
+/**
+ * PATCH /api/orders/:orderId/cancel
+ */
 async function cancelOrderController(req, res) {
-   try {
-   const { orderId } = req.params;
-    // 1️⃣ run your service which restocks & marks cancelled
+  try {
+    const { orderId } = req.params;
     await cancelOrder(Number(orderId));
-
-    // 2️⃣ ensure updateOrderStatusController has a status to work with
     req.body.status = "cancelled";
-
-    // 3️⃣ now fetch & return the updated order
     return updateOrderStatusController(req, res);
   } catch (err) {
     console.error("cancelOrderController error:", err);
@@ -223,14 +225,59 @@ async function cancelOrderController(req, res) {
  */
 async function markOrderDeliveredController(req, res) {
   try {
-    const { orderId } = req.params;
-
-    // ✅ Inject delivery status
     req.body.status = "delivered";
-
     return updateOrderStatusController(req, res);
   } catch (err) {
     console.error("markOrderDeliveredController error:", err);
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+/**
+ * PATCH /api/orders/:orderId/refund-request
+ */
+async function requestRefundController(req, res) {
+  try {
+    const { orderId } = req.params;
+    const refund = await requestRefund(Number(orderId));
+    return res.status(201).json(refund);
+  } catch (err) {
+    console.error("requestRefundController error:", err);
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+/**
+ * PATCH /api/orders/:orderId/refund-status
+ */
+async function updateRefundStatusController(req, res) {
+  try {
+    const { orderId } = req.params;
+    const newStatus  = req.body.refundStatus ?? req.body.status;
+    if (!newStatus) {
+      return res.status(400).json({ message: "Missing refund status" });
+    }
+    const refundRow = await updateRefundStatus(Number(orderId), newStatus);
+    return res.status(200).json({ refund_status: refundRow.refund_status });
+  } catch (err) {
+    console.error("updateRefundStatusController error:", err);
+    return res.status(400).json({ message: err.message });
+  }
+}
+
+/**
+ * GET /api/orders/:orderId/refund
+ */
+async function getRefundStatusController(req, res) {
+  try {
+    const orderId = Number(req.params.orderId);
+    const refund  = await getRefundByOrderId(orderId);
+    if (!refund) {
+      return res.status(404).json({ message: "No refund record found" });
+    }
+    return res.status(200).json(refund.get({ plain: true }));
+  } catch (err) {
+    console.error("getRefundStatusController error:", err);
     return res.status(500).json({ message: err.message });
   }
 }
@@ -240,4 +287,8 @@ module.exports = {
   placeOrderController,
   updateOrderStatusController,
   cancelOrderController,
+  markOrderDeliveredController,
+  requestRefundController,
+  updateRefundStatusController,
+  getRefundStatusController,
 };
