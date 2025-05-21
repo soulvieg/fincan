@@ -149,6 +149,26 @@ async function deleteProduct(productId) {
   return true;
 }
 
+async function updateProductImage(productId, imageUrl) {
+  const p = await Product.findByPk(productId);
+  if (!p) throw new Error("Product not found");
+  p.image_url = imageUrl;
+  await p.save();
+  return p;
+}
+
+async function addCategory(name) {
+  if (!name || typeof name !== "string") {
+    throw new Error("Category name is required");
+  }
+  // optional duplicate check
+  const exists = await Category.findOne({ where: { name } });
+  if (exists) {
+    throw new Error("Category already exists");
+  }
+  return await Category.create({ name });
+}
+
 module.exports = {
   addProduct,
   getProducts,
@@ -157,4 +177,6 @@ module.exports = {
   decrementStock,
   searchProducts,
   deleteProduct,
+  updateProductImage,
+  addCategory,
 };

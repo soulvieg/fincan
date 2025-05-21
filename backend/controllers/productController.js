@@ -7,6 +7,8 @@ const {
   decrementStock,
   searchProducts,
   getProducts,
+  updateProductImage,
+  addCategory,
 } = require("../services/productService");
 const { approveComment, rejectComment } = require("../services/commentService");
 
@@ -169,6 +171,30 @@ async function getProductsController(req, res) {
   }
 }
 
+async function updateImageController(req, res) {
+  try {
+    const { productId } = req.params;
+    const { image_url } = req.body;
+    if (typeof image_url !== "string" || !image_url) {
+      return res.status(400).json({ message: "Invalid or missing image_url" });
+    }
+    const updated = await updateProductImage(Number(productId), image_url);
+    return res.status(200).json({ product: updated });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+}
+
+async function addCategoryController(req, res) {
+  try {
+    const { name } = req.body;
+    const newCat   = await addCategory(name);
+    return res.status(201).json(newCat);
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+}
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
@@ -179,4 +205,6 @@ module.exports = {
   rejectCommentController,
   searchProductsController,
   getProductsController,
+  updateImageController,
+  addCategoryController,
 };

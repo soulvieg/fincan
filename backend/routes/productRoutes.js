@@ -10,6 +10,7 @@ const {
   searchProductsController,
   approveCommentController,
   rejectCommentController,
+  updateImageController
 } = require("../controllers/productController");
 
 const router = express.Router();
@@ -36,5 +37,10 @@ router.delete("/:productId", deleteProductController);
 // Comment moderation
 router.put("/comments/:commentId/approve", approveCommentController);
 router.put("/comments/:commentId/reject", rejectCommentController);
+
+//image upload
+router.patch("/:productId/image", updateImageController);
+
+router.post("/categories", addCategoryController);
 
 module.exports = router;

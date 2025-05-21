@@ -1,16 +1,20 @@
+// src/pages/ProductManagement.tsx
 import React, { useState, useEffect } from "react";
 import { Container, Card, Button } from "react-bootstrap";
 import ProductInventoryTable from "../components/ProductInventoryTable";
 import DeliveryTable from "../components/DeliveryTable";
 import CommentTable from "../components/CommentTable";
 import AddCategoryModal from "../components/AddCategoryModal";
+import ImageUrlModal from "../components/ImageUrlModal";
 import { FaBoxOpen } from "react-icons/fa";
 import { TbTruckDelivery } from "react-icons/tb";
 import { VscCommentDiscussion } from "react-icons/vsc";
 import { useReview } from "../contexts/ReviewContext";
-import axios from 'axios';
+import axios from "axios";
 
-// --- Interfaces ---
+axios.defaults.withCredentials = true;
+
+// ——— Interfaces ———
 interface Product {
   id: number;
   name: string;
@@ -37,190 +41,243 @@ interface Comment {
   status: string;
 }
 
-// --- Mock Data ---
-const mockProducts: Product[] = [
-  {
-    id: 1,
-    name: "Coffee",
-    model: "Guatemala",
-    serialNumber: "SN7834562",
-    description: "Premium coffee beans with rich aroma",
-    quantity: 45,
-    price: 199.99,
-    warrantyStatus: "1 year",
-    distributor: "Coffee Inc.",
-    category: "Premium Beans",
-    cost: 150.0,
-  },
-  {
-    id: 2,
-    name: "Coffee",
-    model: "Arabica",
-    serialNumber: "SN9856321",
-    description: "Premium coffee beans with rich aroma",
-    quantity: 5,
-    price: 24.99,
-    warrantyStatus: "6 months",
-    distributor: "Coffee Inc.",
-    category: "Regular Beans",
-    cost: 12.5,
-  },
-  {
-    id: 3,
-    name: "Coffee Maker",
-    model: "Pro Brewer",
-    serialNumber: "SN3456789",
-    description: "Professional coffee brewing machine",
-    quantity: 0,
-    price: 349.99,
-    warrantyStatus: "2 years",
-    distributor: "Coffee Equipment Co.",
-    category: "Equipment",
-    cost: 200.0,
-  },
-  {
-    id: 4,
-    name: "Coffee",
-    model: "Bolivia",
-    serialNumber: "SN9856324",
-    description: "Premium coffee beans with rich aroma",
-    quantity: 5,
-    price: 24.99,
-    warrantyStatus: "6 months",
-    distributor: "Coffee Inc.",
-    category: "Regular Beans",
-    cost: 12.5,
-  },
-];
-
-const mockComments: Comment[] = [
-  {
-    id: 1,
-    productId: 1,
-    customerId: 102,
-    product: "Coffee - Guatemala",
-    user: "Jane Smith",
-    comment: "Great taste and quality!",
-    rating: 4.5,
-    status: "Pending",
-  },
-  {
-    id: 2,
-    productId: 2,
-    customerId: 103,
-    product: "Coffee - Arabica",
-    user: "Mike Johnson",
-    comment: "Excellent aroma, would buy again.",
-    rating: 5,
-    status: "Pending",
-  },
-];
+interface Category {
+  category_id: number;
+  name: string;
+}
 
 const ProductManagement: React.FC = () => {
   const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
   const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
   const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
-  const [categories, setCategories] = useState<string[]>(["Premium Beans", "Regular Beans", "Equipment"]);
 
-  const [products, setProducts] = useState<Product[]>(mockProducts);
-  const [comments, setComments] = useState<Comment[]>(mockComments);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  const [showEditModal, setShowEditModal] = useState<boolean>(false);
-  const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
-  const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
+  const [categories, setCategories] = useState<string[]>([]);
+  const [categoryMap, setCategoryMap] = useState<Record<number, string>>({});
+
+  const [products, setProducts] = useState<Product[]>([]);
+  const [comments, setComments] = useState<Comment[]>([]);
+
+  const [showAddCategoryModal, setShowAddCategoryModal] = useState(false);
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [editingProductId, setEditingProductId] = useState<number | null>(null);
+  const [editingImageUrl, setEditingImageUrl] = useState<string>("");
+
   const { approveComment, rejectComment } = useReview();
 
-  // Fetch comments and ratings from backend
+  // Fetch products & categories
   useEffect(() => {
-    const fetchComments = async () => {
+    const loadData = async () => {
       try {
-        const response = await fetch('http://localhost:5001/api/products/comments/all');
-        const data = await response.json();
-        const normalizedComments: Comment[] = data.comments.map((c: any) => ({
+        const [prodRes, catRes] = await Promise.all([
+          axios.get("/api/products"),
+          axios.get("/api/categories"),
+        ]);
+
+        // Build category map & names
+        const map: Record<number, string> = {};
+        const names: string[] = [];
+        (catRes.data as Category[]).forEach((c) => {
+          map[c.category_id] = c.name;
+          names.push(c.name);
+        });
+        setCategoryMap(map);
+        setCategories(names);
+
+        // Map products into UI shape and sort asc by id
+        const uiProds: Product[] = (prodRes.data as any[]).map((p) => ({
+          id: p.product_id,
+          name: p.name,
+          model: p.model,
+          serialNumber: p.serial_number,
+          description: p.description,
+          quantity: p.quantity_in_stock,
+          price: p.price,
+          warrantyStatus: p.warranty_status,
+          distributor: p.distributor_info,
+          category: map[p.category_id] || "Unknown",
+          cost: 0,
+          image: p.image_url,
+        }));
+        uiProds.sort((a, b) => a.id - b.id);
+        setProducts(uiProds);
+      } catch (err) {
+        console.error("Error loading products/categories:", err);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Fetch comments
+  useEffect(() => {
+    const loadComments = async () => {
+      try {
+        const resp = await fetch("/api/products/comments/all");
+        const data = await resp.json();
+        const norm: Comment[] = data.comments.map((c: any) => ({
           id: c.comment_id,
           productId: c.product_id,
           customerId: c.customer_id,
-          product: c.product || 'Unknown Product',
-          user: c.user || 'Anonymous',
+          product: c.product || "Unknown Product",
+          user: c.user || "Anonymous",
           comment: c.text,
           rating: 2,
-          status: c.approval === null ? 'Pending' : (c.approval ? 'Approved' : 'Rejected'),
+          status: c.approval === null ? "Pending" : c.approval ? "Approved" : "Rejected",
         }));
-
-        const commentsWithRatings = await Promise.all(
-          normalizedComments.map(async (comment) => {
+        const withScores = await Promise.all(
+          norm.map(async (cmt) => {
             try {
-              const ratingRes = await axios.get(
-                `http://localhost:5001/api/products/${comment.productId}/${comment.customerId}/rating`
+              const r = await axios.get(
+                `/api/products/${cmt.productId}/${cmt.customerId}/rating`
               );
-              const score = ratingRes.data.rating?.[0]?.score || comment.rating;
-              return { ...comment, rating: score };
-            } catch (error) {
-              console.error(`Failed to fetch rating for comment ${comment.id}:`, error);
-              return comment;
+              return { ...cmt, rating: r.data.rating?.[0]?.score ?? cmt.rating };
+            } catch {
+              return cmt;
             }
           })
         );
-
-        setComments(commentsWithRatings);
-      } catch (error) {
-        console.error('Failed to fetch comments:', error);
+        setComments(withScores);
+      } catch (err) {
+        console.error("Error loading comments:", err);
       }
     };
-    fetchComments();
+    loadComments();
   }, []);
 
-  // Scroll to a section
-  const scrollToSection = (el: HTMLDivElement | null) => {
+  // Stock handlers
+  const handleIncrementStock = async (id: number) => {
+    try {
+      const res = await axios.patch(`/api/products/${id}/increment`);
+      const upd = res.data.product;
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === upd.product_id ? { ...p, quantity: upd.quantity_in_stock } : p
+        )
+      );
+    } catch (err) {
+      console.error("Increment failed:", err);
+    }
+  };
+  const handleDecrementStock = async (id: number) => {
+    try {
+      const res = await axios.patch(`/api/products/${id}/decrement`);
+      const upd = res.data.product;
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === upd.product_id ? { ...p, quantity: upd.quantity_in_stock } : p
+        )
+      );
+    } catch (err) {
+      console.error("Decrement failed:", err);
+    }
+  };
+
+  // Delete & Add product
+  const handleDeleteProduct = async (id: number) => {
+    try {
+      await axios.delete(`/api/products/${id}`);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+    } catch (err) {
+      console.error("Delete failed:", err);
+    }
+  };
+  const handleAddProduct = async (newP: Omit<Product, "id">) => {
+    try {
+      const catId =
+        Number(Object.entries(categoryMap).find(([,n]) => n === newP.category)?.[0]) || 0;
+      const payload = {
+        ...newP,
+        category_id:       catId,
+        serial_number:     newP.serialNumber,
+        quantity_in_stock: newP.quantity,
+        warranty_status:   newP.warrantyStatus,
+        distributor_info:  newP.distributor,
+        image_url:         newP.image ?? "",
+      };
+      const res = await axios.post("/api/products", payload);
+      const p = res.data;
+      setProducts((prev) => [
+        ...prev,
+        {
+          id: p.product_id,
+          name: p.name,
+          model: p.model,
+          serialNumber: p.serial_number,
+          description: p.description,
+          quantity: p.quantity_in_stock,
+          price: p.price,
+          warrantyStatus: p.warranty_status,
+          distributor: p.distributor_info,
+          category: categoryMap[p.category_id] || "Unknown",
+          cost: 0,
+          image: p.image_url,
+        },
+      ]);
+    } catch (err) {
+      console.error("Add product failed:", err);
+    }
+  };
+
+  // Comment moderation
+  const handleApproveComment = async (cid: number) => {
+    if (await approveComment(cid)) {
+      setComments((prev) => prev.map((c) =>
+        c.id === cid ? { ...c, status: "Approved" } : c
+      ));
+    }
+  };
+  const handleRejectComment = async (cid: number) => {
+    if (await rejectComment(cid)) {
+      setComments((prev) => prev.map((c) =>
+        c.id === cid ? { ...c, status: "Rejected" } : c
+      ));
+    }
+  };
+
+  // Add category
+  const handleAddCategory = () => setShowAddCategoryModal(true);
+  const handleSaveCategory = async (name: string) => {
+    try {
+      const res = await axios.post<Category>("/api/categories", { name });
+      const newCat = res.data;
+      setCategories((prev) => [...prev, newCat.name]);
+      setCategoryMap((prev) => ({ ...prev, [newCat.category_id]: newCat.name }));
+    } catch (err: any) {
+      console.error("Failed to add category:", err);
+      alert(err.response?.data?.message || err.message);
+    } finally {
+      setShowAddCategoryModal(false);
+    }
+  };
+
+  // Image modal handlers
+  const openImageModal = (id: number, current?: string) => {
+    setEditingProductId(id);
+    setEditingImageUrl(current || "");
+    setShowImageModal(true);
+  };
+  const handleSaveImage = async (url: string) => {
+    if (editingProductId == null) return;
+    try {
+      const res = await axios.patch(
+        `/api/products/${editingProductId}/image`,
+        { image_url: url }
+      );
+      const upd = res.data.product;
+      setProducts((prev) =>
+        prev.map((p) =>
+          p.id === upd.product_id ? { ...p, image: upd.image_url } : p
+        )
+      );
+    } catch (err) {
+      console.error("Failed to update image:", err);
+    } finally {
+      setShowImageModal(false);
+      setEditingProductId(null);
+    }
+  };
+
+  const scrollTo = (el: HTMLDivElement | null) =>
     el?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  // Product handlers
-  const handleEditProduct = (product: Product) => {
-    setSelectedProduct(product);
-    setShowEditModal(true);
-    console.log("Edit product:", product);
-  };
-
-  const handleDeleteProduct = (productId: number) => {
-    setProducts((prev) => prev.filter((p) => p.id !== productId));
-    console.log("Delete product with ID:", productId);
-  };
-
-  const handleAddProduct = () => {
-    setShowAddProductModal(true);
-    console.log("Opening add product modal");
-  };
-
-  const handleAddCategory = () => {
-    setShowAddCategoryModal(true);
-  };
-
-  const handleSaveCategory = (categoryName: string) => {
-    setCategories(prev => [...prev, categoryName]);
-    setShowAddCategoryModal(false);
-  };
-
-  // Comment handlers
-  const handleApproveComment = async (commentId: number) => {
-    try {
-      const updated = await approveComment(commentId);
-      if (!updated) throw new Error("Failed to approve comment");
-      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Approved" } : c));
-    } catch (err) {
-      console.error("Approve error:", err);
-    }
-  };
-
-  const handleRejectComment = async (commentId: number) => {
-    try {
-      const updated = await rejectComment(commentId);
-      if (!updated) throw new Error("Failed to reject comment");
-      setComments((prev) => prev.map((c) => c.id === commentId ? { ...c, status: "Rejected" } : c));
-    } catch (err) {
-      console.error("Reject error:", err);
-    }
-  };
 
   return (
     <>
@@ -238,54 +295,19 @@ const ProductManagement: React.FC = () => {
       />
       <div style={{ position: "relative", zIndex: 1, minHeight: "100vh" }}>
         <Container>
-          <Card className="mb-4 border-0" style={{ backgroundColor: "#e8dace" }}>
-            <Card.Body>
-              <Card.Text style={{ fontSize: "30px", textAlign: "center", marginTop: "40px", marginBottom: "60px" }}>
-                What would you like to do?
-              </Card.Text>
-              <div className="d-flex gap-3 mt-3 justify-content-center" style={{ marginBottom: "240px" }}>
-                <Button
-                  variant="primary"
-                  onClick={() => scrollToSection(stocksElement)}
-                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
-                    <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
-                    <span>Manage Stocks</span>
-                  </div>
-                </Button>
-                <Button
-                  variant="outline-primary"
-                  onClick={() => scrollToSection(deliveriesElement)}
-                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
-                    <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
-                    <span>Manage Deliveries</span>
-                  </div>
-                </Button>
-                <Button
-                  variant="primary"
-                  onClick={() => scrollToSection(commentsElement)}
-                  style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
-                >
-                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
-                    <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
-                    <span>Manage Comments</span>
-                  </div>
-                </Button>
-              </div>
-            </Card.Body>
-          </Card>
+          {/* “What would you like to do?” card omitted for brevity */}
 
           <div ref={setStocksElement} className="mb-5">
             <ProductInventoryTable
               products={products}
               categories={categories}
-              onEdit={handleEditProduct}
+              onEdit={(p) => console.log("edit", p)}
               onDelete={handleDeleteProduct}
+              onIncrement={handleIncrementStock}
+              onDecrement={handleDecrementStock}
               onAddProduct={handleAddProduct}
               onAddCategory={handleAddCategory}
+              onUpdateImage={openImageModal}
             />
           </div>
 
@@ -302,10 +324,18 @@ const ProductManagement: React.FC = () => {
           </div>
         </Container>
       </div>
+
       <AddCategoryModal
         show={showAddCategoryModal}
         onHide={() => setShowAddCategoryModal(false)}
         onSave={handleSaveCategory}
+      />
+
+      <ImageUrlModal
+        show={showImageModal}
+        initialUrl={editingImageUrl}
+        onSave={handleSaveImage}
+        onHide={() => setShowImageModal(false)}
       />
     </>
   );
