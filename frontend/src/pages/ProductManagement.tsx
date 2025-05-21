@@ -120,7 +120,7 @@ const ProductManagement: React.FC = () => {
   const [stocksElement, setStocksElement] = useState<HTMLDivElement | null>(null);
   const [deliveriesElement, setDeliveriesElement] = useState<HTMLDivElement | null>(null);
   const [commentsElement, setCommentsElement] = useState<HTMLDivElement | null>(null);
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<string[]>(["Premium Beans", "Regular Beans", "Equipment"]);
 
   const [products, setProducts] = useState<Product[]>(mockProducts);
   const [comments, setComments] = useState<Comment[]>(mockComments);
@@ -129,19 +129,6 @@ const ProductManagement: React.FC = () => {
   const [showAddProductModal, setShowAddProductModal] = useState<boolean>(false);
   const [showAddCategoryModal, setShowAddCategoryModal] = useState<boolean>(false);
   const { approveComment, rejectComment } = useReview();
-
-  useEffect(() => {
-    const loadCategories = async () => {
-      try {
-        const response = await axios.get('/api/categories');
-        setCategories(response.data.map((cat: any) => cat.name));
-      } catch (error) {
-        console.error('Error loading categories:', error);
-      }
-    };
-
-    loadCategories();
-  }, []);
 
   // Fetch comments and ratings from backend
   useEffect(() => {
@@ -209,17 +196,9 @@ const ProductManagement: React.FC = () => {
     setShowAddCategoryModal(true);
   };
 
-  const handleSaveCategory = async (categoryName: string) => {
-    try {
-      const response = await axios.post('/api/categories', { name: categoryName });
-      if (response.status === 201) {
-        // Refresh the categories list
-        const categoriesResponse = await axios.get('/api/categories');
-        setCategories(categoriesResponse.data.map((cat: any) => cat.name));
-      }
-    } catch (error) {
-      console.error('Error adding category:', error);
-    }
+  const handleSaveCategory = (categoryName: string) => {
+    setCategories(prev => [...prev, categoryName]);
+    setShowAddCategoryModal(false);
   };
 
   // Comment handlers
@@ -270,24 +249,30 @@ const ProductManagement: React.FC = () => {
                   onClick={() => scrollToSection(stocksElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Stocks
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <FaBoxOpen style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Stocks</span>
+                  </div>
                 </Button>
                 <Button
                   variant="outline-primary"
                   onClick={() => scrollToSection(deliveriesElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Deliveries
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <TbTruckDelivery style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Deliveries</span>
+                  </div>
                 </Button>
                 <Button
                   variant="primary"
                   onClick={() => scrollToSection(commentsElement)}
                   style={{ width: "250px", height: "280px", backgroundColor: "#fff0e2", color: "black", borderColor: "black", borderRadius: "38px", fontSize: "24px", fontWeight: "semibold" }}
                 >
-                  <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
-                  Manage Comments
+                  <div style={{ display: "flex", flexDirection: "column", alignItems: "center", height: "100%", justifyContent: "center" }}>
+                    <VscCommentDiscussion style={{ fontSize: "100px", marginBottom: "10px" }} />
+                    <span>Manage Comments</span>
+                  </div>
                 </Button>
               </div>
             </Card.Body>
