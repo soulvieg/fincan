@@ -35,6 +35,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
         distributor: '',
         category: categories.length > 0 ? categories[0] : '',
         cost: 0,
+        image: '',
     });
 
     const handleChange = (e: any) => {
@@ -85,14 +86,14 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
 
     return (
         <tr className="rounded-row position-relative" style={{ backgroundColor: '#e9f7ef' }}>
-            <td className="text-center align-middle">...</td>
-            <td className="text-center align-middle">...</td>
+            <td className="text-center align-middle"></td>
+            <td className="text-center align-middle"></td>
             <td className="text-center align-middle">
                 <Form.Control
                     type="text"
                     name="name"
-                    autoFocus={true}
                     value={newProduct.name}
+                    autoFocus={true}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     size="sm"
@@ -120,7 +121,6 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     size="sm"
-                    // Check for letter inclusion
                     pattern="[A-Za-z0-9\s]+"
                     required
                 />
@@ -215,9 +215,9 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                      style={{
                          position: 'absolute',
                          right: '-85px',
-                         top: '0',
-                         bottom: '0',
-                         height: '100%',
+                         top: '50%',
+                         transform: 'translateY(-50%)',
+                         height: 'auto',
                          outline: '1px solid #666',
                      }}>
                     <Button variant="outline-success" size="sm" onClick={handleSubmit}>
