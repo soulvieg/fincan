@@ -85,7 +85,8 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
 
     return (
         <tr className="rounded-row position-relative" style={{ backgroundColor: '#e9f7ef' }}>
-            <td className="text-center align-middle">ID</td>
+            <td className="text-center align-middle">...</td>
+            <td className="text-center align-middle">...</td>
             <td className="text-center align-middle">
                 <Form.Control
                     type="text"
@@ -211,7 +212,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                 <div className="d-flex align-items-center justify-content-center gap-2 action-buttons"
                      style={{
                          position: 'absolute',
-                         right: '-100px',
+                         right: '-85px',
                          top: '0',
                          bottom: '0',
                          height: '100%',
