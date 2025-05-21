@@ -87,6 +87,16 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
             </tr>
           </thead>
           <tbody>
+            {showNewProductRow && (
+              <NewProductRow
+                categories={categories}
+                onSave={(np) => {
+                  onAddProduct(np);
+                  setShowNewProductRow(false);
+                }}
+                onCancel={() => setShowNewProductRow(false)}
+              />
+            )}
             {products.map((p) => (
               <ProductInventoryItem
                 key={p.id}
@@ -98,16 +108,6 @@ const ProductInventoryTable: React.FC<ProductInventoryTableProps> = ({
                 onUpdateImage={() => onUpdateImage(p.id, p.image)}
               />
             ))}
-            {showNewProductRow && (
-              <NewProductRow
-                categories={categories}
-                onSave={(np) => {
-                  onAddProduct(np);
-                  setShowNewProductRow(false);
-                }}
-                onCancel={() => setShowNewProductRow(false)}
-              />
-            )}
           </tbody>
         </Table>
       </Card.Body>
