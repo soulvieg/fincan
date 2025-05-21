@@ -189,9 +189,9 @@ const ProductInventoryItem: React.FC<ProductInventoryItemProps> = ({
                   padding: "0.25rem",
                   height: "66px",
                   border: "1.4px solid #000",
-                  borderLeft: "none",
+                  borderRadius: "0.375rem",
                   display: "flex",
-                  gap: "0.5rem",
+                  gap: "0.2rem",
                   alignItems: "center",
                   boxShadow: "0 4px 8px rgba(0,0,0,0.1)",
                 }}

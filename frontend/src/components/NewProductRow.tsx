@@ -35,6 +35,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
         distributor: '',
         category: categories.length > 0 ? categories[0] : '',
         cost: 0,
+        image: '',
     });
 
     const handleChange = (e: any) => {
@@ -85,13 +86,14 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
 
     return (
         <tr className="rounded-row position-relative" style={{ backgroundColor: '#e9f7ef' }}>
-            <td className="text-center align-middle">ID</td>
+            <td className="text-center align-middle"></td>
+            <td className="text-center align-middle"></td>
             <td className="text-center align-middle">
                 <Form.Control
                     type="text"
                     name="name"
-                    autoFocus={true}
                     value={newProduct.name}
+                    autoFocus={true}
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     size="sm"
@@ -119,7 +121,6 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     onChange={handleChange}
                     onKeyDown={handleKeyDown}
                     size="sm"
-                    // Check for letter inclusion
                     pattern="[A-Za-z0-9\s]+"
                     required
                 />
@@ -133,6 +134,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     size="sm"
                     required
                 >
+                    <option value="" disabled>Select a category</option>
                     {categories.length > 0 ? (
                         categories.map((category, index) => (
                             <option key={index} value={category}>{category}</option>
@@ -162,6 +164,7 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                     onKeyDown={handleKeyDown}
                     size="sm"
                 >
+                    <option value="" disabled>Select warranty status</option>
                     <option value="No Warranty">No Warranty</option>
                     <option value="1 Year">1 Year</option>
                     <option value="3 Years">3 Years</option>
@@ -211,10 +214,10 @@ const NewProductRow: React.FC<NewProductProps> = ({ onSave, onCancel, categories
                 <div className="d-flex align-items-center justify-content-center gap-2 action-buttons"
                      style={{
                          position: 'absolute',
-                         right: '-100px',
-                         top: '0',
-                         bottom: '0',
-                         height: '100%',
+                         right: '-85px',
+                         top: '50%',
+                         transform: 'translateY(-50%)',
+                         height: 'auto',
                          outline: '1px solid #666',
                      }}>
                     <Button variant="outline-success" size="sm" onClick={handleSubmit}>
