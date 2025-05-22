@@ -28,12 +28,7 @@ const isExpired = (order: Order) => {
 
 const OrderHistory: React.FC = () => {
   const { user } = useUser();
-  const {
-    orders,
-    cancelOrder,
-    requestRefund,
-    calculateDaysLeft,
-  } = useOrders();
+  const { orders, cancelOrder, requestRefund, calculateDaysLeft } = useOrders();
   const navigate = useNavigate();
 
   const [refundStatuses, setRefundStatuses] = useState<Record<number, string>>(
@@ -96,20 +91,109 @@ const OrderHistory: React.FC = () => {
       );
 
   const generateAndDownloadPDF = async (order: Order) => {
-    const items = await Promise.all(
-      (order.items ?? []).map(async (it) => ({
-        ...it,
-        image: await toBase64(it.image).catch(() => it.image),
-      }))
+    const itemsWithBase64 = await Promise.all(
+      order.items.map(async (item) => {
+        let base64Image = "";
+        try {
+          base64Image = await toBase64(item.image);
+        } catch (e) {
+          console.warn("Failed to convert image:", item.image);
+          base64Image = "";
+        }
+        return { ...item, image: base64Image };
+      })
     );
-    const div = document.createElement("div");
-    div.innerHTML = `<div>Your receipt HTML here…</div>`;
-    document.body.appendChild(div);
-    html2pdf()
-      .set({ filename: `invoice_${user?.first_name || "user"}_${order.id}.pdf` })
-      .from(div)
-      .save()
-      .then(() => document.body.removeChild(div));
+
+    const receiptHTML = `
+<div style="font-family: system-ui, sans-serif, Arial; font-size: 14px; color: #333; padding: 14px 8px; background-color: #f5f5f5;">
+  <div style="max-width: 600px; margin: auto; background-color: #fff;">
+    <div style="border-top: 6px solid #458500; padding: 16px;">
+      <span style="font-size: 16px; vertical-align: middle; border-left: 1px solid #333; padding-left: 8px;">
+        <strong>Thank You for Your Order</strong>
+      </span>
+    </div>
+    <div style="padding: 0 16px;">
+      <p>We'll send you tracking information when the order ships.</p>
+      <div style="text-align: left; font-size: 14px; padding-bottom: 4px; border-bottom: 2px solid #333;">
+        <strong>Order #${order.id}</strong>
+      </div>
+
+      ${itemsWithBase64
+        .map(
+          (item) => `
+        <table style="width: 100%; border-collapse: collapse; height: 62px;">
+          <tbody>
+            <tr style="vertical-align: top; height: 62px;">
+              <td style="padding: 24px 8px 0 4px; display: inline-block; width: max-content;">
+              ${
+                item.image
+                  ? `<img style="height: 64px;" src="${item.image}" alt="item" height="64px">`
+                  : `<div style="height: 64px; width: 64px; background: #ccc; display: inline-block;"></div>`
+              }
+              </td>
+              <td style="padding: 24px 8px 0 8px; width: 100%;">
+                <div>${item.name}</div>
+                <div style="font-size: 14px; color: #888; padding-top: 4px;">QTY: ${
+                  item.quantity
+                }</div>
+              </td>
+              <td style="padding: 24px 4px 0 0; white-space: nowrap;"><strong>$${item.price.toFixed(
+                2
+              )}</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      `
+        )
+        .join("")}
+
+      <div style="padding: 24px 0;">
+        <div style="border-top: 2px solid #333;">&nbsp;</div>
+      </div>
+
+      <table style="border-collapse: collapse; width: 100%; text-align: right;">
+        <tbody>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td>Shipping</td>
+            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
+          </tr>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td>Taxes</td>
+            <td style="padding: 8px; white-space: nowrap;">$0.00</td>
+          </tr>
+          <tr>
+            <td style="width: 60%;">&nbsp;</td>
+            <td style="border-top: 2px solid #333;">
+              <strong style="white-space: nowrap;">Order Total</strong>
+            </td>
+            <td style="padding: 16px 8px; border-top: 2px solid #333; white-space: nowrap;">
+              <strong>$${order.total.toFixed(2)}</strong>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+`;
+
+    const tempDiv = document.createElement("div");
+    tempDiv.innerHTML = receiptHTML;
+    document.body.appendChild(tempDiv);
+
+    const filename = `invoice_${user?.first_name || "user"}_${order.id}.pdf`;
+
+    setTimeout(() => {
+      html2pdf()
+        .set({ filename })
+        .from(tempDiv)
+        .save()
+        .then(() => {
+          document.body.removeChild(tempDiv);
+        });
+    }, 200);
   };
 
   const getStatusBadge = (s: Order["status"]) => {
@@ -216,7 +300,9 @@ const OrderHistory: React.FC = () => {
                     {items.map((it, i) => (
                       <tr key={i}>
                         <td>
-                          <div style={{ display: "flex", alignItems: "center" }}>
+                          <div
+                            style={{ display: "flex", alignItems: "center" }}
+                          >
                             <img
                               src={it.image}
                               alt={it.name}
@@ -305,10 +391,14 @@ const OrderHistory: React.FC = () => {
                           opacity: disabled ? 0.8 : 1,
                         }}
                         title={
-                          expired ? "Refund period expired (30 days)" : undefined
+                          expired
+                            ? "Refund period expired (30 days)"
+                            : undefined
                         }
                       >
-                        {expired ? "Can’t refund" : getRefundButtonText(order.id)}
+                        {expired
+                          ? "Can’t refund"
+                          : getRefundButtonText(order.id)}
                       </button>
                     )}
                   </>
