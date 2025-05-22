@@ -83,3 +83,9 @@ INSERT INTO Orders (
    DATE_SUB(NOW(), INTERVAL 1 DAY),
    'in-transit',
    10.99);
+
+  -- 5th product ▸ in-transit today
+  (5, 1, 9, 1,
+   NOW(),
+   'in-transit',
+   11.99);

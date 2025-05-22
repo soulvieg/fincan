@@ -1,4 +1,4 @@
-//  src/components/ProductPriceTable.tsx
+// src/components/ProductPriceTable.tsx
 import React, { useEffect, useState } from "react";
 import { Table, Button, InputGroup, Form, Card } from "react-bootstrap";
 import { MdOutlineModeEdit } from "react-icons/md";
@@ -18,21 +18,22 @@ interface Product {
   product_id: number;
   name:       string;
   price:      number;
-  discount:   number;   // 0 – 1
+  discount:   number;   // 0–1
 }
 
 /* ══════════════════════════════════════════════ */
 export default function ProductPriceTable() {
-  const [products,      setProducts]   = useState<Product[]>([]);
-  const [editingId,     setEditing]    = useState<number|null>(null);
-  const [tempPrice,     setTempPrice]  = useState<Record<number, number>>({});
-  const [tempDiscount,  setTempDisc]   = useState<Record<number, number>>({});
+  const [products,     setProducts]  = useState<Product[]>([]);
+  const [editingId,    setEditing]   = useState<number | null>(null);
+  const [tempPrice,    setTempPrice] = useState<Record<number, number>>({});
+  const [tempDiscount, setTempDisc]  = useState<Record<number, number>>({});
 
   /* ───── fetch once ───── */
   useEffect(() => {
-    axios.get<Product[]>("/api/products")
+    axios
+      .get<Product[]>("/api/products")
       .then(res =>
-        setProducts([...res.data].sort((a, b) => a.product_id - b.product_id))
+        setProducts([...res.data].sort((a, b) => a.product_id - b.product_id)),
       )
       .catch(err => console.error("Failed to fetch products:", err));
   }, []);
@@ -40,20 +41,22 @@ export default function ProductPriceTable() {
   /* ───── helpers ───── */
   const beginEdit = (p: Product) => {
     setEditing(p.product_id);
-    setTempPrice(t => ({ ...t,  [p.product_id]: p.price }));
-    setTempDisc (d => ({ ...d,  [p.product_id]: p.discount * 100 })); // store % for UI
+    setTempPrice(t => ({ ...t, [p.product_id]: p.price }));
+    setTempDisc (d => ({ ...d, [p.product_id]: p.discount * 100 })); // % for UI
   };
 
   const cancelEdit = () => setEditing(null);
 
   const save = async (p: Product) => {
     const newPrice    = tempPrice[p.product_id];
-    const newDiscount = (tempDiscount[p.product_id] ?? 0) / 100; // back to 0-1
+    const newDiscount = (tempDiscount[p.product_id] ?? 0) / 100; // back to 0–1
 
     try {
       /* update price if changed */
       if (newPrice !== p.price) {
-        await axios.put(`/api/products/${p.product_id}`, { price: newPrice });
+        await axios.patch(`/api/products/${p.product_id}/price`, {
+          price: newPrice,
+        });
       }
 
       /* update discount if changed */
@@ -68,8 +71,8 @@ export default function ProductPriceTable() {
         ps.map(x =>
           x.product_id === p.product_id
             ? { ...x, price: newPrice, discount: newDiscount }
-            : x
-        )
+            : x,
+        ),
       );
       setEditing(null);
     } catch (err) {
@@ -85,7 +88,7 @@ export default function ProductPriceTable() {
         as="h4"
         style={{ color: HEADER_COLOR, background: "transparent", borderBottom: "none" }}
       >
-        Set Product Prices &amp; Discounts
+        Set Product Prices & Discounts
       </Card.Header>
 
       <Card.Body>
@@ -101,17 +104,17 @@ export default function ProductPriceTable() {
               <th className="text-center">ID</th>
               <th className="text-center">Name</th>
               <th className="text-center">Price</th>
-              <th className="text-center">Discount&nbsp;(%)</th>
-              <th className="text-center">Discounted&nbsp;Price</th>
+              <th className="text-center">Discount (%)</th>
+              <th className="text-center">Discounted Price</th>
               <th className="text-center">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {products.map(p => {
-              const discPct   = (p.discount * 100).toFixed(0);
-              const final     = p.price * (1 - p.discount);
-              const inEdit    = editingId === p.product_id;
+              const discPct = (p.discount * 100).toFixed(0);
+              const final   = p.price * (1 - p.discount);
+              const inEdit  = editingId === p.product_id;
 
               return (
                 <tr key={p.product_id} className="rounded-row" style={{ background: "#f9f9f9" }}>
@@ -180,7 +183,7 @@ export default function ProductPriceTable() {
                   {/* Discounted price */}
                   <td className="text-center align-middle">
                     <span style={{ ...MONEY_BADGE, borderRadius: 14, padding: "2px 18px" }}>
-                      ${(final).toFixed(2)}
+                      ${final.toFixed(2)}
                     </span>
                   </td>
 

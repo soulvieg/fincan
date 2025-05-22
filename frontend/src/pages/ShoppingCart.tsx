@@ -9,27 +9,71 @@ import emailjs from "@emailjs/browser";
 
 const ShoppingCart: React.FC = () => {
   const { cart, loading, removeFromCart, clearCart } = useCart();
-  const { user } = useUser();
+  const { user }   = useUser();
   const { addOrder } = useOrders();
-  const [message, setMessage] = useState<string | null>(null);
 
-  // ---- Init EmailJS ----
+  const [message,   setMessage]   = useState<string | null>(null);
+  const [discounts, setDiscounts] = useState<Record<number, number>>({}); // productId → 0-1
+
+  /* ───── EmailJS init ───── */
   useEffect(() => {
     emailjs.init("XeZqzDWKL2_REWIhw");
   }, []);
 
-  // ---- Auto-notify on any price drop ----
+  /* ───── Fetch discounts once per product in cart ───── */
+  useEffect(() => {
+    if (cart.length === 0) return;
+
+    const idsToFetch = cart
+      .map((i) => i.productId)
+      .filter((id) => discounts[id] === undefined);
+
+    if (idsToFetch.length === 0) return;
+
+    (async () => {
+      try {
+        const results = await Promise.all(
+          idsToFetch.map((id) =>
+            axios.get(`/api/products/${id}/discount`)
+          )
+        );
+        setDiscounts((prev) => {
+          const nxt = { ...prev };
+          results.forEach((res, idx) => {
+            nxt[idsToFetch[idx]] = res.data.discount ?? 0;
+          });
+          return nxt;
+        });
+      } catch (err) {
+        console.error("Failed to fetch discounts:", err);
+      }
+    })();
+  }, [cart, discounts]);
+
+  /* ───── Helpers ───── */
+  const discountedPrice = (item: any): number =>
+    item.price * (1 - (discounts[item.productId] ?? 0));
+
+  const calculateTotal = (): number =>
+    cart.reduce(
+      (sum, item) => sum + discountedPrice(item) * item.quantity,
+      0
+    );
+
+  const formatCurrency = (amount: number): string => amount.toFixed(2);
+
+  /* ───── Auto-email on price drop (uses discounted price) ───── */
   useEffect(() => {
     if (!user || cart.length === 0) return;
 
     const key = `prev_prices_${user.id}`;
-    const prevPrices: Record<number, number> = JSON.parse(
-      localStorage.getItem(key) || "{}"
-    );
+    const prevPrices: Record<number, number> =
+      JSON.parse(localStorage.getItem(key) || "{}");
 
     cart.forEach((item) => {
-      const oldPrice = prevPrices[item.productId];
-      if (oldPrice !== undefined && item.price < oldPrice) {
+      const newP = discountedPrice(item);
+      const oldP = prevPrices[item.productId];
+      if (oldP !== undefined && newP < oldP) {
         emailjs
           .send("service_dpxa8s8", "template_db0hdkf", {
             user_name: `${user.first_name} ${user.last_name}`,
@@ -41,31 +85,27 @@ const ShoppingCart: React.FC = () => {
     });
 
     const current: Record<number, number> = {};
-    cart.forEach((item) => (current[item.productId] = item.price));
+    cart.forEach(
+      (item) => (current[item.productId] = discountedPrice(item))
+    );
     localStorage.setItem(key, JSON.stringify(current));
-  }, [cart, user]);
+  }, [cart, user, discounts]);
 
-  // ---- Clear flash messages ----
+  /* ───── Clear flash messages ───── */
   useEffect(() => {
-    if (message) {
-      const timer = setTimeout(() => setMessage(null), 3000);
-      return () => clearTimeout(timer);
-    }
+    if (!message) return;
+    const t = setTimeout(() => setMessage(null), 3000);
+    return () => clearTimeout(t);
   }, [message]);
 
-  const calculateTotal = (): number =>
-    cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  /* ───── Simple credit-card check (unchanged) ───── */
+  const isCreditCardValid = (): boolean =>
+    !!(user && user.creditCard);
 
-  const formatCurrency = (amount: number): string => amount.toFixed(2);
-
-  const isCreditCardValid = (): boolean => {
-    if (!user || !user.creditCard) return false;
-    return true; // unchanged
-  };
-
+  /* ───── Checkout handler ───── */
   const handleCheckout = async () => {
     if (cart.length === 0) return;
-    if (!user || !user.id) {
+    if (!user?.id) {
       setMessage("Please log in to confirm the checkout.");
       return;
     }
@@ -75,12 +115,12 @@ const ShoppingCart: React.FC = () => {
     }
 
     try {
-      // 1) Post to backend
+      /* 1) backend */
       const payload = {
         customer_id: user.id,
         products: cart.map((item) => ({
           productId: item.productId,
-          quantity: item.quantity,
+          quantity:  item.quantity,
         })),
         paymentInfo: user.creditCard,
       };
@@ -88,25 +128,27 @@ const ShoppingCart: React.FC = () => {
         withCredentials: true,
       });
 
-      // 2) Update frontend
+      /* 2) frontend state */
       const order = response.data;
       addOrder(order);
       clearCart();
 
-      /* // 3) EmailJS receipt
+      /* 3) Email receipt (uses discounted prices) */
       const emailParams = {
         order_id: order.id.toString(),
-        email: user.email || "no-reply@example.com",
+        email:    user.email || "no-reply@example.com",
         orders: cart.map((item) => ({
           image_url: item.image,
-          name: item.name,
-          units: item.quantity,
-          price: formatCurrency(item.price * item.quantity),
+          name:      item.name,
+          units:     item.quantity,
+          price:     formatCurrency(
+            discountedPrice(item) * item.quantity
+          ),
         })),
         cost: {
           shipping: "0.00",
-          tax: "0.00",
-          total: formatCurrency(calculateTotal()),
+          tax:      "0.00",
+          total:    formatCurrency(calculateTotal()),
         },
       };
       await emailjs.send(
@@ -114,18 +156,19 @@ const ShoppingCart: React.FC = () => {
         "template_gb3xppt",
         emailParams,
         "sLZQwIIbpMOy-EVnm"
-      );*/
+      );
 
       setMessage("Thank you for your purchase! Confirmation email sent.");
     } catch (error: any) {
       console.error("[Checkout] Error:", error.response || error);
-      setMessage(error.response?.data?.message || "Error processing checkout.");
+      setMessage(
+        error.response?.data?.message || "Error processing checkout."
+      );
     }
   };
 
-  if (loading) {
-    return <div className="shopping-cart">Loading cart...</div>;
-  }
+  /* ───── UI ───── */
+  if (loading) return <div className="shopping-cart">Loading cart...</div>;
 
   return (
     <div className="shopping-cart">
@@ -143,7 +186,8 @@ const ShoppingCart: React.FC = () => {
                   alt={item.name}
                   className="cart-item-img"
                 />
-                {item.name} — ${formatCurrency(item.price)} × {item.quantity}
+                {item.name}&nbsp;—&nbsp;$
+                {formatCurrency(discountedPrice(item))} × {item.quantity}
                 <button onClick={() => removeFromCart(item.productId)}>
                   Remove
                 </button>

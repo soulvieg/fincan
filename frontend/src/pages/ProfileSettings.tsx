@@ -16,6 +16,19 @@ const MASKED_REGEX = /^(\*{4}\s){3}\d{4}$/;
 
 const ProfileSettings: React.FC = () => {
   const { user, updateUser, deleteCreditCard } = useUser();
+
+  /* ───────── local session-persisted tax ID ───────── */
+  const [taxId, setTaxId] = useState<string>(() => {
+    // initialise from sessionStorage the first time component mounts
+    return sessionStorage.getItem("taxId") ?? "";
+  });
+  const handleTaxIdChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setTaxId(val);
+    sessionStorage.setItem("taxId", val); // persist for this browser tab
+  };
+
+  /* ───────── rest of component state ───────── */
   const [editing, setEditing] = useState(false);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [serverError, setServerError] = useState<string | null>(null);
@@ -33,6 +46,7 @@ const ProfileSettings: React.FC = () => {
     } as CreditCard,
   });
 
+  /* ───────── background styling (unchanged) ───────── */
   useEffect(() => {
     document.body.style.backgroundImage = "url('/img/background1.jpg')";
     document.body.style.backgroundSize = "cover";
@@ -50,6 +64,7 @@ const ProfileSettings: React.FC = () => {
     };
   }, []);
 
+  /* ───────── populate form from user context ───────── */
   useEffect(() => {
     if (user) {
       setFormData({
@@ -67,6 +82,7 @@ const ProfileSettings: React.FC = () => {
     }
   }, [user]);
 
+  /* ───────── generic change handler for formData ───────── */
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
@@ -85,34 +101,30 @@ const ProfileSettings: React.FC = () => {
     }
   };
 
+  /* ───────── credit-card validation (unchanged) ───────── */
   function validateCreditCard(): boolean {
     const newErrors: { [key: string]: string } = {};
     const cc = formData.creditCard.cardNumber.trim();
-    // Only validate if in edit mode and if they've actually touched cardNumber
     if (editing) {
       if (cc) {
         const isMasked = MASKED_REGEX.test(cc);
-        if (!isMasked) {
-          // must be 16 digits if not masked
-          if (!/^\d{16}$/.test(cc)) {
-            newErrors["creditCard.cardNumber"] =
-              "Enter 16 digits or leave as **** **** **** 1234";
-          }
+        if (!isMasked && !/^\d{16}$/.test(cc)) {
+          newErrors["creditCard.cardNumber"] =
+            "Enter 16 digits or leave as **** **** **** 1234";
         }
       }
       if (!formData.creditCard.expirationDate) {
-        newErrors["creditCard.expirationDate"] =
-          "Expiration date cannot be empty";
+        newErrors["creditCard.expirationDate"] = "Expiration date cannot be empty";
       }
       if (!formData.creditCard.cardholderName) {
-        newErrors["creditCard.cardholderName"] =
-          "Cardholder name cannot be empty";
+        newErrors["creditCard.cardholderName"] = "Cardholder name cannot be empty";
       }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   }
 
+  /* ───────── save profile to backend (unchanged) ───────── */
   const handleSave = async () => {
     setServerError(null);
     setServerSuccess(null);
@@ -125,9 +137,9 @@ const ProfileSettings: React.FC = () => {
         email:       formData.email,
         homeAddress: formData.address,
         phoneNumber: formData.phone_number,
+        // taxId is NOT sent – it’s purely client-side
       };
 
-      // only send creditCard if user entered a new full number
       const ccnum = formData.creditCard.cardNumber.trim();
       const isMasked = MASKED_REGEX.test(ccnum);
       if (editing && ccnum && !isMasked) {
@@ -144,11 +156,7 @@ const ProfileSettings: React.FC = () => {
         email:        updated.email,
         phone_number: updated.phoneNumber || updated.phone,
         address:      updated.homeAddress || updated.address,
-        // if we didn’t send a new card, keep old masked one
-        creditCard:
-          payload.creditCard != null
-            ? formData.creditCard
-            : user?.creditCard,
+        creditCard:   payload.creditCard ? formData.creditCard : user?.creditCard,
       });
 
       setServerSuccess("Profile updated successfully.");
@@ -157,9 +165,7 @@ const ProfileSettings: React.FC = () => {
       window.location.reload();
     } catch (err: any) {
       console.error("Update error:", err.response || err);
-      setServerError(
-        err.response?.data?.message || "Failed to update profile."
-      );
+      setServerError(err.response?.data?.message || "Failed to update profile.");
     }
   };
 
@@ -171,33 +177,25 @@ const ProfileSettings: React.FC = () => {
     }));
   };
 
+  /* ───────── render ───────── */
   return (
     <div className="profile-page-wrapper">
       <div className="container profile-settings-container">
         <div className="profile-settings">
           <h2>Profile Settings</h2>
-          {serverError && <div className="alert alert-danger">{serverError}</div>}
+
+          {serverError   && <div className="alert alert-danger">{serverError}</div>}
           {serverSuccess && <div className="alert alert-success">{serverSuccess}</div>}
 
+          {/* basic info */}
           <div className="mb-3">
             <label className="form-label">First Name:</label>
-            <input
-              name="first_name"
-              className="form-control read-only"
-              value={formData.first_name}
-              readOnly
-            />
+            <input name="first_name" className="form-control read-only" value={formData.first_name} readOnly />
           </div>
           <div className="mb-3">
             <label className="form-label">Last Name:</label>
-            <input
-              name="last_name"
-              className="form-control read-only"
-              value={formData.last_name}
-              readOnly
-            />
+            <input name="last_name" className="form-control read-only" value={formData.last_name} readOnly />
           </div>
-
           <div className="mb-3">
             <label className="form-label">Email:</label>
             <input
@@ -232,8 +230,24 @@ const ProfileSettings: React.FC = () => {
             />
           </div>
 
+          {/* NEW Tax ID field */}
+          <div className="mb-4">
+            <label className="form-label">Tax&nbsp;ID :</label>
+            <input
+              type="text"
+              name="taxId"
+              className={`form-control ${editing ? "" : "read-only"}`}
+              value={taxId}
+              onChange={handleTaxIdChange}
+              readOnly={!editing}
+              maxLength={20}
+            />
+          </div>
+
+          {/* credit card section (unchanged) */}
           <div className="credit-card-section mt-4">
             <h3>Payment Information</h3>
+            {/* card number */}
             <div className="mb-3">
               <label className="form-label">Card Number:</label>
               <input
@@ -246,11 +260,10 @@ const ProfileSettings: React.FC = () => {
                 maxLength={19}
               />
               {errors["creditCard.cardNumber"] && (
-                <div className="error-message">
-                  {errors["creditCard.cardNumber"]}
-                </div>
+                <div className="error-message">{errors["creditCard.cardNumber"]}</div>
               )}
             </div>
+            {/* expiration */}
             <div className="mb-3">
               <label className="form-label">Expiration Date (MM/YY):</label>
               <input
@@ -263,11 +276,10 @@ const ProfileSettings: React.FC = () => {
                 maxLength={5}
               />
               {errors["creditCard.expirationDate"] && (
-                <div className="error-message">
-                  {errors["creditCard.expirationDate"]}
-                </div>
+                <div className="error-message">{errors["creditCard.expirationDate"]}</div>
               )}
             </div>
+            {/* cardholder */}
             <div className="mb-3">
               <label className="form-label">Cardholder Name:</label>
               <input
@@ -279,32 +291,24 @@ const ProfileSettings: React.FC = () => {
                 readOnly={!editing}
               />
               {errors["creditCard.cardholderName"] && (
-                <div className="error-message">
-                  {errors["creditCard.cardholderName"]}
-                </div>
+                <div className="error-message">{errors["creditCard.cardholderName"]}</div>
               )}
             </div>
             {!editing && formData.creditCard.cardNumber && (
-              <button
-                className="btn btn-danger mt-2"
-                onClick={handleDeleteCard}
-              >
+              <button className="btn btn-danger mt-2" onClick={handleDeleteCard}>
                 Delete Card Information
               </button>
             )}
           </div>
 
+          {/* buttons */}
           <div className="profile-buttons mt-4">
             {editing ? (
               <button className="btn btn-success me-2" onClick={handleSave}>
                 Save Changes
               </button>
             ) : (
-              <Button
-                variant="warning"
-                size="sm"
-                onClick={() => setEditing(true)}
-              >
+              <Button variant="warning" size="sm" onClick={() => setEditing(true)}>
                 <MdOutlineModeEdit size={22} />
               </Button>
             )}
