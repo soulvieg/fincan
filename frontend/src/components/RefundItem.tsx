@@ -5,21 +5,21 @@ import { BsCheckCircleFill } from "react-icons/bs";
 import { IoCloseCircleOutline } from "react-icons/io5";
 import { Order } from "../contexts/OrderContext";
 
-interface Props {
-  order:        Order;
-  daysLeft:     number;
+interface RefundItemProps {
+  order: Order;
+  daysLeft: number;
   refundStatus: string;
-  onAccept:    (orderId: number) => void;
-  onReject:    (orderId: number) => void;
+  onAccept: (orderId: number) => void;
+  onReject: (orderId: number) => void;
 }
 
-export default function RefundItem({
+const RefundItem: React.FC<RefundItemProps> = ({
   order,
   daysLeft,
   refundStatus,
   onAccept,
   onReject,
-}: Props) {
+}) => {
   const [hover, setHover] = useState(false);
 
   const statusStyle = (s: string) => {
@@ -55,8 +55,8 @@ export default function RefundItem({
       className="rounded-row"
       style={{
         backgroundColor: "#f9f9f9",
-        transform: hover ? "scale(1.02)" : "scale(1)",
-        boxShadow: hover ? "0 4px 8px rgba(0,0,0,0.1)" : "none",
+        transform: hover ? "scale(1.02)" : undefined,
+        boxShadow: hover ? "0 4px 8px rgba(0,0,0,0.1)" : undefined,
         transition: "all 0.2s ease",
       }}
       onMouseEnter={() => setHover(true)}
@@ -65,14 +65,9 @@ export default function RefundItem({
       <td className="text-center align-middle">{order.id}</td>
       <td className="text-center align-middle">{order.customerId}</td>
       <td className="text-center align-middle">{order.customer}</td>
-      <td className="text-center align-middle">
-        ${order.total.toFixed(2)}
-      </td>
+      <td className="text-center align-middle">${(order.total ?? 0).toFixed(2)}</td>
       <td className="text-center align-middle">{order.address}</td>
-      <td
-        className="text-center align-middle"
-        style={orderStatusStyle(order.status)}
-      >
+      <td className="text-center align-middle" style={orderStatusStyle(order.status)}>
         {order.status}
       </td>
       <td className="text-center align-middle">
@@ -88,14 +83,14 @@ export default function RefundItem({
           <div
             style={{
               position: "absolute",
-              left:     "100%",
-              top:      "50%",
+              left: "100%",
+              top: "50%",
               transform: "translateY(-50%)",
-              display:  "flex",
-              gap:      "0.25rem",
-              padding:  "0.25rem",
+              display: "flex",
+              gap: "0.25rem",
+              padding: "0.25rem",
               backgroundColor: "#f9f9f9",
-              border:   "1px solid #ccc",
+              border: "1px solid #ccc",
               boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
             }}
           >
@@ -120,4 +115,6 @@ export default function RefundItem({
       </td>
     </tr>
   );
-}
+};
+
+export default RefundItem;
