@@ -184,6 +184,37 @@ async function updateProductPrice(productId, newPrice) {
   return p;
 }
 
+/**
+ * Update a product’s discount (0 – 1).
+ * @param {number} productId
+ * @param {number} discount  // e.g. 0.15 for 15 %
+ * @returns {Promise<Product>} updated product
+ */
+async function updateProductDiscount(productId, discount) {
+  if (typeof discount !== "number" || discount < 0 || discount > 1) {
+    throw new Error("Discount must be a number between 0 and 1.");
+  }
+  const product = await Product.findByPk(productId);
+  if (!product) throw new Error("Product not found.");
+
+  product.discount = discount;
+  await product.save();
+  return product;
+}
+
+/**
+ * Fetch only the current discount for a product.
+ * @param {number} productId
+ * @returns {Promise<number>} discount value
+ */
+async function fetchProductDiscount(productId) {
+  const product = await Product.findByPk(productId, {
+    attributes: ["discount"],
+  });
+  if (!product) throw new Error("Product not found.");
+  return Number(product.discount);            // ensure plain number
+}
+
 module.exports = {
   addProduct,
   getProducts,
@@ -195,4 +226,6 @@ module.exports = {
   updateProductImage,
   addCategory,
   updateProductPrice,
+  updateProductDiscount,
+  fetchProductDiscount,
 };

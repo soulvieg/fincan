@@ -13,6 +13,8 @@ const {
   rejectCommentController,
   updateImageController,
   addCategoryController,
+  updateProductDiscountController,
+  getProductDiscountController,
   updatePriceController,
 } = require("../controllers/productController");
 
@@ -47,6 +49,9 @@ router.patch("/:productId/price", updatePriceController);
 // Comment moderation
 router.put("/comments/:commentId/approve", approveCommentController);
 router.put("/comments/:commentId/reject", rejectCommentController);
+
+router.patch("/:productId/discount", updateProductDiscountController);
+router.get   ("/:productId/discount", getProductDiscountController);
 
 // Delete
 router.delete("/:productId", deleteProductController);

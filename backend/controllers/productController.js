@@ -10,6 +10,8 @@ const {
   updateProductImage,
   addCategory,
   updateProductPrice,
+  updateProductDiscount,
+  fetchProductDiscount,
 } = require("../services/productService");
 const { approveComment, rejectComment } = require("../services/commentService");
 
@@ -215,6 +217,49 @@ async function updatePriceController(req, res) {
   }
 }
 
+
+/**
+ * PATCH /api/products/:productId/discount
+ * body: { discount: 0-1 }
+ */
+async function updateProductDiscountController(req, res) {
+  try {
+    const productId = Number(req.params.productId);
+    const { discount } = req.body;
+
+    const updated = await updateProductDiscount(productId, discount);
+    return res.status(200).json({
+      product_id: updated.product_id,
+      discount:   Number(updated.discount),
+    });
+  } catch (err) {
+    return res.status(400).json({ message: err.message });
+  }
+}
+
+/**
+ * GET /api/products/:productId/discount
+ * → { product_id, discount }
+ */
+async function getProductDiscountController(req, res) {
+  try {
+    const productId = Number(req.params.productId);
+    const discount  = await fetchProductDiscount(productId);
+
+    return res.json({ product_id: productId, discount });
+  } catch (err) {
+    return res.status(404).json({ message: err.message });
+  }
+}
+
+/* 👉 don’t forget to export */
+module.exports = {
+  /* …existing exports… */
+  updateProductDiscountController,
+  getProductDiscountController,
+};
+
+
 module.exports = {
   addProductController,
   updateQuantityInStockController,
@@ -228,4 +273,6 @@ module.exports = {
   updateImageController,
   addCategoryController,
   updatePriceController,
+  updateProductDiscountController,
+  getProductDiscountController,
 };

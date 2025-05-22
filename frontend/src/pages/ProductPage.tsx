@@ -1,4 +1,3 @@
-// src/pages/ProductPage.tsx
 import React, { useState, useEffect } from "react";
 import { useProductContext, Category } from "../contexts/ProductContext";
 import { useCart } from "../contexts/CartContext";
@@ -15,16 +14,17 @@ const ProductPage: React.FC = () => {
     error,
     updateStockAfterPurchase,
   } = useProductContext();
-  const { addToCart } = useCart();
-  const navigate = useNavigate();
-  const location = useLocation();
 
-  // parse categoryId from URL (0 = All, -1 = Best Sellers, >0 real category_id)
-  const params = new URLSearchParams(location.search);
-  const initialCatParam = params.get("category");
-  const initialCategoryId = (() => {
+  const { addToCart } = useCart();
+  const navigate      = useNavigate();
+  const location      = useLocation();
+
+  /* ────────────────────────── URL → state (category) ────────────────── */
+  const params              = new URLSearchParams(location.search);
+  const initialCatParam     = params.get("category");
+  const initialCategoryId   = (() => {
     if (!initialCatParam) return 0;
-    const found = categories.find((c) => c.name === initialCatParam);
+    const found = categories.find(c => c.name === initialCatParam);
     return found ? found.category_id : 0;
   })();
 
@@ -35,13 +35,13 @@ const ProductPage: React.FC = () => {
     "default" | "priceAsc" | "priceDesc" | "ratingDesc"
   >("default");
 
-  // sync URL→state
   useEffect(() => {
     const catName = params.get("category");
-    const found = categories.find((c) => c.name === catName);
+    const found   = categories.find(c => c.name === catName);
     setSelectedCategoryId(found ? found.category_id : 0);
   }, [location.search, categories]);
 
+  /* ─────────────────────────── loading / error ───────────────────────── */
   if (loading) {
     return (
       <div className="loading-container">
@@ -50,42 +50,30 @@ const ProductPage: React.FC = () => {
       </div>
     );
   }
-  if (error) {
-    return <div className="error-message">{error}</div>;
-  }
+  if (error) return <div className="error-message">{error}</div>;
 
-  // filter by selectedCategoryId
+  /* ────────────────────── filtering & sorting logic ──────────────────── */
   const filtered = products
-    .filter((p) => {
-      if (selectedCategoryId === 0) return true;              // All
-      if (selectedCategoryId === -1) return p.is_best_seller; // Best Sellers
-      return p.category_id === selectedCategoryId;            // real category
+    .filter(p => {
+      if (selectedCategoryId === 0)  return true;              // All
+      if (selectedCategoryId === -1) return p.is_best_seller;  // Best-sellers
+      return p.category_id === selectedCategoryId;             // Specific cat
     })
-    // remove any products without a valid numeric price > 0
-    .filter((p) => {
+    .filter(p => {
       const priceNum = Number(p.price);
-      return (
-        p.price != null &&
-        isFinite(priceNum) &&
-        priceNum > 0
-      );
+      return p.price != null && isFinite(priceNum) && priceNum > 0;
     });
 
-  // then sort
   const sorted = [...filtered].sort((a, b) => {
     switch (sortMethod) {
-      case "priceAsc":
-        return a.price - b.price;
-      case "priceDesc":
-        return b.price - a.price;
-      case "ratingDesc":
-        return (b.rating || 0) - (a.rating || 0);
-      default:
-        return 0;
+      case "priceAsc":   return a.price - b.price;
+      case "priceDesc":  return b.price - a.price;
+      case "ratingDesc": return (b.rating || 0) - (a.rating || 0);
+      default:           return 0;
     }
   });
 
-  // clicking "Add to Cart"
+  /* ───────────────────────── add-to-cart handler ─────────────────────── */
   const handleAdd = async (product: any, e: React.MouseEvent) => {
     e.stopPropagation();
     if (product.quantity_in_stock === 0) return;
@@ -101,6 +89,7 @@ const ProductPage: React.FC = () => {
       image:    product.image_url,
     });
 
+    /* little toast */
     const note = document.createElement("div");
     note.className = "add-to-cart-notification";
     note.textContent = `${product.name} added to cart!`;
@@ -114,25 +103,24 @@ const ProductPage: React.FC = () => {
     }, 10);
   };
 
+  /* ───────────────────────── category nav click ──────────────────────── */
   const changeCategory = (cat: Category) => {
     setSelectedCategoryId(cat.category_id);
-    navigate(`/products?category=${encodeURIComponent(cat.name)}`, {
-      replace: true,
-    });
+    navigate(`/products?category=${encodeURIComponent(cat.name)}`, { replace:true });
   };
 
+  /* ─────────────────────────────── UI ────────────────────────────────── */
   return (
     <div className="product-page">
+      {/* --------------- filter bar --------------- */}
       <div className="filter-bar">
         <section className="categories">
           <h2>Categories</h2>
           <div className="category-buttons">
-            {categories.map((cat) => (
+            {categories.map(cat => (
               <button
                 key={cat.category_id}
-                className={`category-button ${
-                  selectedCategoryId === cat.category_id ? "active" : ""
-                }`}
+                className={`category-button ${selectedCategoryId === cat.category_id ? "active" : ""}`}
                 onClick={() => changeCategory(cat)}
               >
                 {cat.name}
@@ -140,14 +128,14 @@ const ProductPage: React.FC = () => {
             ))}
           </div>
         </section>
+
+        {/* sort dropdown */}
         <div className="sort-dropdown">
           <label htmlFor="sort">Sort by:</label>
           <select
             id="sort"
             value={sortMethod}
-            onChange={(e) =>
-              setSortMethod(e.target.value as any)
-            }
+            onChange={e => setSortMethod(e.target.value as any)}
           >
             <option value="default">Default</option>
             <option value="priceAsc">Price: Low to High</option>
@@ -157,45 +145,58 @@ const ProductPage: React.FC = () => {
         </div>
       </div>
 
+      {/* --------------- product list --------------- */}
       <section className="product-list">
-        {sorted.map((product) => (
+        {sorted.map(product => (
           <div
             key={product.product_id}
-            className={`product-card ${
-              product.is_best_seller ? "best-seller-card" : ""
-            }`}
-            onClick={() =>
-              navigate(`/product/${product.product_id}`)
-            }
+            className={`product-card ${product.is_best_seller ? "best-seller-card" : ""}`}
+            onClick={() => navigate(`/product/${product.product_id}`)}
           >
             {product.is_best_seller && (
               <div className="best-seller-badge">Best Seller</div>
             )}
 
+            {/* rating badge */}
             <div className="product-rating">
-              <span>
-                {product.rating !== null
-                  ? product.rating.toFixed(1)
-                  : "N/A"}
-              </span>
+              <span>{product.rating != null ? product.rating.toFixed(1) : "N/A"}</span>
               <StarIcon fontSize="small" />
             </div>
 
             <img src={product.image_url} alt={product.name} />
+
             <h3>{product.name}</h3>
             <p>{product.description}</p>
-            <p className="product-price">
-              ${product.price.toFixed(2)}
-            </p>
 
+            {/* ───────── price & discount display ───────── */}
+            {product.discount && product.discount > 0 ? (
+              <p className="product-price">
+                {/* discounted price */}
+                <span className="discounted">
+                  ${(product.price * (1 - product.discount)).toFixed(2)}
+                </span>
+
+                {/* original price (struck-through) */}
+                <span className="original">
+                  ${product.price.toFixed(2)}
+                </span>
+
+                {/* badge like “−25 %” */}
+                <span className="discount-badge">
+                  −{Math.round(product.discount * 100)}%
+                </span>
+              </p>
+            ) : (
+              <p className="product-price">${product.price.toFixed(2)}</p>
+            )}
+
+            {/* add-to-cart button */}
             <button
               className="add-to-cart-button"
               disabled={product.quantity_in_stock === 0}
-              onClick={(e) => handleAdd(product, e)}
+              onClick={e => handleAdd(product, e)}
             >
-              {product.quantity_in_stock === 0
-                ? "Out of Stock"
-                : "Add to Cart"}
+              {product.quantity_in_stock === 0 ? "Out of Stock" : "Add to Cart"}
             </button>
           </div>
         ))}

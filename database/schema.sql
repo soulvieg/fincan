@@ -52,13 +52,25 @@ CREATE TABLE Products (
     model             VARCHAR(255)    NULL,
     serial_number     VARCHAR(255)    NULL,
     description       TEXT            NULL,
-    quantity_in_stock INT             NOT NULL DEFAULT 0 CHECK (quantity_in_stock >= 0),
+
+    quantity_in_stock INT             NOT NULL DEFAULT 0
+                                        CHECK (quantity_in_stock >= 0),
+
     price             DECIMAL(10,2)   NOT NULL,
+
+    /*  NEW  ───────────────────────────────────────────────────────────── */
+    -- Fractional discount between 0 and 1   (e.g. 0.20  =>  20 % off)
+    discount          DECIMAL(3,2)    NOT NULL DEFAULT 0.00
+                                        CHECK (discount >= 0.00 AND discount <= 1.00),
+    /* ─────────────────────────────────────────────────────────────────── */
+
     warranty_status   VARCHAR(100)    NULL,
     distributor_info  VARCHAR(512)    NULL,
     image_url         VARCHAR(512)    NULL,
     is_best_seller    BOOLEAN         NOT NULL DEFAULT FALSE,
+
     PRIMARY KEY (product_id),
+
     FOREIGN KEY (category_id)
       REFERENCES Categories(category_id)
       ON DELETE SET NULL
