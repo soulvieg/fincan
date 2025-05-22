@@ -20,9 +20,9 @@ async function placeOrder({ customer_id, products /*, paymentInfo */ }) {
   for (const { productId, quantity } of products) {
     const prod = await Product.findByPk(productId);
     if (!prod) throw new Error(`Product ${productId} not found`);
-    if (prod.quantity_in_stock < quantity) {
-      throw new Error(`Not enough stock for product ${productId}`);
-    }
+    //if (prod.quantity_in_stock < quantity) {
+    //  throw new Error(`Not enough stock for product ${productId}`);
+    //}
 
     prod.quantity_in_stock -= quantity;
     await prod.save();

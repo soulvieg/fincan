@@ -47,11 +47,11 @@ const LoginUser: React.FC = () => {
          --------------------------------------------- */
       const lower = email.toLowerCase().trim();
       if (lower === "products@fincan.com") {
-        window.location.href = "http://localhost:3000/admin/inventory";
+        window.location.href = "http://localhost/admin/inventory";
         return;
       }
       if (lower === "sales@fincan.com") {
-        window.location.href = "http://localhost:3000/admin/sales";
+        window.location.href = "http://localhost/admin/sales";
         return;
       }
 
