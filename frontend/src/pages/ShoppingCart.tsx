@@ -27,7 +27,7 @@ const ShoppingCart: React.FC = () => {
       localStorage.getItem(key) || "{}"
     );
 
-    cart.forEach(item => {
+    cart.forEach((item) => {
       const oldPrice = prevPrices[item.productId];
       if (oldPrice !== undefined && item.price < oldPrice) {
         emailjs
@@ -36,12 +36,12 @@ const ShoppingCart: React.FC = () => {
             email: user.email,
           })
           .then(() => console.log(`Discount email sent for ${item.name}`))
-          .catch(err => console.error("EmailJS error:", err));
+          .catch((err) => console.error("EmailJS error:", err));
       }
     });
 
     const current: Record<number, number> = {};
-    cart.forEach(item => (current[item.productId] = item.price));
+    cart.forEach((item) => (current[item.productId] = item.price));
     localStorage.setItem(key, JSON.stringify(current));
   }, [cart, user]);
 
@@ -56,8 +56,7 @@ const ShoppingCart: React.FC = () => {
   const calculateTotal = (): number =>
     cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  const formatCurrency = (amount: number): string =>
-    amount.toFixed(2);
+  const formatCurrency = (amount: number): string => amount.toFixed(2);
 
   const isCreditCardValid = (): boolean => {
     if (!user || !user.creditCard) return false;
@@ -65,7 +64,63 @@ const ShoppingCart: React.FC = () => {
   };
 
   const handleCheckout = async () => {
-    // existing checkout code…
+    if (cart.length === 0) return;
+    if (!user || !user.id) {
+      setMessage("Please log in to confirm the checkout.");
+      return;
+    }
+    if (!isCreditCardValid()) {
+      setMessage("Please add a valid credit card to your account.");
+      return;
+    }
+
+    try {
+      // 1) Post to backend
+      const payload = {
+        customer_id: user.id,
+        products: cart.map((item) => ({
+          productId: item.productId,
+          quantity: item.quantity,
+        })),
+        paymentInfo: user.creditCard,
+      };
+      const response = await axios.post("/api/orders", payload, {
+        withCredentials: true,
+      });
+
+      // 2) Update frontend
+      const order = response.data;
+      addOrder(order);
+      clearCart();
+
+      /* // 3) EmailJS receipt
+      const emailParams = {
+        order_id: order.id.toString(),
+        email: user.email || "no-reply@example.com",
+        orders: cart.map((item) => ({
+          image_url: item.image,
+          name: item.name,
+          units: item.quantity,
+          price: formatCurrency(item.price * item.quantity),
+        })),
+        cost: {
+          shipping: "0.00",
+          tax: "0.00",
+          total: formatCurrency(calculateTotal()),
+        },
+      };
+      await emailjs.send(
+        "service_icp8vi6",
+        "template_gb3xppt",
+        emailParams,
+        "sLZQwIIbpMOy-EVnm"
+      );*/
+
+      setMessage("Thank you for your purchase! Confirmation email sent.");
+    } catch (error: any) {
+      console.error("[Checkout] Error:", error.response || error);
+      setMessage(error.response?.data?.message || "Error processing checkout.");
+    }
   };
 
   if (loading) {
@@ -81,7 +136,7 @@ const ShoppingCart: React.FC = () => {
       ) : (
         <>
           <ul>
-            {cart.map(item => (
+            {cart.map((item) => (
               <li key={item.productId}>
                 <img
                   src={item.image}
@@ -97,18 +152,13 @@ const ShoppingCart: React.FC = () => {
           </ul>
 
           <h3>Total: ${formatCurrency(calculateTotal())}</h3>
-          <button
-            className="checkout-button"
-            onClick={handleCheckout}
-          >
+          <button className="checkout-button" onClick={handleCheckout}>
             Proceed to Checkout
           </button>
         </>
       )}
 
-      {message && (
-        <div className="purchase-message">{message}</div>
-      )}
+      {message && <div className="purchase-message">{message}</div>}
     </div>
   );
 };
