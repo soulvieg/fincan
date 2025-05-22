@@ -1,82 +1,69 @@
 // backend/models/Product.js
 const { DataTypes } = require("sequelize");
-const sequelize = require("../config/db");
+const sequelize     = require("../config/db");
 
 const Product = sequelize.define(
   "Product",
   {
+    /* ───────────────────────── primary key ─────────────────────────── */
     product_id: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
+      type:          DataTypes.INTEGER,
+      primaryKey:    true,
       autoIncrement: true,
-      field: "product_id",
+      field:         "product_id",
     },
+
+    /* ───────────────────────── foreign keys / basic info ───────────── */
     category_id: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
-      field: "category_id",
+      type:      DataTypes.INTEGER,
+      allowNull: true,          // matches table definition (NULL allowed)
+      field:     "category_id",
     },
-    sku: {
-      type: DataTypes.STRING(50),
-      allowNull: true,
-      field: "sku",
-    },
-    name: {
-      type: DataTypes.STRING(255),
-      allowNull: false,
-      field: "name",
-    },
-    model: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      field: "model",
-    },
-    serial_number: {
-      type: DataTypes.STRING(255),
-      allowNull: true,
-      field: "serial_number",
-    },
-    description: {
-      type: DataTypes.TEXT,
-      allowNull: true,
-      field: "description",
-    },
+    sku:            { type: DataTypes.STRING(50),  field: "sku"            },
+    name:           { type: DataTypes.STRING(255), allowNull:false, field:"name" },
+    model:          { type: DataTypes.STRING(255), field: "model"          },
+    serial_number:  { type: DataTypes.STRING(255), field: "serial_number"  },
+    description:    { type: DataTypes.TEXT,        field: "description"    },
+
+    /* ───────────────────────── inventory & pricing ─────────────────── */
     quantity_in_stock: {
-      type: DataTypes.INTEGER,
-      allowNull: false,
+      type:         DataTypes.INTEGER,
+      allowNull:    false,
       defaultValue: 0,
-      field: "quantity_in_stock",
+      field:        "quantity_in_stock",
     },
     price: {
-      type: DataTypes.DECIMAL(10, 2),
+      type:      DataTypes.DECIMAL(10,2),
       allowNull: false,
-      field: "price",
+      field:     "price",
     },
-    warranty_status: {
-      type: DataTypes.STRING(100),
-      allowNull: true,
-      field: "warranty_status",
+
+    /* NEW – fractional discount (0 ≤ discount ≤ 1)  —────────────────── */
+    discount: {
+      type:         DataTypes.DECIMAL(3,2),
+      allowNull:    false,
+      defaultValue: 0.00,
+      validate: {
+        min: 0,
+        max: 1,
+      },
+      field: "discount",
     },
-    distributor_info: {
-      type: DataTypes.STRING(512),
-      allowNull: true,
-      field: "distributor_info",
-    },
-    image_url: {
-      type: DataTypes.STRING(512),
-      allowNull: true,
-      field: "image_url",
-    },
+
+    /* ───────────────────────── misc. fields ────────────────────────── */
+    warranty_status: { type: DataTypes.STRING(100), field: "warranty_status" },
+    distributor_info:{ type: DataTypes.STRING(512), field: "distributor_info"},
+    image_url:       { type: DataTypes.STRING(512), field: "image_url"       },
+
     is_best_seller: {
-      type: DataTypes.BOOLEAN,
-      allowNull: false,
+      type:         DataTypes.BOOLEAN,
+      allowNull:    false,
       defaultValue: false,
-      field: "is_best_seller",
+      field:        "is_best_seller",
     },
-    // if you later add a rating column, define it here; for now it's computed
   },
   {
-    tableName: "Products",
+    tableName:  "Products",
     timestamps: false,
   }
 );

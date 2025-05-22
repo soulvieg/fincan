@@ -22,6 +22,7 @@ export type Product = {
   image_url:         string;
   is_best_seller:    boolean;
   rating:            number | null;
+  discount:         number; // 0 – 1
 };
 
 export type Category = {

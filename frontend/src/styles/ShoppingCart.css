@@ -285,3 +285,13 @@
 .shopping-cart button.remove-button:hover {
   background-color: #c82333;
 }
+
+.cart-name               { margin: 0 8px; font-weight: 500; }
+.cart-price              { font-weight: 600; }
+
+.cart-price-discounted   { color:#c92a2a; font-weight:700; margin-left:4px; }
+.cart-price-original     { text-decoration: line-through; color:#7d7d7d;
+                           margin-left:6px; font-size:0.9rem; }
+.cart-discount-badge     { background:#c92a2a; color:#fff; font-size:0.75rem;
+                           font-weight:700; padding:2px 6px; border-radius:12px;
+                           margin-left:6px; }
