@@ -1,9 +1,9 @@
 // backend/services/orderService.js
 const sequelize = require("../config/db");
-const Order   = require("../models/Order");
-const User    = require("../models/User");
+const Order = require("../models/Order");
+const User = require("../models/User");
 const Product = require("../models/Product");
-const Refund  = require("../models/Refund");
+const Refund = require("../models/Refund");
 
 /* -------------------------------------------------- */
 /*  Place order                                       */
@@ -12,7 +12,7 @@ async function placeOrder({ customer_id, products /*, paymentInfo */ }) {
   const customer = await User.findByPk(customer_id);
   if (!customer) throw new Error("You must be logged in to place an order.");
 
-  const nextOrderId = (await Order.max("order_id") || 0) + 1;
+  const nextOrderId = ((await Order.max("order_id")) || 0) + 1;
 
   let total = 0;
   const lines = [];
@@ -32,9 +32,9 @@ async function placeOrder({ customer_id, products /*, paymentInfo */ }) {
     lines.push({
       order_id: nextOrderId,
       customer_id,
-      product_id:   productId,
+      product_id: productId,
       quantity,
-      order_date:   new Date(),
+      order_date: new Date(),
       order_status: "processing",
       total_amount: total,
     });
@@ -50,7 +50,10 @@ async function placeOrder({ customer_id, products /*, paymentInfo */ }) {
 async function cancelOrder(orderId) {
   const t = await sequelize.transaction();
   try {
-    const items = await Order.findAll({ where: { order_id: orderId }, transaction: t });
+    const items = await Order.findAll({
+      where: { order_id: orderId },
+      transaction: t,
+    });
 
     let amount = 0;
     for (const line of items) {
@@ -85,7 +88,10 @@ async function cancelOrder(orderId) {
 async function requestRefund(orderId) {
   const t = await sequelize.transaction();
   try {
-    const existing = await Refund.findOne({ where: { order_id: orderId }, transaction: t });
+    const existing = await Refund.findOne({
+      where: { order_id: orderId },
+      transaction: t,
+    });
     if (existing) throw new Error("Refund already requested for this order.");
 
     const [[{ customerId, refundAmount }]] = await sequelize.query(
@@ -124,7 +130,7 @@ async function requestRefund(orderId) {
 async function updateRefundStatus(orderId, newStatus) {
   const VALID = ["Waiting for Refund", "Refunded", "Refund Denied"];
   const normalized = VALID.find(
-    v => v.toLowerCase() === String(newStatus).trim().toLowerCase()
+    (v) => v.toLowerCase() === String(newStatus).trim().toLowerCase()
   );
   if (!normalized) throw new Error(`Invalid refund status: "${newStatus}"`);
 
@@ -132,7 +138,7 @@ async function updateRefundStatus(orderId, newStatus) {
   const t = await sequelize.transaction();
   try {
     const [refundRow, created] = await Refund.findOrCreate({
-      where:    { order_id: orderId },
+      where: { order_id: orderId },
       defaults: { refund_status: normalized },
       transaction: t,
     });
@@ -149,9 +155,14 @@ async function updateRefundStatus(orderId, newStatus) {
       normalized === "Refunded" && refundRow.refund_status !== "Refunded";
 
     if (becomingRefunded) {
-      const items = await Order.findAll({ where: { order_id: orderId }, transaction: t });
+      const items = await Order.findAll({
+        where: { order_id: orderId },
+        transaction: t,
+      });
       for (const line of items) {
-        const prod = await Product.findByPk(line.product_id, { transaction: t });
+        const prod = await Product.findByPk(line.product_id, {
+          transaction: t,
+        });
         if (!prod) throw new Error(`Product ${line.product_id} not found`);
         prod.quantity_in_stock += line.quantity;
         await prod.save({ transaction: t });
@@ -176,6 +187,15 @@ async function updateRefundStatus(orderId, newStatus) {
 async function getRefundByOrderId(orderId) {
   return Refund.findOne({ where: { order_id: orderId } });
 }
+async function hasUserPurchasedProduct(customerId, productId) {
+  const result = await Order.findOne({
+    where: {
+      customer_id: customerId,
+      product_id: productId,
+    },
+  });
+  return !!result;
+}
 
 module.exports = {
   placeOrder,
@@ -183,4 +203,5 @@ module.exports = {
   requestRefund,
   updateRefundStatus,
   getRefundByOrderId,
+  hasUserPurchasedProduct,
 };
