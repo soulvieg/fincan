@@ -153,7 +153,9 @@ export const useCart = () => {
   return context;
 };*/
 
+// src/contexts/CartContext.tsx
 import React, { createContext, useState, useContext, useEffect } from "react";
+import axios from "axios";
 import { useUser } from "./UserContext";
 
 interface CartItemWithDetails {
@@ -196,6 +198,33 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const [loading, setLoading] = useState<boolean>(false);
   const { user } = useUser();
 
+  // ─── OPTION A: Re-sync prices from /api/products once on mount ─────────
+  useEffect(() => {
+    if (cart.length === 0) return;
+
+    (async () => {
+      try {
+        setLoading(true);
+        const res = await axios.get("/api/products");
+        const allProducts: any[] = res.data;
+        const updatedCart = cart.map((item) => {
+          const fresh = allProducts.find(
+            (p) => p.product_id === item.productId
+          );
+          return fresh
+            ? { ...item, price: parseFloat(fresh.price) }
+            : item;
+        });
+        setCart(updatedCart);
+      } catch (err) {
+        console.error("Error refreshing cart prices:", err);
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, []); // run only once
+
+  // persist to localStorage
   useEffect(() => {
     localStorage.setItem("cart", JSON.stringify(cart));
   }, [cart]);
@@ -210,9 +239,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
       const savedCart = localStorage.getItem("cart");
-      if (savedCart) {
-        setCart(JSON.parse(savedCart));
-      }
+      if (savedCart) setCart(JSON.parse(savedCart));
     } catch (error) {
       console.error("Error fetching cart:", error);
     } finally {
@@ -227,7 +254,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     try {
       setLoading(true);
 
-      let productId, name, price, image, qty;
+      // initialize with safe defaults
+      let productId: number;
+      let name: string = "";
+      let price: number = 0;
+      let image: string = "";
+      let qty: number;
+
       if (typeof productIdOrItem === "number") {
         productId = productIdOrItem;
         qty = quantity || 1;
@@ -244,17 +277,22 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         quantity: qty,
         ...(user?.id
           ? { customer_id: user.id }
-          : { session_id: localStorage.getItem("guest_session_id") || generateSession() }),
+          : {
+              session_id:
+                localStorage.getItem("guest_session_id") ||
+                generateSession(),
+            }),
       };
 
-      const response = await fetch("http://localhost:5001/api/cart", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
+      const response = await fetch(
+        "http://localhost:5001/api/cart",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(body),
+        }
+      );
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to add to cart");
       }
@@ -267,16 +305,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         quantity: qty,
       };
 
-      setCart((prevCart) => {
-        const existingIndex = prevCart.findIndex((item) => item.productId === productId);
-        if (existingIndex >= 0) {
-          const updated = [...prevCart];
-          updated[existingIndex].quantity += qty;
+      setCart((prev) => {
+        const idx = prev.findIndex((i) => i.productId === productId);
+        if (idx >= 0) {
+          const updated = [...prev];
+          updated[idx].quantity += qty;
           return updated;
         }
-        return [...prevCart, newItem];
+        return [...prev, newItem];
       });
-
     } catch (error: any) {
       alert(error.message || "Error adding to cart");
       console.error(error);
@@ -288,8 +325,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const removeFromCart = async (productId: number) => {
     try {
       setLoading(true);
-      setCart((prevCart) =>
-        prevCart.filter((item) => item.productId !== productId)
+      setCart((prev) =>
+        prev.filter((item) => item.productId !== productId)
       );
     } catch (error) {
       console.error("Error removing from cart:", error);
@@ -312,7 +349,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   return (
     <CartContext.Provider
-      value={{ cart, loading, addToCart, removeFromCart, clearCart, fetchCart }}
+      value={{
+        cart,
+        loading,
+        addToCart,
+        removeFromCart,
+        clearCart,
+        fetchCart,
+      }}
     >
       {children}
     </CartContext.Provider>
@@ -320,10 +364,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 };
 
 export const useCart = () => {
-  const context = useContext(CartContext);
-  if (!context) {
-    throw new Error("useCart must be used within a CartProvider");
-  }
-  return context;
+  const ctx = useContext(CartContext);
+  if (!ctx) throw new Error("useCart must be used within a CartProvider");
+  return ctx;
 };
-
