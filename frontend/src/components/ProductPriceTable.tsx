@@ -3,163 +3,107 @@ import { Table, Button, InputGroup, Form, Card } from "react-bootstrap";
 import { MdOutlineModeEdit } from "react-icons/md";
 import { FaCheck, FaTimes } from "react-icons/fa";
 import axios from "axios";
+import "../styles/CustomTables.css";
 
-interface Product {
-  product_id: number;
-  name: string;
-  price: number;
-}
+/* ─────────── shared palette ─────────── */
+const CARD_BG      = "#fff0e2";
+const HEADER_COLOR = "#6b3503";
+const TH_STYLE     = { background: "#e2eaff", color: "#264e70" };
+const ID_BADGE     = { background: "#f3e6ff", color: "#872ff7" };
+const PRICE_BADGE  = { background: "#fde9d7", color: "#de7015" };
 
-const ProductPriceTable: React.FC = () => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [tempPrices, setTempPrices] = useState<Record<number, number>>({});
+/* types */
+interface Product { product_id:number; name:string; price:number; }
 
-  useEffect(() => {
-    axios.get("http://localhost:5001/api/products")
-      .then(res => {
-        const data = res.data;
-        const seen = new Set();
-        const duplicates = data.filter((item: Product) => {
-          if (seen.has(item.product_id)) return true;
-          seen.add(item.product_id);
-          return false;
-        });
-        if (duplicates.length > 0) {
-          console.warn("⚠️ Duplicate product IDs found:", duplicates);
-        } else {
-          console.log("✅ No duplicate IDs. Products fetched:", data);
-        }
-        setProducts(data);
-      })
-      .catch(err => console.error("Failed to fetch products", err));
-  }, []);
+export default function ProductPriceTable() {
+  const [products,   setProducts] = useState<Product[]>([]);
+  const [editingId,  setEditing]  = useState<number|null>(null);
+  const [tempPrice,  setTemp]     = useState<Record<number,number>>({});
 
-  const handleEditClick = (product: Product) => {
-    setEditingId(product.product_id);
-    setTempPrices(prev => ({ ...prev, [product.product_id]: product.price }));
+  /* fetch products (sorted) */
+  useEffect(()=>{
+    axios.get("/api/products")
+      .then(res=>setProducts([...res.data].sort((a,b)=>a.product_id-b.product_id)))
+      .catch(err=>console.error("Failed to fetch products:",err));
+  },[]);
+
+  /* helpers */
+  const beginEdit = (p:Product)=>{
+    setEditing(p.product_id);
+    setTemp(t=>({ ...t, [p.product_id]: p.price }));
+  };
+  const cancel   = ()=>setEditing(null);
+  const save     = async (p:Product)=>{
+    const val=tempPrice[p.product_id];
+    await axios.put(`/api/products/${p.product_id}`,{ price:val });
+    setProducts(ps=>ps.map(x=>x.product_id===p.product_id?{...x,price:val}:x));
+    setEditing(null);
   };
 
-  const handleCancel = () => {
-    setEditingId(null);
-    setTempPrices(prev => {
-      const { [editingId!]: _, ...rest } = prev;
-      return rest;
-    });
-  };
-
-  const handleSave = async (product: Product) => {
-    const updatedPrice = tempPrices[product.product_id];
-    try {
-      await axios.put(`http://localhost:5001/api/products/${product.product_id}`, {
-        price: updatedPrice
-      });
-      setProducts(p =>
-        p.map(prd =>
-          prd.product_id === product.product_id ? { ...prd, price: updatedPrice } : prd
-        )
-      );
-      setEditingId(null);
-    } catch (err) {
-      alert("Failed to update price");
-    }
-  };
-
+  /* render */
   return (
-    <Card className="shadow-sm rounded-4 mt-4 border-0" style={{ background: "#ADD8E6" }}>
-      <Card.Header as="h4" className="py-3 px-4 border-0 bg-transparent" style={{ color: '#00000' }}>
-         Set Product Prices
+    <Card className="rounded-border" style={{ background:CARD_BG }}>
+      <Card.Header as="h4" style={{ color:HEADER_COLOR, background:"transparent", borderBottom:"none" }}>
+        Set Product Prices
       </Card.Header>
 
-      <Card.Body className="py-4 px-4">
-        <Table bordered responsive hover className="rounded-3 overflow-hidden mb-0" style={{ background: "#fff" }}>
-          <thead>
-            <tr style={{ background: "#ffe7ba", color: "#aa7722" }}>
-              <th className="text-center align-middle">ID</th>
-              <th className="text-center align-middle">Name</th>
-              <th className="text-center align-middle">Price</th>
-              <th className="text-center align-middle">Actions</th>
-            </tr>
-          </thead>
+      <Card.Body>
+        <Table
+          bordered hover responsive
+          className="custom-table"
+          style={{ background:"#fff", borderCollapse:"separate", borderSpacing:"0 8px" }}
+        >
+          <thead><tr style={TH_STYLE}>
+            <th className="text-center">ID</th><th className="text-center">Name</th>
+            <th className="text-center">Price</th><th className="text-center">Actions</th>
+          </tr></thead>
+
           <tbody>
-            {products.map(product => (
-              <tr key={product.product_id} className={editingId === product.product_id ? "table-warning" : ""}>
+            {products.map(p=>(
+              <tr key={p.product_id} className="rounded-row">
+                {/* ID */}
                 <td className="text-center align-middle">
-                  <span style={{
-                    background: '#f3e6ff',
-                    color: '#872ff7',
-                    borderRadius: '16px',
-                    padding: '2px 12px',
-                    fontSize: '0.98rem'
-                  }}>
-                    {product.product_id}
-                  </span>
+                  <span style={{ ...ID_BADGE, borderRadius:16, padding:"2px 12px" }}>{p.product_id}</span>
                 </td>
-                <td className="align-middle text-center">{product.name}</td>
+
+                {/* Name */}
+                <td className="text-center align-middle">{p.name}</td>
+
+                {/* Price (edit / display) */}
                 <td className="text-center align-middle">
-                  {editingId === product.product_id ? (
+                  {editingId===p.product_id ? (
                     <InputGroup size="sm" className="justify-content-center">
                       <Form.Control
-                        type="number"
-                        min="0"
-                        value={tempPrices[product.product_id] ?? ""}
-                        onChange={e =>
-                          setTempPrices(prev => ({
-                            ...prev,
-                            [product.product_id]: Number(e.target.value)
-                          }))
-                        }
-                        style={{ maxWidth: 100, borderRadius: 10, border: "1px solid #eacbbf", boxShadow: "none" }}
+                        type="number" min="0" step="0.01"
+                        value={tempPrice[p.product_id]??""}
+                        onChange={e=>setTemp(t=>({ ...t, [p.product_id]:Number(e.target.value) }))}
+                        style={{ maxWidth:100, borderRadius:10, boxShadow:"none" }}
                         autoFocus
                       />
-                      <InputGroup.Text className="bg-white border-0" style={{ color: "#e88f13" }}>
-                        $
-                      </InputGroup.Text>
+                      <InputGroup.Text className="bg-white border-0">$</InputGroup.Text>
                     </InputGroup>
                   ) : (
-                    <span style={{
-                      background: '#fde9d7',
-                      color: '#de7015',
-                      borderRadius: '14px',
-                      padding: '2px 18px',
-                      fontSize: '1.01rem'
-                    }}>
-                      ${product.price.toFixed(2)}
+                    <span style={{ ...PRICE_BADGE, borderRadius:14, padding:"2px 18px" }}>
+                      ${p.price.toFixed(2)}
                     </span>
                   )}
                 </td>
+
+                {/* Actions */}
                 <td className="text-center align-middle">
-                  {editingId === product.product_id ? (
+                  {editingId===p.product_id ? (
                     <>
-                      <Button
-                        variant="outline-success"
-                        size="sm"
-                        onClick={() => handleSave(product)}
-                        className="me-2 px-2 py-1 rounded-circle border-0 shadow-sm d-inline-flex justify-content-center align-items-center"
-                        style={{ width: 32, height: 32 }}
-                      >
-                        <FaCheck size={16} />
-                      </Button>
-                      <Button
-                        variant="outline-danger"
-                        size="sm"
-                        onClick={handleCancel}
-                        className="px-2 py-1 rounded-circle border-0 shadow-sm d-inline-flex justify-content-center align-items-center"
-                        style={{ width: 32, height: 32 }}
-                      >
-                        <FaTimes size={16} />
-                      </Button>
+                      <Button variant="outline-success" size="sm" onClick={()=>save(p)}
+                              className="me-2 rounded-circle border-0 shadow-sm d-inline-flex justify-content-center align-items-center"
+                              style={{ width:32, height:32 }}><FaCheck size={16}/></Button>
+                      <Button variant="outline-danger"  size="sm" onClick={cancel}
+                              className="rounded-circle border-0 shadow-sm d-inline-flex justify-content-center align-items-center"
+                              style={{ width:32, height:32 }}><FaTimes size={16}/></Button>
                     </>
                   ) : (
-                    <Button
-                      variant="outline-warning"
-                      size="sm"
-                      onClick={() => handleEditClick(product)}
-                      className="rounded-circle border-0 shadow-sm px-2 py-1 d-inline-flex justify-content-center align-items-center"
-                      style={{ width: 32, height: 32 }}
-                    >
-                      <MdOutlineModeEdit size={16} color="#e07018" />
-                    </Button>
+                    <Button variant="outline-warning" size="sm" onClick={()=>beginEdit(p)}
+                            className="rounded-circle border-0 shadow-sm d-inline-flex justify-content-center align-items-center"
+                            style={{ width:32, height:32 }}><MdOutlineModeEdit size={16} color="#e07018"/></Button>
                   )}
                 </td>
               </tr>
@@ -169,6 +113,4 @@ const ProductPriceTable: React.FC = () => {
       </Card.Body>
     </Card>
   );
-};
-
-export default ProductPriceTable;
+}

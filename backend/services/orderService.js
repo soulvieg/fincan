@@ -1,62 +1,64 @@
 // backend/services/orderService.js
 const sequelize = require("../config/db");
-const Order     = require("../models/Order");
-const User      = require("../models/User");
-const Product   = require("../models/Product");
-const Refund    = require("../models/Refund");
+const Order   = require("../models/Order");
+const User    = require("../models/User");
+const Product = require("../models/Product");
+const Refund  = require("../models/Refund");
 
-/**
- * Place a new order…
- */
-async function placeOrder({ customer_id, products, paymentInfo }) {
+/* -------------------------------------------------- */
+/*  Place order                                       */
+/* -------------------------------------------------- */
+async function placeOrder({ customer_id, products /*, paymentInfo */ }) {
   const customer = await User.findByPk(customer_id);
   if (!customer) throw new Error("You must be logged in to place an order.");
 
-  const maxOrderId  = await Order.max("order_id");
-  const nextOrderId = (maxOrderId || 0) + 1;
+  const nextOrderId = (await Order.max("order_id") || 0) + 1;
 
-  let totalAmount = 0;
-  const lines     = [];
+  let total = 0;
+  const lines = [];
 
   for (const { productId, quantity } of products) {
     const prod = await Product.findByPk(productId);
-    if (!prod) throw new Error(`Product ${productId} not found.`);
+    if (!prod) throw new Error(`Product ${productId} not found`);
     if (prod.quantity_in_stock < quantity) {
-      throw new Error(`Not enough stock for product ${productId}.`);
+      throw new Error(`Not enough stock for product ${productId}`);
     }
+
     prod.quantity_in_stock -= quantity;
     await prod.save();
-    totalAmount += Number(prod.price) * quantity;
+
+    total += Number(prod.price) * quantity;
+
     lines.push({
-      order_id:     nextOrderId,
+      order_id: nextOrderId,
       customer_id,
       product_id:   productId,
       quantity,
       order_date:   new Date(),
       order_status: "processing",
-      total_amount: totalAmount,
+      total_amount: total,
     });
   }
 
   await Order.bulkCreate(lines);
-  return { order_id: nextOrderId, total_amount: totalAmount };
+  return { order_id: nextOrderId, total_amount: total };
 }
 
-/**
- * Cancel an order group…
- */
+/* -------------------------------------------------- */
+/*  Cancel order (auto-refund request)                */
+/* -------------------------------------------------- */
 async function cancelOrder(orderId) {
   const t = await sequelize.transaction();
   try {
     const items = await Order.findAll({ where: { order_id: orderId }, transaction: t });
-    let refundAmount = 0;
 
+    let amount = 0;
     for (const line of items) {
       const prod = await Product.findByPk(line.product_id, { transaction: t });
       if (!prod) throw new Error(`Product ${line.product_id} not found`);
       prod.quantity_in_stock += line.quantity;
       await prod.save({ transaction: t });
-      refundAmount += Number(prod.price) * line.quantity;
+      amount += Number(prod.price) * line.quantity;
     }
 
     await Order.update(
@@ -65,7 +67,7 @@ async function cancelOrder(orderId) {
     );
 
     await Refund.create(
-      { order_id: orderId, refund_status: "Waiting for Refund", amount: refundAmount },
+      { order_id: orderId, refund_status: "Waiting for Refund", amount },
       { transaction: t }
     );
 
@@ -77,9 +79,9 @@ async function cancelOrder(orderId) {
   }
 }
 
-/**
- * Request a refund (separate from cancellation)…
- */
+/* -------------------------------------------------- */
+/*  Manual refund request (for delivered orders)      */
+/* -------------------------------------------------- */
 async function requestRefund(orderId) {
   const t = await sequelize.transaction();
   try {
@@ -88,9 +90,8 @@ async function requestRefund(orderId) {
 
     const [[{ customerId, refundAmount }]] = await sequelize.query(
       `
-      SELECT
-        o.customer_id            AS customerId,
-        SUM(p.price * o.quantity) AS refundAmount
+      SELECT o.customer_id AS customerId,
+             SUM(p.price * o.quantity) AS refundAmount
       FROM Orders o
       JOIN Products p ON p.product_id = o.product_id
       WHERE o.order_id = ?
@@ -100,9 +101,15 @@ async function requestRefund(orderId) {
     );
 
     const refund = await Refund.create(
-      { order_id: orderId, customer_id: customerId, amount: refundAmount, refund_status: "Waiting for Refund" },
+      {
+        order_id: orderId,
+        customer_id: customerId,
+        amount: refundAmount,
+        refund_status: "Waiting for Refund",
+      },
       { transaction: t }
     );
+
     await t.commit();
     return refund;
   } catch (err) {
@@ -111,9 +118,9 @@ async function requestRefund(orderId) {
   }
 }
 
-/**
- * Update refund status…
- */
+/* -------------------------------------------------- */
+/*  Update refund status + optional restock           */
+/* -------------------------------------------------- */
 async function updateRefundStatus(orderId, newStatus) {
   const VALID = ["Waiting for Refund", "Refunded", "Refund Denied"];
   const normalized = VALID.find(
@@ -121,23 +128,53 @@ async function updateRefundStatus(orderId, newStatus) {
   );
   if (!normalized) throw new Error(`Invalid refund status: "${newStatus}"`);
 
-  const [row, created] = await Refund.findOrCreate({
-    where:    { order_id: orderId },
-    defaults: { refund_status: normalized }
-  });
+  // Everything—including optional restock—inside one transaction
+  const t = await sequelize.transaction();
+  try {
+    const [refundRow, created] = await Refund.findOrCreate({
+      where:    { order_id: orderId },
+      defaults: { refund_status: normalized },
+      transaction: t,
+    });
 
-  if (!created) {
-    row.refund_status = normalized;
-    await row.save();
+    // If no change, we’re done
+    if (!created && refundRow.refund_status === normalized) {
+      await t.commit();
+      return refundRow;
+    }
+
+    // --- OPTIONAL STOCK RETURN ------------------------------------------
+    // Only when transitioning *to* "Refunded" for the first time
+    const becomingRefunded =
+      normalized === "Refunded" && refundRow.refund_status !== "Refunded";
+
+    if (becomingRefunded) {
+      const items = await Order.findAll({ where: { order_id: orderId }, transaction: t });
+      for (const line of items) {
+        const prod = await Product.findByPk(line.product_id, { transaction: t });
+        if (!prod) throw new Error(`Product ${line.product_id} not found`);
+        prod.quantity_in_stock += line.quantity;
+        await prod.save({ transaction: t });
+      }
+    }
+    // --------------------------------------------------------------------
+
+    refundRow.refund_status = normalized;
+    await refundRow.save({ transaction: t });
+
+    await t.commit();
+    return refundRow;
+  } catch (err) {
+    await t.rollback();
+    throw err;
   }
-  return row;
 }
 
-/**
- * Lookup a refund by order_id
- */
+/* -------------------------------------------------- */
+/*  Utility                                           */
+/* -------------------------------------------------- */
 async function getRefundByOrderId(orderId) {
-  return await Refund.findOne({ where: { order_id: orderId } });
+  return Refund.findOne({ where: { order_id: orderId } });
 }
 
 module.exports = {
