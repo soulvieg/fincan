@@ -214,7 +214,7 @@ Built during the course by, in alphabetical order of GitHub handle:
 - [Ahmet Nusret Avcı](https://github.com/nusret)
 - [Can Çağlar](https://github.com/HCanCaglar)
 - [Chronomortis](https://github.com/Chronomortis)
-- [Edoardo Carpena](https://github.com/soulvieg)
+- [Edoardo Cecca](https://github.com/soulvieg)
 - [Egi Çekici](https://github.com/egi-c)
 - [Lyana Al Havasli](https://github.com/lyanalhavasli)
 - [Mehmet Berkay Çatak](https://github.com/xylocroft)
